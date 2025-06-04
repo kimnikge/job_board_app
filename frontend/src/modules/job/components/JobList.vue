@@ -1,6 +1,8 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import ApplicationForm from '../../otclik/components/ApplicationForm.vue'
+import EmptyState from '@/shared/ui/EmptyState.vue'
+import LoadingSpinner from '@/shared/ui/LoadingSpinner.vue'
 
 const jobs = ref([])
 const loading = ref(true)
@@ -48,9 +50,8 @@ const myResumeId = 1
 </script>
 <template>
   <div class="job-list">
-    <div v-if="loading">Загрузка...</div>
-    <div v-else-if="error">{{ error }}</div>
-    <div v-else-if="jobs.length === 0">Вакансий нет</div>
+    <LoadingSpinner v-if="loading" />
+    <EmptyState v-else-if="!jobs.length" message="Нет вакансий" />
     <div v-else>
       <div v-for="job in pagedJobs" :key="job.id" class="job-card">
         <div class="job-header">

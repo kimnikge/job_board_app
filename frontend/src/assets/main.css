@@ -1,7 +1,8 @@
 @import './base.css';
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css');
 
 #app {
-  max-width: 1280px;
+  /* max-width: 1280px; */
   margin: 0 auto;
   padding: 2rem;
   font-weight: normal;
@@ -32,4 +33,52 @@ a,
     grid-template-columns: 1fr 1fr;
     padding: 0 2rem;
   }
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --color-bg: #f8f9ff;
+  --color-header: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --color-card: #fff;
+  --color-text: #222;
+  --color-primary: #667eea;
+  --color-secondary: #764ba2;
+  --color-accent: #e0e7ff;
+  --color-shadow: 0 0 30px rgba(0,0,0,0.2);
+  --color-footer: #1e293b;
+  --color-badge: #fff;
+  --color-badge-text: #764ba2;
+}
+[data-theme="dark"] {
+  --color-bg: #23243a;
+  --color-header: linear-gradient(135deg, #23243a 0%, #3a3b5a 100%);
+  --color-card: #2d2e4a;
+  --color-text: #f3f3f3;
+  --color-primary: #667eea;
+  --color-secondary: #764ba2;
+  --color-accent: #3a3b5a;
+  --color-shadow: 0 0 30px rgba(0,0,0,0.5);
+  --color-footer: #18192b;
+  --color-badge: #764ba2;
+  --color-badge-text: #fff;
+}
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: var(--color-header);
+  min-height: 100vh;
+  color: var(--color-text);
+}
+
+.app-container {
+  max-width: 414px;
+  margin: 0 auto;
+  background: var(--color-bg);
+  min-height: 100vh;
+  position: relative;
+  box-shadow: var(--color-shadow);
 }

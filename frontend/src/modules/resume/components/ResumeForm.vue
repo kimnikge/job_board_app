@@ -1,6 +1,9 @@
 <script setup>
 import { ref } from 'vue'
 import api from '../services/api'
+import AvatarUpload from '@/modules/user/components/AvatarUpload.vue'
+
+const tags = ref([])
 
 const form = ref({
   user_id: 1,
@@ -18,7 +21,8 @@ const form = ref({
     telegram: '',
     linkedin: '',
     portfolio: ''
-  }
+  },
+  tags: []
 })
 
 const addLanguage = () => form.value.languages.push('')
@@ -56,7 +60,10 @@ const submit = async () => {
     }
     form.value.social_links = socialLinks
 
-    const response = await api.createResume(form.value)
+    const response = await api.createResume({
+      ...form.value,
+      tags: tags.value
+    })
     if (response.data) {
       form.value = {
         user_id: 1,
@@ -69,7 +76,8 @@ const submit = async () => {
         education: [{ name: '', year: '', organization: '' }],
         avatar_url: '',
         work_experience: [{ place: '', position: '', period: '', description: '' }],
-        social_links: { instagram: '', telegram: '', linkedin: '', portfolio: '' }
+        social_links: { instagram: '', telegram: '', linkedin: '', portfolio: '' },
+        tags: []
       }
       alert('Резюме успешно создано!')
     }
@@ -99,9 +107,7 @@ const submit = async () => {
       </div>
       <div class="form-group">
         <label>Фото (загрузить или url)</label>
-        <input type="file" accept="image/*" @change="handleAvatar">
-        <input v-model="form.avatar_url" class="form-input" placeholder="https://example.com/photo.jpg">
-        <div v-if="form.avatar" style="margin-top:10px"><img :src="form.avatar" alt="avatar" style="max-width:100px;max-height:100px;border-radius:8px;"></div>
+        <AvatarUpload @update:avatar="form.avatar = $event" />
       </div>
     </div>
     <div class="form-section">
@@ -180,6 +186,10 @@ const submit = async () => {
         <label>Портфолио</label>
         <input v-model="form.social_links.portfolio" class="form-input" placeholder="https://portfolio.com">
       </div>
+    </div>
+    <div class="form-group">
+      <label>Теги/категории (через запятую)</label>
+      <input v-model="form.tagsString" @input="form.tags = form.tagsString.split(',').map(t => t.trim()).filter(Boolean)" placeholder="Например: повар, веган, бариста" />
     </div>
     <button type="submit" class="submit-button">Сохранить резюме</button>
   </form>

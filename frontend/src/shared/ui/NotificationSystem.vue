@@ -1,78 +1,152 @@
 <template>
-  <div class="notifications">
-    <div v-for="n in notifications" :key="n.id" :class="['notification', n.is_read ? 'read' : 'unread']">
-      <div class="notification-title">{{ n.title }}</div>
-      <div class="notification-message">{{ n.message }}</div>
-      <div class="notification-meta">{{ formatDate(n.created_at) }}</div>
-      <button v-if="!n.is_read" @click="markRead(n.id)">Прочитано</button>
-    </div>
+  <div class="notification-container">
+    <transition-group name="notification-fade" tag="div">
+      <div
+        v-for="notification in activeNotifications"
+        :key="notification.id"
+        :class="['notification-item', `notification-item--${notification.type}`]"
+      >
+        <div class="notification-content">
+          <strong v-if="notification.title" class="notification-title">{{ notification.title }}</strong>
+          <p class="notification-message">{{ notification.message }}</p>
+          <p v-if="notification.details" class="notification-details">{{ notification.details }}</p>
+        </div>
+        <button @click="removeNotification(notification.id)" class="notification-close">&times;</button>
+      </div>
+    </transition-group>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import otclikApi from '../../modules/otclik/services/otclikApi'
+import { ref, onMounted, onUnmounted } from 'vue';
+import eventBus from '../eventBus';
 
-const notifications = ref([])
+const activeNotifications = ref([]);
+let notificationIdCounter = 0;
 
-onMounted(async () => {
-  notifications.value = await otclikApi.getNotifications()
-})
+const defaultTimeout = 5000; // 5 seconds
 
-async function markRead(id) {
-  await otclikApi.markNotificationRead(id)
-  const n = notifications.value.find(n => n.id === id)
-  if (n) n.is_read = true
+function addNotification({ type = 'info', message, title = '', details = '', duration }) {
+  const id = notificationIdCounter++;
+  activeNotifications.value.push({
+    id,
+    type, // 'success', 'error', 'info', 'warning'
+    title,
+    message,
+    details,
+  });
+
+  setTimeout(() => {
+    removeNotification(id);
+  }, duration || defaultTimeout);
 }
 
-function formatDate(date) {
-  return new Date(date).toLocaleString('ru-RU')
+function removeNotification(id) {
+  activeNotifications.value = activeNotifications.value.filter(
+    (notification) => notification.id !== id
+  );
 }
+
+// Handler for event bus
+const handleShowNotification = (payload) => {
+  addNotification(payload);
+};
+
+onMounted(() => {
+  eventBus.on('show-notification', handleShowNotification);
+});
+
+onUnmounted(() => {
+  eventBus.off('show-notification', handleShowNotification);
+});
+
+// Expose method for manual use if needed (e.g. from parent component via ref)
+defineExpose({
+  show: addNotification,
+});
+
 </script>
 
 <style scoped>
-.notifications {
+.notification-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  margin: 18px 0;
+  gap: 10px;
+  width: 320px;
 }
-.notification {
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,136,204,0.04);
-  padding: 12px 18px;
-  position: relative;
-}
-.notification.unread {
-  border-left: 4px solid #0088cc;
-}
-.notification.read {
-  opacity: 0.7;
-}
-.notification-title {
-  font-weight: 700;
-  color: #0088cc;
-  margin-bottom: 4px;
-}
-.notification-message {
+
+.notification-item {
+  background-color: #fff;
   color: #333;
-  margin-bottom: 6px;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  border-left-width: 5px;
+  border-left-style: solid;
 }
-.notification-meta {
-  color: #888;
-  font-size: 12px;
+
+.notification-item--info {
+  border-left-color: #2196F3; /* Blue */
 }
-button {
-  position: absolute;
-  top: 12px;
-  right: 18px;
-  background: #00bfae;
-  color: #fff;
+.notification-item--success {
+  border-left-color: #4CAF50; /* Green */
+}
+.notification-item--warning {
+  border-left-color: #FF9800; /* Orange */
+}
+.notification-item--error {
+  border-left-color: #F44336; /* Red */
+}
+
+.notification-content {
+  flex-grow: 1;
+}
+
+.notification-title {
+  font-weight: bold;
+  margin-bottom: 5px;
+  display: block;
+}
+
+.notification-message {
+  margin: 0;
+  font-size: 0.9rem;
+}
+.notification-details {
+  margin-top: 5px;
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.notification-close {
+  background: none;
   border: none;
-  border-radius: 6px;
-  padding: 4px 12px;
-  font-size: 12px;
+  color: #aaa;
+  font-size: 20px;
+  line-height: 1;
   cursor: pointer;
+  padding: 0 0 0 10px; /* Add some padding to make it easier to click */
+  align-self: flex-start; /* Align to the top of the flex container */
+}
+.notification-close:hover {
+  color: #333;
+}
+
+/* Transitions */
+.notification-fade-enter-active,
+.notification-fade-leave-active {
+  transition: all 0.5s ease;
+}
+.notification-fade-enter-from,
+.notification-fade-leave-to {
+  opacity: 0;
+  transform: translateX(30px);
 }
 </style>

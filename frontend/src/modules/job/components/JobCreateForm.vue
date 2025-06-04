@@ -1,14 +1,31 @@
-
-
 <script setup>
 import { ref } from 'vue'
+import { createClient } from '@supabase/supabase-js'
+
+const supabaseUrl = 'https://kuyudpxqlrinkcxvorom.supabase.co'
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt1eXVkcHhxbHJpbmtjeHZvcm9tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg5NjgxOTksImV4cCI6MjA2NDU0NDE5OX0.b9_7QdZDvt36ohzVOl4OGGEt344c7x1AMOQzFTNOT8k'
+const supabase = createClient(supabaseUrl, supabaseKey)
 
 const title = ref('')
 const description = ref('')
 const salary = ref('')
-const submitJob = () => {
-  console.log('Создание вакансии:', { title: title.value, description: description.value, salary: salary.value })
-  // TODO: добавить сохранение в Supabase
+
+const submitJob = async () => {
+  const { error } = await supabase.from('job_postings').insert([
+    {
+      title: title.value,
+      description: description.value,
+      salary_range: salary.value
+    }
+  ])
+  if (error) {
+    alert('Ошибка при создании вакансии: ' + error.message)
+  } else {
+    alert('Вакансия успешно создана!')
+    title.value = ''
+    description.value = ''
+    salary.value = ''
+  }
 }
 </script>
 
@@ -35,12 +52,30 @@ const submitJob = () => {
 
 <style scoped>
 .input {
-  @apply w-full border rounded px-3 py-2;
+  width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  padding: 8px 12px;
+  box-sizing: border-box;
 }
 .textarea {
-  @apply w-full border rounded px-3 py-2 min-h-[100px];
+  width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  padding: 8px 12px;
+  min-height: 100px;
+  box-sizing: border-box;
 }
 .btn-primary {
-  @apply bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700;
+  background: #2563eb;
+  color: #fff;
+  padding: 8px 16px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-primary:hover {
+  background: #1d4ed8;
 }
 </style>

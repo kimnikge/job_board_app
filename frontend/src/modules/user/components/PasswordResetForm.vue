@@ -1,18 +1,15 @@
 <template>
-  <form @submit.prevent="onLogin" class="login-form">
-    <h2 class="title">Вход</h2>
+  <form @submit.prevent="onReset" class="reset-form">
+    <h2 class="title">Восстановление пароля</h2>
     <div class="form-group">
       <label for="email">Email</label>
       <input v-model="email" id="email" type="email" required class="input" />
     </div>
-    <div class="form-group">
-      <label for="password">Пароль</label>
-      <input v-model="password" id="password" type="password" required class="input" />
-    </div>
+    <div v-if="message" class="message">{{ message }}</div>
     <div v-if="error" class="error">{{ error }}</div>
     <button type="submit" class="btn-primary" :disabled="loading">
-      <span v-if="loading">Вход...</span>
-      <span v-else>Войти</span>
+      <span v-if="loading">Отправка...</span>
+      <span v-else>Сбросить пароль</span>
     </button>
   </form>
 </template>
@@ -26,29 +23,27 @@ const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS
 const supabase = createClient(supabaseUrl, supabaseKey)
 
 const email = ref('')
-const password = ref('')
 const error = ref('')
+const message = ref('')
 const loading = ref(false)
 
-const onLogin = async () => {
+const onReset = async () => {
   error.value = ''
+  message.value = ''
   loading.value = true
-  const { error: loginError } = await supabase.auth.signInWithPassword({
-    email: email.value,
-    password: password.value
-  })
+  const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.value)
   loading.value = false
-  if (loginError) {
-    error.value = 'Ошибка входа: ' + loginError.message
+  if (resetError) {
+    error.value = 'Ошибка: ' + resetError.message
   } else {
-    // Можно добавить редирект или emit события
-    window.location.reload()
+    message.value = 'Письмо для сброса пароля отправлено на ваш email.'
+    email.value = ''
   }
 }
 </script>
 
 <style scoped>
-.login-form {
+.reset-form {
   max-width: 350px;
   margin: 40px auto;
   padding: 32px 24px;
@@ -92,6 +87,11 @@ const onLogin = async () => {
 }
 .error {
   color: #dc2626;
+  margin-bottom: 12px;
+  text-align: center;
+}
+.message {
+  color: #16a34a;
   margin-bottom: 12px;
   text-align: center;
 }

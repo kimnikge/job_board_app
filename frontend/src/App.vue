@@ -1,75 +1,13 @@
 <template>
-  <div class="mobile-app">
-    <header>
-      <h1>JOB-BOARD</h1>
-    </header>
-
-    <!-- Поиск и фильтры только для сотрудников и срочных -->
-    <div v-if="section === 'employees' || section === 'urgent'" class="search-bar">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M11 19C15.4183 19 19 15.4183 19 11C19 6.58172 15.4183 3 11 3C6.58172 3 3 6.58172 3 11C3 15.4183 6.58172 19 11 19Z" stroke="#888" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M21 21L16.65 16.65" stroke="#888" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-      <input type="text" placeholder="Поиск сотрудников" v-model="search" />
-    </div>
-    <div v-if="section === 'employees'" class="filters">
-      <div v-for="f in filters" :key="f" class="filter" :class="{active: filter === f}" @click="filter = f">{{ f }}</div>
-    </div>
-
-    <!-- Контент по разделам -->
-    <div class="cards-container">
-      <template v-if="section === 'employees' || section === 'urgent'">
-        <div v-if="filteredEmployees.length === 0" class="empty-msg">Нет сотрудников по выбранным параметрам</div>
-        <div v-for="emp in filteredEmployees" :key="emp.name" class="employee-card">
-          <div class="employee-photo" :style="{backgroundImage: `url('${emp.photo}')`}" >
-            <div class="status" :class="emp.status"></div>
-          </div>
-          <div class="employee-info">
-            <div>
-              <div class="employee-name">{{ emp.name }}</div>
-              <div class="employee-position">{{ emp.position }}</div>
-              <div class="employee-skills">
-                <div v-for="s in emp.skills" :key="s" class="skill">{{ s }}</div>
-              </div>
-            </div>
-            <div class="employee-footer">
-              <div class="employee-price">{{ emp.price }}</div>
-              <div class="employee-exp">Опыт {{ emp.exp }}</div>
-            </div>
-          </div>
-        </div>
-      </template>
-      <template v-else-if="section === 'jobs'">
-        <div class="section-placeholder">
-          <div class="section-icon">💼</div>
-          <div class="section-title">Вакансии</div>
-          <div class="section-desc">Здесь будет список вакансий и фильтры по ним</div>
-        </div>
-      </template>
-      <template v-else-if="section === 'profile'">
-        <JobSeekerProfile v-if="userRole === 'job_seeker'" />
-        <EmployerProfile v-else-if="userRole === 'employer'" />
-        <MyApplications v-if="userRole === 'job_seeker'" />
-        <EmployerApplications v-else-if="userRole === 'employer'" />
-        <div v-else class="section-placeholder">
-          <div class="section-icon">👤</div>
-          <div class="section-title">Профиль</div>
-          <div class="section-desc">Здесь будет ваш личный кабинет</div>
-        </div>
-      </template>
-    </div>
-
-    <footer>
-      <div v-for="(s, i) in sections" :key="s.route" class="tab" :class="{active: section === s.route}" @click="setSection(s.route)">
-        <div class="tab-icon">{{ s.icon }}</div>
-        <div>{{ s.label }}</div>
-        <div v-if="s.badge" class="badge">{{ s.badge }}</div>
-      </div>
-    </footer>
-  </div>
+  <GlobalErrorBoundary>
+    <NotificationSystem />
+    <router-view />
+  </GlobalErrorBoundary>
 </template>
 
 <script setup>
+import NotificationSystem from './shared/ui/NotificationSystem.vue'
+import GlobalErrorBoundary from './shared/ui/GlobalErrorBoundary.vue'
 import { ref, computed, watchEffect, onMounted } from 'vue'
 import { supabase } from '@/supabase'
 import JobSeekerProfile from './modules/user/components/JobSeekerProfile.vue'
@@ -170,7 +108,7 @@ function setSection(route) {
   --status-offline: #9E9E9E;
 }
 .mobile-app {
-  max-width: 500px;
+  /* max-width: 500px; */
   margin: 0 auto;
   min-height: 100vh;
   background: var(--tg-secondary);
@@ -331,7 +269,7 @@ footer {
   position: fixed;
   bottom: 0;
   width: 100%;
-  max-width: 500px;
+  /* max-width: 500px; */
   background: #fff;
   display: flex;
   justify-content: space-around;

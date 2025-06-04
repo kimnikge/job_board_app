@@ -42,6 +42,15 @@ function toggleStatus(job) {
 
 <style scoped>
 .btn-primary {
-  @apply bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700;
+  background: #4f46e5;
+  color: #fff;
+  padding: 8px 16px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-primary:hover {
+  background: #3730a3;
 }
 </style>

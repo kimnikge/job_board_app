@@ -1,9 +1,8 @@
-module.exports = {
+export default {
   moduleFileExtensions: ['js', 'json', 'vue'],
   transform: {
-    '^.+\\.vue$': '@vue/vue3-jest',
-    '^.+\\.js$': 'babel-jest',
-    '^.+\\.mjs$': 'babel-jest'
+    // vue-файлы не обрабатываются, так как vue-jest удалён
+    '^.+\\.[jt]s$': 'babel-jest'
   },
   testEnvironment: 'jsdom',
   moduleNameMapper: {

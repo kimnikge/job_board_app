@@ -1,8 +1,11 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import api from '../services/api'
+import EmptyState from '@/shared/ui/EmptyState.vue'
+import LoadingSpinner from '@/shared/ui/LoadingSpinner.vue'
 
 const resumes = ref([])
+const loading = ref(true)
 
 const hasAnySocialLink = (links) => {
   return links && Object.values(links).some(link => link)
@@ -14,98 +17,104 @@ onMounted(async () => {
     resumes.value = res.data
   } catch (error) {
     console.error(error)
+  } finally {
+    loading.value = false
   }
 })
 </script>
 
 <template>
   <div class="resumes-list">
-    <div v-for="resume in resumes" :key="resume.id" class="resume-card">
-      <div class="resume-header">
-        <div class="avatar" v-if="resume.avatar">
-          <img :src="resume.avatar" :alt="resume.full_name">
-        </div>
-        <div class="avatar" v-else-if="resume.avatar_url">
-          <img :src="resume.avatar_url" :alt="resume.full_name">
-        </div>
-        <div class="avatar placeholder" v-else>
-          {{ resume.full_name[0] }}
-        </div>
-        <div class="basic-info">
-          <h3>{{ resume.full_name }}</h3>
-          <p class="city">{{ resume.city }}</p>
-          <a :href="'tel:' + resume.phone" class="phone-button">
-            <i class="phone-icon">📞</i>
-            {{ resume.phone }}
-          </a>
-        </div>
-      </div>
-
-      <div class="resume-section" v-if="resume.languages && resume.languages.length">
-        <h4>Языки</h4>
-        <ul class="languages">
-          <li v-for="lang in resume.languages" :key="lang">{{ lang }}</li>
-        </ul>
-      </div>
-
-      <div class="resume-section" v-if="resume.hard_skills && resume.hard_skills.length">
-        <h4>Профессиональные навыки</h4>
-        <ul class="hard-skills">
-          <li v-for="skill in resume.hard_skills" :key="skill.name">
-            <span class="skill-name">{{ skill.name }}</span>
-            <span class="skill-level">({{ skill.level }}/5)</span>
-          </li>
-        </ul>
-      </div>
-
-      <div class="resume-section" v-if="resume.education && resume.education.length">
-        <h4>Образование</h4>
-        <ul class="education">
-          <li v-for="edu in resume.education" :key="edu.name + edu.year">
-            <strong>{{ edu.name }}</strong>, {{ edu.organization }} ({{ edu.year }})
-          </li>
-        </ul>
-      </div>
-
-      <div class="resume-section" v-if="resume.work_experience?.length">
-        <h4>Опыт работы</h4>
-        <div v-for="(exp, index) in resume.work_experience" :key="index" class="work-experience">
-          <div class="work-header">
-            <strong>{{ exp.place }}</strong>
-            <span class="period">{{ exp.period }}</span>
+    <LoadingSpinner v-if="loading" />
+    <EmptyState v-else-if="!resumes.length" message="Нет резюме" />
+    <div v-else>
+      <div v-for="resume in resumes" :key="resume.id" class="resume-card">
+        <div class="resume-header">
+          <div class="avatar" v-if="resume.avatar">
+            <img :src="resume.avatar" :alt="resume.full_name">
           </div>
-          <p class="position">{{ exp.position }}</p>
-          <p class="description" v-if="exp.description">{{ exp.description }}</p>
+          <div class="avatar" v-else-if="resume.avatar_url">
+            <img :src="resume.avatar_url" :alt="resume.full_name">
+          </div>
+          <div class="avatar placeholder" v-else>
+            {{ resume.full_name[0] }}
+          </div>
+          <div class="basic-info">
+            <h3>{{ resume.full_name }}</h3>
+            <p class="city">{{ resume.city }}</p>
+            <a :href="'tel:' + resume.phone" class="phone-button">
+              <i class="phone-icon">📞</i>
+              {{ resume.phone }}
+            </a>
+          </div>
         </div>
-      </div>
 
-      <div class="resume-section" v-if="hasAnySocialLink(resume.social_links)">
-        <h4>Социальные сети</h4>
-        <div class="social-links">
-          <a v-if="resume.social_links.instagram" 
-             :href="resume.social_links.instagram" 
-             target="_blank" 
-             class="social-link instagram">
-            Instagram
-          </a>
-          <a v-if="resume.social_links.telegram" 
-             :href="'https://t.me/' + resume.social_links.telegram.replace('@', '')" 
-             target="_blank" 
-             class="social-link telegram">
-            Telegram
-          </a>
-          <a v-if="resume.social_links.linkedin" 
-             :href="resume.social_links.linkedin" 
-             target="_blank" 
-             class="social-link linkedin">
-            LinkedIn
-          </a>
-          <a v-if="resume.social_links.portfolio" 
-             :href="resume.social_links.portfolio" 
-             target="_blank" 
-             class="social-link portfolio">
-            Портфолио
-          </a>
+        <div class="resume-section" v-if="resume.languages && resume.languages.length">
+          <h4>Языки</h4>
+          <ul class="languages">
+            <li v-for="lang in resume.languages" :key="lang">{{ lang }}</li>
+          </ul>
+        </div>
+
+        <div class="resume-section" v-if="resume.hard_skills && resume.hard_skills.length">
+          <h4>Профессиональные навыки</h4>
+          <ul class="hard-skills">
+            <li v-for="skill in resume.hard_skills" :key="skill.name">
+              <span class="skill-name">{{ skill.name }}</span>
+              <span class="skill-level">({{ skill.level }}/5)</span>
+            </li>
+          </ul>
+        </div>
+
+        <div class="resume-section" v-if="resume.education && resume.education.length">
+          <h4>Образование</h4>
+          <ul class="education">
+            <li v-for="edu in resume.education" :key="edu.name + edu.year">
+              <strong>{{ edu.name }}</strong>, {{ edu.organization }} ({{ edu.year }})
+            </li>
+          </ul>
+        </div>
+
+        <div class="resume-section" v-if="resume.work_experience?.length">
+          <h4>Опыт работы</h4>
+          <div v-for="(exp, index) in resume.work_experience" :key="index" class="work-experience">
+            <div class="work-header">
+              <strong>{{ exp.place }}</strong>
+              <span class="period">{{ exp.period }}</span>
+            </div>
+            <p class="position">{{ exp.position }}</p>
+            <p class="description" v-if="exp.description">{{ exp.description }}</p>
+          </div>
+        </div>
+
+        <div class="resume-section" v-if="hasAnySocialLink(resume.social_links)">
+          <h4>Социальные сети</h4>
+          <div class="social-links">
+            <a v-if="resume.social_links.instagram" 
+               :href="resume.social_links.instagram" 
+               target="_blank" 
+               class="social-link instagram">
+              Instagram
+            </a>
+            <a v-if="resume.social_links.telegram" 
+               :href="'https://t.me/' + resume.social_links.telegram.replace('@', '')" 
+               target="_blank" 
+               class="social-link telegram">
+              Telegram
+            </a>
+            <a v-if="resume.social_links.linkedin" 
+               :href="resume.social_links.linkedin" 
+               target="_blank" 
+               class="social-link linkedin">
+              LinkedIn
+            </a>
+            <a v-if="resume.social_links.portfolio" 
+               :href="resume.social_links.portfolio" 
+               target="_blank" 
+               class="social-link portfolio">
+              Портфолио
+            </a>
+          </div>
         </div>
       </div>
     </div>
