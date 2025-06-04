@@ -6,7 +6,7 @@
       </slot>
     </header>
     <main class="auth-main">
-      <slot />
+      <router-view />
     </main>
     <footer class="auth-footer">
       <slot name="footer">
