@@ -22,10 +22,9 @@ func (m *MockJobPostingService) CreateJobPosting(post JobPosting) (JobPosting, e
 
 // Test function
 func TestCreateJobPosting(t *testing.T) {
-	mockService := new(MockJobPostingService)
-	handler := NewJobPostingHandler(mockService)
-
 	t.Run("successful job posting creation", func(t *testing.T) {
+		mockService := new(MockJobPostingService)
+		handler := NewJobPostingHandler(mockService)
 		mockService.On("CreateJobPosting", mock.Anything).Return(JobPosting{ID: 1}, nil)
 
 		req, err := http.NewRequest("POST", "/job-postings", nil)
@@ -39,6 +38,8 @@ func TestCreateJobPosting(t *testing.T) {
 	})
 
 	t.Run("failed job posting creation", func(t *testing.T) {
+		mockService := new(MockJobPostingService)
+		handler := NewJobPostingHandler(mockService)
 		mockService.On("CreateJobPosting", mock.Anything).Return(JobPosting{}, errors.New("some error"))
 
 		req, err := http.NewRequest("POST", "/job-postings", nil)

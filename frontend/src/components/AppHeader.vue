@@ -1,16 +1,24 @@
 <template>
   <header class="app-header">
-    <nav class="nav-menu">
-      <router-link to="/" class="nav-item">Главная</router-link>
-      <router-link to="/jobs" class="nav-item">Вакансии</router-link>
-      <router-link to="/urgent" class="nav-item urgent-link">
-        <i class="fas fa-bolt"></i>
-        Срочно
-      </router-link>
-      <router-link to="/companies" class="nav-item">Компании</router-link>
-    </nav>
+    <div class="header-content">
+      <h1 class="app-title">
+        <ZapIcon class="w-5 h-5" />
+        Job Board
+      </h1>
+    </div>
   </header>
 </template>
+
+<script>
+import { ZapIcon } from 'lucide-vue-next'
+
+export default {
+  name: 'AppHeader',
+  components: {
+    ZapIcon
+  }
+}
+</script>
 
 <style scoped>
 .urgent-link {

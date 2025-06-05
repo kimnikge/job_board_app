@@ -3,6 +3,7 @@ import { ref, onMounted, computed } from 'vue'
 import ApplicationForm from '../../otclik/components/ApplicationForm.vue'
 import EmptyState from '@/shared/ui/EmptyState.vue'
 import LoadingSpinner from '@/shared/ui/LoadingSpinner.vue'
+import jobApi from '../services/jobApi'
 
 const jobs = ref([])
 const loading = ref(true)
@@ -27,17 +28,9 @@ function prevPage() {
 
 onMounted(async () => {
   try {
-    // Здесь должен быть реальный API-запрос к backend, например через jobApi
-    // Пока что демо-данные:
-    jobs.value = [
-      { id: 1, title: 'Повар', company: 'Ресторан', location: 'Алматы', salary: '100 000₸', is_active: true, is_approved: true },
-      { id: 2, title: 'Бариста', company: 'Кофейня', location: 'Астана', salary: '80 000₸', is_active: true, is_approved: true },
-      { id: 3, title: 'Официант', company: 'Кафе', location: 'Шымкент', salary: '70 000₸', is_active: true, is_approved: true },
-      { id: 4, title: 'Менеджер', company: 'Отель', location: 'Алматы', salary: '150 000₸', is_active: true, is_approved: true },
-      { id: 5, title: 'Уборщица', company: 'Офис', location: 'Астана', salary: '60 000₸', is_active: true, is_approved: true },
-      { id: 6, title: 'Повар', company: 'Столовая', location: 'Алматы', salary: '90 000₸', is_active: true, is_approved: true }
-    ]
-    total.value = jobs.value.length
+    const response = await jobApi.getJobs()
+    jobs.value = response.data
+    total.value = response.data.length
   } catch (e) {
     error.value = 'Ошибка загрузки вакансий'
   } finally {

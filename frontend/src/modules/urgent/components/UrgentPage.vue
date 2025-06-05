@@ -1,108 +1,150 @@
 <template>
   <div class="urgent-page">
-    <!-- Заголовок -->
-    <div class="page-header">
-      <h1>Срочные вакансии</h1>
-      <p class="subtitle">Актуальные предложения, требующие быстрого отклика</p>
-    </div>
-
-    <!-- Фильтры -->
-    <div class="filters">
-      <div class="search-box">
-        <i class="fas fa-search"></i>
-        <input 
-          type="text" 
-          placeholder="Поиск срочных вакансий..."
-          v-model="searchQuery"
-          @input="handleSearch"
-        >
+    <div class="pt-4 pb-16">
+      <!-- Заголовок -->
+      <div class="page-header">
+        <h1 class="text-2xl font-bold text-gray-900">Срочные вакансии</h1>
+        <p class="text-gray-600 mt-2">Актуальные предложения, требующие быстрого отклика</p>
       </div>
-      
-      <div class="filter-options">
-        <select v-model="selectedCategory" @change="applyFilters">
-          <option value="">Все категории</option>
-          <option 
+
+      <!-- Фильтры -->
+      <div class="filters" ref="filtersContainer">
+        <div class="search-box">
+          <SearchIcon class="w-5 h-5 text-gray-400" />
+          <input 
+            type="text" 
+            placeholder="Поиск срочных вакансий..."
+            v-model="searchQuery"
+            @input="handleSearch"
+            class="w-full bg-transparent border-none outline-none text-gray-700"
+          >
+        </div>
+        
+        <div class="filter-grid">
+          <div 
+            class="filter-button"
+            :class="{ active: !selectedCategory }"
+            @click="toggleDropdown('category')"
+          >
+            Все категории
+          </div>
+           <div 
+            class="filter-button"
+            :class="{ active: !selectedLocation }"
+            @click="toggleDropdown('location')"
+          >
+            Все города
+          </div>
+        </div>
+
+        <div v-if="showCategoryDropdown" class="dropdown-options">
+           <div 
+            class="dropdown-item"
+            :class="{ active: !selectedCategory }"
+            @click="selectOption('category', '')"
+          >
+            Все категории
+          </div>
+          <div 
             v-for="category in categories" 
-            :key="category.id" 
-            :value="category.id"
+            :key="category.id"
+            class="dropdown-item"
+            :class="{ active: selectedCategory === category.id }"
+            @click="selectOption('category', category.id)"
           >
             {{ category.name }}
-          </option>
-        </select>
-
-        <select v-model="selectedLocation" @change="applyFilters">
-          <option value="">Все города</option>
-          <option value="moscow">Москва</option>
-          <option value="spb">Санкт-Петербург</option>
-          <option value="remote">Удаленно</option>
-        </select>
-      </div>
-    </div>
-
-    <!-- Список срочных вакансий -->
-    <div class="urgent-jobs">
-      <div 
-        v-for="job in filteredJobs" 
-        :key="job.id"
-        class="urgent-job-card"
-        @click="navigateToJob(job.id)"
-      >
-        <div class="urgent-badge">
-          <i class="fas fa-bolt"></i>
-          Срочно
-        </div>
-
-        <div class="job-header">
-          <img :src="job.companyLogo" :alt="job.companyName" class="company-logo">
-          <div class="job-info">
-            <h3>{{ job.title }}</h3>
-            <p class="company-name">{{ job.companyName }}</p>
           </div>
         </div>
 
-        <div class="job-details">
-          <div class="detail-item">
-            <i class="fas fa-money-bill-wave"></i>
-            <span class="salary">{{ job.salary }}</span>
-          </div>
-          <div class="detail-item">
-            <i class="fas fa-map-marker-alt"></i>
-            <span>{{ job.location }}</span>
-          </div>
-          <div class="detail-item">
-            <i class="fas fa-clock"></i>
-            <span>{{ job.deadline }}</span>
-          </div>
-        </div>
-
-        <div class="job-description">
-          {{ job.description }}
-        </div>
-
-        <div class="job-tags">
-          <span 
-            v-for="tag in job.tags" 
-            :key="tag"
-            class="tag"
+        <div v-if="showLocationDropdown" class="dropdown-options">
+           <div 
+            class="dropdown-item"
+            :class="{ active: !selectedLocation }"
+            @click="selectOption('location', '')"
           >
-            {{ tag }}
-          </span>
+            Все города
+          </div>
+          <div 
+            v-for="loc in locationOptions" 
+            :key="loc.value"
+            class="dropdown-item"
+            :class="{ active: selectedLocation === loc.value }"
+            @click="selectOption('location', loc.value)"
+          >
+            {{ loc.text }}
+          </div>
         </div>
+      </div>
 
-        <div class="job-footer">
-          <div class="benefits">
+      <!-- Список срочных вакансий -->
+      <div class="urgent-jobs">
+        <div 
+          v-for="job in filteredJobs" 
+          :key="job.id"
+          class="urgent-job-card"
+          @click="navigateToJob(job.id)"
+        >
+          <div class="urgent-badge">
+            <ZapIcon class="w-4 h-4" />
+            <span>Срочно</span>
+          </div>
+
+          <div class="job-header">
+            <img :src="job.companyLogo" :alt="job.companyName" class="company-logo">
+            <div class="job-info">
+              <h3 class="text-lg font-semibold text-white">{{ job.title }}</h3>
+              <p class="text-gray-200">{{ job.companyName }}</p>
+            </div>
+          </div>
+
+          <div class="job-details">
+            <div class="detail-item">
+              <BanknoteIcon class="w-5 h-5 text-gray-400" />
+              <span class="salary">{{ job.salary.toLocaleString() }} ₸</span>
+            </div>
+            <div class="detail-item">
+              <MapPinIcon class="w-5 h-5 text-gray-400" />
+              <span>{{ job.location }}</span>
+            </div>
+            <div class="detail-item">
+              <ClockIcon class="w-5 h-5 text-gray-400" />
+              <span>{{ job.deadline }}</span>
+            </div>
+          </div>
+
+          <div class="job-description text-gray-200">
+            {{ job.description }}
+          </div>
+
+          <div class="job-tags">
             <span 
-              v-for="benefit in job.benefits" 
-              :key="benefit"
-              class="benefit-tag"
+              v-for="tag in job.tags" 
+              :key="tag"
+              class="tag"
             >
-              <i class="fas fa-check"></i>
-              {{ benefit }}
+              {{ tag }}
             </span>
           </div>
-          <button class="apply-btn" @click.stop="applyForJob(job)">
-            Откликнуться
-          </button>
+
+          <div class="job-footer">
+            <div class="benefits">
+              <span 
+                v-for="benefit in job.benefits" 
+                :key="benefit"
+                class="benefit-tag"
+              >
+                <CheckIcon class="w-4 h-4 mr-1" />
+                {{ benefit }}
+              </span>
+            </div>
+            <button 
+              class="apply-btn"
+              @click.stop="applyForJob(job)"
+            >
+              <CheckIcon class="w-5 h-5" />
+              Откликнуться
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -110,35 +152,79 @@
 </template>
 
 <script>
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { SearchIcon, ZapIcon, BanknoteIcon, MapPinIcon, ClockIcon, CheckIcon } from 'lucide-vue-next'
+
 export default {
   name: 'UrgentPage',
+  components: {
+    SearchIcon,
+    ZapIcon,
+    BanknoteIcon,
+    MapPinIcon,
+    ClockIcon,
+    CheckIcon
+  },
   data() {
     return {
       searchQuery: '',
       selectedCategory: '',
       selectedLocation: '',
+      showCategoryDropdown: false,
+      showLocationDropdown: false,
       categories: [
-        { id: 1, name: 'IT' },
-        { id: 2, name: 'Маркетинг' },
-        { id: 3, name: 'Дизайн' },
-        { id: 4, name: 'Продажи' },
-        { id: 5, name: 'Менеджмент' },
-        { id: 6, name: 'Финансы' }
+        { id: 1, name: 'Повар' },
+        { id: 2, name: 'Официант/Бармен' },
+        { id: 3, name: 'Администратор/Хостес' },
+        { id: 4, name: 'Кухонный работник' },
+        { id: 5, name: 'Уборщик/Посудомойщик' },
+        { id: 6, name: 'Менеджер зала' }
+      ],
+      locationOptions: [
+         { value: '', text: 'Все города' },
+        { value: 'алматы', text: 'Алматы' },
+        { value: 'астана', text: 'Астана' },
+        { value: 'шымкент', text: 'Шымкент' },
+        { value: 'караганда', text: 'Караганда' },
+        { value: 'актобе', text: 'Актобе' }
       ],
       jobs: [
         {
           id: 1,
-          title: 'Senior Frontend Developer',
-          companyName: 'Tech Solutions',
-          companyLogo: '/images/company1.png',
-          salary: 'от 250 000 ₽',
-          location: 'Москва',
-          deadline: 'До конца недели',
-          description: 'Срочно требуется опытный Frontend разработчик для работы над новым проектом...',
-          tags: ['Vue.js', 'React', 'TypeScript'],
-          benefits: ['Удаленная работа', 'Гибкий график', 'Медицинская страховка']
+          title: 'Срочно требуется Повар горячего цеха',
+          companyName: 'Ресторан "Восточная Сказка" в Алматы',
+          companyLogo: '/images/restaurant_logo2.png',
+          salary: 450000,
+          location: 'Алматы',
+          deadline: 'Сегодня',
+          description: 'Требуется повар с опытом работы от 2-х лет для приготовления блюд восточной кухни. График 2/2...',
+          tags: ['Горячий цех', 'Восточная кухня', 'Алматы'],
+          benefits: ['Питание за счет компании', 'Развозка', 'Официальное трудоустройство']
         },
-        // Добавьте больше срочных вакансий
+        {
+          id: 2,
+          title: 'Требуется Бармен на лето',
+          companyName: 'Летняя терраса "Fresh Zone" в Астане',
+          companyLogo: '/images/cafe_logo2.png',
+          salary: 280000,
+          location: 'Астана',
+          deadline: 'До конца недели',
+          description: 'Ищем энергичного бармена для работы на летней террасе. Опыт работы с коктейлями обязателен...',
+          tags: ['Бармен', 'Лето', 'Астана'],
+          benefits: ['Гибкий график', 'Бонусы по итогам сезона']
+        },
+         {
+          id: 3,
+          title: 'Срочно нужен Администратор в мини-отель',
+          companyName: 'Мини-отель "Уютный Дом" в Шымкенте',
+          companyLogo: '/images/hotel_logo2.png',
+          salary: 300000,
+          location: 'Шымкент',
+          deadline: 'Завтра',
+          description: 'Требуется ответственный администратор для работы в мини-отеле. Встреча гостей, оформление, решение текущих вопросов...',
+          tags: ['Администратор', 'Отель', 'Шымкент'],
+          benefits: ['Проживание', 'Бонусы за хорошую работу']
+        }
       ]
     }
   },
@@ -156,64 +242,94 @@ export default {
   },
   methods: {
     handleSearch() {
-      // Здесь можно добавить логику поиска
+      // Логика поиска уже в computed свойстве filteredJobs
     },
     applyFilters() {
-      // Здесь можно добавить логику фильтрации
+      // Логика фильтрации уже в computed свойстве filteredJobs
+       this.closeAllDropdowns();
     },
     navigateToJob(jobId) {
-      this.$router.push({ 
-        name: 'job-details', 
-        params: { id: jobId }
-      })
+      // TODO: Реализовать переход на страницу деталей вакансии
+       alert('Переход к деталям вакансии:' + jobId);
+      //  this.$router.push({ 
+      //   name: 'job-details', 
+      //   params: { id: jobId }
+      // });
     },
     applyForJob(job) {
-      // Здесь можно добавить логику отклика на вакансию
-      console.log('Applying for urgent job:', job.id)
+      // TODO: Реализовать логику отклика на вакансию
+      console.log('Applying for urgent job:', job.id);
+       alert('Отклик на срочную вакансию:' + job.title);
+    },
+    toggleDropdown(type) {
+       this.closeAllDropdowns(type);
+      
+      switch(type) {
+        case 'category':
+          this.showCategoryDropdown = !this.showCategoryDropdown;
+          break;
+        case 'location':
+          this.showLocationDropdown = !this.showLocationDropdown;
+          break;
+      }
+    },
+    selectOption(type, value) {
+      switch(type) {
+        case 'category':
+          this.selectedCategory = value;
+          break;
+        case 'location':
+          this.selectedLocation = value;
+          break;
+      }
+       this.applyFilters();
+    },
+    closeAllDropdowns(exceptType = null) {
+      if (exceptType !== 'category') this.showCategoryDropdown = false;
+      if (exceptType !== 'location') this.showLocationDropdown = false;
+    },
+    handleClickOutside(event) {
+      if (this.$refs.filtersContainer && !this.$refs.filtersContainer.contains(event.target)) {
+        this.closeAllDropdowns();
+      }
     }
+  },
+  mounted() {
+    document.addEventListener('click', this.handleClickOutside);
+  },
+  beforeUnmount() {
+    document.removeEventListener('click', this.handleClickOutside);
   }
 }
 </script>
 
 <style scoped>
 .urgent-page {
-  padding: 20px;
-  max-width: 1200px;
-  margin: 0 auto;
+  padding: 0;
 }
 
 .page-header {
   text-align: center;
-  margin-bottom: 40px;
-}
-
-.page-header h1 {
-  color: #1f2937;
-  font-size: 32px;
-  margin-bottom: 10px;
-}
-
-.subtitle {
-  color: #6b7280;
-  font-size: 18px;
+  margin-bottom: 2rem;
 }
 
 .filters {
-  margin-bottom: 30px;
+  margin-bottom: 2rem;
+  position: relative;
 }
 
 .search-box {
   display: flex;
   align-items: center;
-  background: #fff;
+  background: #fff; /* Белый фон */
   border-radius: 12px;
-  padding: 12px 20px;
+  padding: 12px 20px; /* Увеличенные паддинги */
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  margin-bottom: 20px;
+  margin-bottom: 1rem;
 }
 
-.search-box i {
-  color: #666;
+.search-box svg {
+  color: #666; /* Цвет иконки */
   margin-right: 10px;
 }
 
@@ -222,55 +338,107 @@ export default {
   outline: none;
   width: 100%;
   font-size: 16px;
+  color: #333; /* Цвет текста */
 }
 
-.filter-options {
-  display: flex;
-  gap: 15px;
+/* Стили для сетки кнопок фильтров */
+.filter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 10px;
+  margin-bottom: 10px;
 }
 
-.filter-options select {
-  padding: 8px 15px;
+/* Стили для кнопок фильтров */
+.filter-button {
+  background: #f3f4f6;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
-  background: white;
-  color: #4b5563;
+  padding: 15px;
+  text-align: center;
   cursor: pointer;
+  transition: all 0.2s ease;
+  color: #4b5563;
+  font-weight: 500;
 }
 
+.filter-button.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-color: transparent;
+}
+
+.filter-button:hover {
+  opacity: 0.9;
+}
+
+/* Стили для выпадающего списка опций */
+.dropdown-options {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+  padding: 10px 0;
+  margin-top: 5px;
+}
+
+/* Стили для каждого элемента выпадающего списка */
+.dropdown-item {
+  padding: 10px 15px;
+  cursor: pointer;
+  color: #4b5563;
+  transition: background 0.2s ease;
+}
+
+.dropdown-item:hover {
+  background: #f3f4f6;
+}
+
+.dropdown-item.active {
+  background: #e5e7eb;
+  font-weight: 600;
+}
+
+/* Остальные стили */
 .urgent-jobs {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
   gap: 20px;
 }
 
 .urgent-job-card {
-  background: white;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border-radius: 12px;
   padding: 20px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  margin-bottom: 0; /* Убираем нижний отступ, т.к. есть gap в grid */
+  color: white;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   cursor: pointer;
-  transition: transform 0.2s;
-  position: relative;
-  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .urgent-job-card:hover {
   transform: translateY(-5px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
 }
 
 .urgent-badge {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background: linear-gradient(135deg, #ef4444, #f97316);
-  color: white;
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 12px;
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 5px;
+  background-color: #ff5722;
+  color: white;
+  padding: 4px 10px;
+  border-radius: 15px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  margin-bottom: 15px;
+}
+
+.urgent-badge svg {
+  margin-right: 5px;
 }
 
 .job-header {
@@ -284,99 +452,158 @@ export default {
   height: 50px;
   border-radius: 8px;
   margin-right: 15px;
+  background-color: white;
+  padding: 5px;
+  object-fit: contain; /* Используем contain, чтобы логотип полностью помещался */
+}
+
+.job-info {
+  flex: 1;
 }
 
 .job-info h3 {
   margin: 0;
   font-size: 18px;
-  color: #1f2937;
+  color: white; /* Цвет заголовка */
 }
 
-.company-name {
-  color: #6b7280;
+.job-info p {
+  margin: 2px 0 0 0;
   font-size: 14px;
-  margin: 5px 0 0;
+  color: #e0e0e0; /* Светло-серый цвет для компании */
 }
 
 .job-details {
   display: flex;
-  flex-direction: column;
-  gap: 10px;
+  gap: 20px;
   margin-bottom: 15px;
+  flex-wrap: wrap;
 }
 
 .detail-item {
   display: flex;
   align-items: center;
-  color: #6b7280;
+  font-size: 15px; /* Размер шрифта */
+  color: #e0e0e0; /* Цвет текста */
 }
 
-.detail-item i {
+.detail-item svg {
   margin-right: 8px;
-  width: 16px;
+  color: #e0e0e0; /* Цвет иконок */
 }
 
 .salary {
-  color: #10b981;
-  font-weight: 600;
+  font-weight: bold;
+  color: #a7ffeb;
 }
 
 .job-description {
-  color: #4b5563;
   margin-bottom: 15px;
+  font-size: 15px; /* Размер шрифта */
   line-height: 1.5;
+  color: #e0e0e0; /* Цвет текста */
 }
 
 .job-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
   margin-bottom: 15px;
 }
 
 .tag {
-  background: #f3f4f6;
-  color: #4b5563;
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 12px;
+  display: inline-block;
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white;
+  padding: 4px 10px;
+  border-radius: 15px;
+  font-size: 13px; /* Размер шрифта */
+  margin-right: 8px;
+  margin-bottom: 8px;
 }
 
 .job-footer {
   display: flex;
-  flex-direction: column;
-  gap: 15px;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 20px; /* Добавляем отступ сверху */
+  padding-top: 15px; /* Добавляем внутренний отступ сверху */
+  border-top: 1px solid rgba(255, 255, 255, 0.2); /* Линия-разделитель */
 }
 
 .benefits {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  flex-grow: 1;
+  margin-right: 10px;
 }
 
 .benefit-tag {
-  background: #f0fdf4;
-  color: #059669;
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 12px;
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 5px;
+  background-color: rgba(167, 255, 235, 0.2); /* Прозрачный светло-зеленый */
+  color: #a7ffeb; /* Светло-зеленый */
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 12px; /* Размер шрифта */
+}
+
+.benefit-tag svg {
+  color: #a7ffeb;
+  width: 14px; /* Размер иконки */
+  height: 14px; /* Размер иконки */
 }
 
 .apply-btn {
-  background: linear-gradient(135deg, #ef4444, #f97316);
-  color: white;
-  border: none;
-  padding: 12px 24px;
+  background-color: #a7ffeb;
+  color: #2c3e50;
+  padding: 10px 20px;
   border-radius: 8px;
+  font-size: 1rem;
+  font-weight: bold;
   cursor: pointer;
-  transition: opacity 0.2s;
-  font-weight: 600;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  transition: background-color 0.2s ease;
+}
+
+.apply-btn svg {
+  margin-right: 5px;
 }
 
 .apply-btn:hover {
-  opacity: 0.9;
+  background-color: #8affd4;
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+  .filters {
+    padding: 0 10px;
+  }
+
+  .filter-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .job-details {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .job-footer {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .benefits {
+    margin-right: 0;
+    margin-bottom: 10px;
+  }
+
+  .apply-btn {
+    width: 100%;
+    justify-content: center;
+  }
 }
 </style> 

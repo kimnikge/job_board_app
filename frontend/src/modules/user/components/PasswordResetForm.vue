@@ -44,55 +44,99 @@ const onReset = async () => {
 
 <style scoped>
 .reset-form {
+  padding: 20px;
   max-width: 350px;
-  margin: 40px auto;
-  padding: 32px 24px;
-  border-radius: 8px;
+  margin: 20px auto;
   background: #fff;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.08);
 }
+
+@media (max-width: 480px) {
+  .reset-form {
+    margin: 0;
+    border-radius: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+}
+
 .title {
   font-size: 1.5rem;
   font-weight: bold;
   margin-bottom: 24px;
   text-align: center;
+  color: #333;
 }
+
 .form-group {
   margin-bottom: 18px;
 }
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #333;
+  font-size: 14px;
+}
+
 .input {
   width: 100%;
-  border: 1px solid #d1d5db;
-  border-radius: 4px;
-  padding: 8px 12px;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 16px;
+  transition: border-color 0.3s;
   box-sizing: border-box;
 }
-.btn-primary {
-  background: #2563eb;
-  color: #fff;
-  padding: 8px 16px;
-  border-radius: 4px;
-  border: none;
-  cursor: pointer;
-  width: 100%;
-  font-size: 1rem;
-  transition: background 0.2s;
+
+.input:focus {
+  outline: none;
+  border-color: #4CAF50;
 }
+
+.btn-primary {
+  width: 100%;
+  padding: 12px;
+  background: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
 .btn-primary:disabled {
-  background: #a5b4fc;
+  background: #ccc;
   cursor: not-allowed;
 }
+
 .btn-primary:hover:not(:disabled) {
-  background: #1d4ed8;
+  background: #45a049;
 }
-.error {
-  color: #dc2626;
-  margin-bottom: 12px;
+
+.message {
+  margin: 20px 0;
+  padding: 12px;
+  background: #e8f5e9;
+  border: 1px solid #4CAF50;
+  border-radius: 8px;
+  color: #2e7d32;
   text-align: center;
 }
-.message {
-  color: #16a34a;
-  margin-bottom: 12px;
+
+.error {
+  margin: 20px 0;
+  padding: 12px;
+  background: #ffebee;
+  border: 1px solid #f44336;
+  border-radius: 8px;
+  color: #f44336;
   text-align: center;
 }
 </style>

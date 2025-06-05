@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { can } from '../shared/rbac'
+import store from '../store'
 
 import MainLayout from '../layouts/MainLayout.vue'
 import AuthLayout from '../layouts/AuthLayout.vue'
@@ -14,7 +15,7 @@ const ProfilePage = () => import('../modules/profile/components/ProfilePage.vue'
 // Дополнительные компоненты
 const JobDetails = () => import('../modules/job/components/JobDetails.vue')
 const ResumeDetails = () => import('../modules/resume/components/ResumeDetails.vue')
-const LoginForm = () => import('../modules/auth/components/LoginForm.vue')
+import LoginForm from '../modules/auth/components/LoginForm.vue'
 const RegisterForm = () => import('../modules/auth/components/RegisterForm.vue')
 
 const routes = [
@@ -77,13 +78,19 @@ const routes = [
         path: 'login', 
         name: 'login',
         component: LoginForm,
-        meta: { title: 'Вход' }
+        meta: { 
+          title: 'Вход',
+          guest: true
+        }
       },
       { 
         path: 'register', 
         name: 'register',
         component: RegisterForm,
-        meta: { title: 'Регистрация' }
+        meta: { 
+          title: 'Регистрация',
+          guest: true
+        }
       }
     ]
   }
@@ -94,17 +101,26 @@ const router = createRouter({
   routes
 })
 
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
   // Установка заголовка страницы
   document.title = to.meta.title ? `${to.meta.title} | Job App` : 'Job App'
 
   // Проверка авторизации
-  if (to.meta.requiresAuth) {
-    const user = JSON.parse(localStorage.getItem('user') || 'null')
-    if (!user) {
-      return next({ name: 'login', query: { redirect: to.fullPath } })
-    }
+  const isAuthenticated = store.getters['auth/isAuthenticated']
+
+  // Если маршрут требует авторизации
+  if (to.meta.requiresAuth && !isAuthenticated) {
+    return next({ 
+      name: 'login', 
+      query: { redirect: to.fullPath }
+    })
   }
+
+  // Если маршрут только для гостей (неавторизованных)
+  if (to.meta.guest && isAuthenticated) {
+    return next({ name: 'home' })
+  }
+
   next()
 })
 

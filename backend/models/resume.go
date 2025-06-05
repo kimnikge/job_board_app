@@ -41,4 +41,5 @@ type Resume struct {
 	WorkExperience []WorkExperience `json:"work_experience"`
 	SocialLinks    SocialLinks      `json:"social_links"`
 	CreatedAt      time.Time        `json:"created_at"`
+	IsAvailable    bool             `json:"is_available"`
 }

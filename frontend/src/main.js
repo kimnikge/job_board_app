@@ -1,30 +1,35 @@
+import { createApp } from 'vue'
+import App from './App.vue'
+import router from './router'
+import store from './store'
+import { supabase } from './supabase'
+
 import './assets/main.css'
 
-import { createApp } from 'vue'
-import { createPinia } from 'pinia'
-import App from './App.vue'
-import router from './router/index.js'
-import ErrorHandler from './shared/ErrorHandler'
+// Lucide Icons integration (Шаг 1 из redme-instr.md)
+import * as lucide from 'lucide-vue-next'
 
 const app = createApp(App)
 
-// Глобальный обработчик ошибок Vue
-app.config.errorHandler = (err, vm, info) => {
-  ErrorHandler.handle(err, vm, info)
-  // Можно также отправить ошибку в систему мониторинга, например Sentry
-  // console.error('Caught by global error handler:', err, vm, info);
-};
+// Регистрация всех Lucide-иконок как компонентов
+Object.entries(lucide).forEach(([name, component]) => {
+  app.component(name, component)
+})
 
-// Обработчик для неперехваченных промисов (хотя Vue errorHandler должен ловить большинство)
-if (typeof window !== 'undefined') {
-  window.addEventListener('unhandledrejection', event => {
-    console.warn('Unhandled promise rejection:', event.reason);
-    ErrorHandler.handle(event.reason, null, 'Unhandled Promise Rejection');
-  });
-}
-
-
-app.use(createPinia())
 app.use(router)
+app.use(store)
 
+// Пример добавления экземпляра Supabase в глобальные свойства (опционально, если используется в компонентах через this.$supabase)
+// app.config.globalProperties.$supabase = supabase
+
+// Пример базовой проверки авторизации при старте приложения (можно раскомментировать при необходимости)
+// async function checkAuth() {
+//   const { data: { user } } = await supabase.auth.getUser()
+//   store.commit('auth/SET_USER', user)
+// }
+// checkAuth().then(() => {
+//   app.mount('#app')
+// })
+
+// Монтирование приложения (если проверка авторизации не асинхронная перед монтированием)
 app.mount('#app')

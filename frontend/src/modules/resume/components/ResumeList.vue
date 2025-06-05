@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted } from 'vue'
-import api from '../services/api'
+import resumeApi from '../services/resumeApi'
 import EmptyState from '@/shared/ui/EmptyState.vue'
 import LoadingSpinner from '@/shared/ui/LoadingSpinner.vue'
 
@@ -13,8 +13,8 @@ const hasAnySocialLink = (links) => {
 
 onMounted(async () => {
   try {
-    const res = await api.getResumes()
-    resumes.value = res.data
+    const response = await resumeApi.getResumes()
+    resumes.value = response.data
   } catch (error) {
     console.error(error)
   } finally {
