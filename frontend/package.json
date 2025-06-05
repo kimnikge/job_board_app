@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.43.4",
+    "pinia": "^3.0.3",
     "vue": "^3.4.21",
     "vue-router": "^4.3.0",
     "vuex": "^4.1.0"
@@ -27,8 +28,8 @@
     "jsdom": "^24.0.0",
     "prettier": "^3.2.5",
     "vite": "^5.2.8",
-    "vitest": "^1.4.0",
+    "vite-plugin-imagemin": "^0.6.1",
     "vite-plugin-vue-devtools": "^7.0.0",
-    "vite-plugin-imagemin": "^0.6.1"
+    "vitest": "^1.4.0"
   }
 }
