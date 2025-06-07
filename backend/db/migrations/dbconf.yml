@@ -1,0 +1,8 @@
+# db/migrations/dbconf.yml
+# Используйте DSN из переменной окружения
+# Убедитесь, что переменная SUPABASE_URL установлена в вашем окружении
+# Пример: export SUPABASE_URL="postgres://user:password@host:port/dbname?sslmode=disable"
+
+default:
+  driver: pgx
+  open: $SUPABASE_URL
