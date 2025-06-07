@@ -99,13 +99,13 @@ const latestResumes = ref([]);
 onMounted(async () => {
   try {
     // Fetch all jobs to get count and latest (basic implementation)
-    const jobsResponse = await jobApi.getAllJobs(); // Assuming this fetches all jobs
-    latestJobs.value = jobsResponse.data; // Use all jobs for latest for now
+    const jobsResponse = await jobApi.getJobs();
+    latestJobs.value = jobsResponse.data;
     jobCount.value = latestJobs.value.length;
 
     // Fetch all resumes to get count and latest (basic implementation)
-    const resumesResponse = await resumeApi.getAllResumes(); // Assuming this fetches all resumes
-    latestResumes.value = resumesResponse.data; // Use all resumes for latest for now
+    const resumesResponse = await resumeApi.getResumes(); // Changed from getAllResumes to getResumes
+    latestResumes.value = resumesResponse.data;
     resumeCount.value = latestResumes.value.length;
 
   } catch (error) {
