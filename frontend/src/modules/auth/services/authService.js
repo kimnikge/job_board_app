@@ -1,15 +1,16 @@
-import { supabase } from '@/supabase'
+import { supabase } from '@/lib/supabase'
 
 export const authService = {
-  async register(email, password) {
+  async register(email, password, userType) {
     try {
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          data: { user_type: userType }
+        }
       })
-      
       if (error) throw error
-      
       return { data, error: null }
     } catch (error) {
       return { data: null, error }
@@ -60,4 +61,4 @@ export const authService = {
       return { data: null, error }
     }
   }
-} 
+}

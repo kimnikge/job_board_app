@@ -1,21 +1,34 @@
 import { defineConfig } from 'vitest/config'
 import vue from '@vitejs/plugin-vue'
-import vueDevTools from 'vite-plugin-vue-devtools'
+import { fileURLToPath } from 'url'
+import path from 'path'
 
 export default defineConfig({
-  plugins: [vue(), vueDevTools()],
+  plugins: [vue()],
   test: {
-    environment: 'jsdom',
     globals: true,
-    setupFiles: './src/test/setup.js',
-    coverage: {
-      reporter: ['text', 'json', 'html']
+    environment: 'jsdom',
+    setupFiles: [
+      './src/test/setup.js',
+      './src/test/supabase-setup.js' // Добавляем настройку Supabase
+    ],
+    alias: {
+      '@': fileURLToPath(new URL('./src', import.meta.url))
     },
-    include: ['src/**/*.test.{js,ts,jsx,tsx}', 'src/**/*.spec.{js,ts,jsx,tsx}', 'src/modules/**/__tests__/*.test.js'],
+    deps: {
+      inline: ['@vue', '@vueuse', 'pinia']
+    },
+    coverage: {
+      reporter: ['text', 'json', 'html'],
+      exclude: [
+        'node_modules/',
+        'src/test/',
+      ]
+    }
   },
   resolve: {
     alias: {
-      '@': new URL('./src', import.meta.url).pathname
+      '@': path.resolve(__dirname, './src')
     }
   }
 })
