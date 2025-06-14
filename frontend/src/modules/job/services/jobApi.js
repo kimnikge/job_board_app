@@ -1,35 +1,57 @@
-import axios from 'axios'
-
-const api = axios.create({
-  baseURL: 'http://localhost:3000',
-  headers: {
-    Authorization: localStorage.getItem('token') ? `Bearer ${localStorage.getItem('token')}` : undefined
-  }
-})
+import { supabase } from '@/lib/supabase'
 
 export default {
   // Получить все объявления
   async getJobs() {
-    return api.get('/jobs')
+    const { data, error } = await supabase
+      .from('jobs')
+      .select('*')
+      .order('created_at', { ascending: false })
+    if (error) throw error
+    return { data }
   },
 
   // Получить объявления текущего работодателя
   async getUserJobs() {
-    return api.get('/users/me/jobs')
+    const { data: { user } } = await supabase.auth.getUser()
+    const { data, error } = await supabase
+      .from('jobs')
+      .select('*')
+      .eq('employer_id', user.id)
+      .order('created_at', { ascending: false })
+    if (error) throw error
+    return { data }
   },
 
   // Создать новое объявление
-  async createJob(data) {
-    return api.post('/jobs', data)
+  async createJob(jobData) {
+    const { data: { user } } = await supabase.auth.getUser()
+    const { data, error } = await supabase
+      .from('jobs')
+      .insert([{ ...jobData, employer_id: user.id }])
+      .select()
+    if (error) throw error
+    return { data }
   },
 
   // Переключить статус активности объявления
   async toggleJobStatus(id, isActive) {
-    return api.put(`/jobs/${id}/status`, { is_active: isActive })
+    const { data, error } = await supabase
+      .from('jobs')
+      .update({ is_active: isActive })
+      .eq('id', id)
+      .select()
+    if (error) throw error
+    return { data }
   },
 
   // Удалить объявление
   async deleteJob(id) {
-    return api.delete(`/jobs/${id}`)
+    const { error } = await supabase
+      .from('jobs')
+      .delete()
+      .eq('id', id)
+    if (error) throw error
+    return { data: { id } }
   }
 }

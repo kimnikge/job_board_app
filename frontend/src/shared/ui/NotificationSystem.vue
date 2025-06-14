@@ -1,152 +1,141 @@
 <template>
-  <div class="notification-container">
-    <transition-group name="notification-fade" tag="div">
-      <div
-        v-for="notification in activeNotifications"
-        :key="notification.id"
-        :class="['notification-item', `notification-item--${notification.type}`]"
-      >
-        <div class="notification-content">
-          <strong v-if="notification.title" class="notification-title">{{ notification.title }}</strong>
-          <p class="notification-message">{{ notification.message }}</p>
-          <p v-if="notification.details" class="notification-details">{{ notification.details }}</p>
+  <div class="notification-system">
+    <div v-for="notification in notifications" :key="notification.id" 
+         :class="['notification', { 'notification--read': notification.read }]">
+      <div class="notification__content">
+        <div class="notification__type">
+          <span v-if="notification.type === 'urgent'" class="notification__badge notification__badge--urgent">🚨</span>
+          <span v-else-if="notification.type === 'response'" class="notification__badge notification__badge--response">✨</span>
         </div>
-        <button @click="removeNotification(notification.id)" class="notification-close">&times;</button>
+        <div class="notification__message" v-html="notification.message"></div>
       </div>
-    </transition-group>
+      <div class="notification__actions">
+        <button @click="openNotification(notification)" class="notification__action notification__action--primary">
+          Открыть
+        </button>
+        <button @click="markAsRead(notification.id)" class="notification__action" v-if="!notification.read">
+          Прочитано
+        </button>
+      </div>
+    </div>
+    <div v-if="!notifications.length" class="notification-system__empty">
+      Нет новых уведомлений
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue';
-import eventBus from '../eventBus';
+import { onMounted, onUnmounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { notificationService } from '@/services/notificationService'
 
-const activeNotifications = ref([]);
-let notificationIdCounter = 0;
+const router = useRouter()
+const notifications = notificationService.getNotifications()
 
-const defaultTimeout = 5000; // 5 seconds
-
-function addNotification({ type = 'info', message, title = '', details = '', duration }) {
-  const id = notificationIdCounter++;
-  activeNotifications.value.push({
-    id,
-    type, // 'success', 'error', 'info', 'warning'
-    title,
-    message,
-    details,
-  });
-
-  setTimeout(() => {
-    removeNotification(id);
-  }, duration || defaultTimeout);
+const openNotification = (notification) => {
+  if (notification.type === 'urgent' || notification.type === 'response') {
+    router.push(`/jobs/${notification.job_id}`)
+  }
+  markAsRead(notification.id)
 }
 
-function removeNotification(id) {
-  activeNotifications.value = activeNotifications.value.filter(
-    (notification) => notification.id !== id
-  );
+const markAsRead = (id) => {
+  notificationService.markAsRead(id)
 }
-
-// Handler for event bus
-const handleShowNotification = (payload) => {
-  addNotification(payload);
-};
-
-onMounted(() => {
-  eventBus.on('show-notification', handleShowNotification);
-});
 
 onUnmounted(() => {
-  eventBus.off('show-notification', handleShowNotification);
-});
-
-// Expose method for manual use if needed (e.g. from parent component via ref)
-defineExpose({
-  show: addNotification,
-});
-
+  notificationService.clearAll()
+})
 </script>
 
 <style scoped>
-.notification-container {
+.notification-system {
   position: fixed;
   top: 20px;
   right: 20px;
-  z-index: 9999;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  width: 320px;
+  max-width: 400px;
+  z-index: 1000;
 }
 
-.notification-item {
-  background-color: #fff;
-  color: #333;
-  padding: 15px;
+.notification {
+  background: white;
   border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 10px;
+  padding: 15px;
+  transition: opacity 0.3s ease;
+}
+
+.notification--read {
+  opacity: 0.6;
+}
+
+.notification__content {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  border-left-width: 5px;
-  border-left-style: solid;
+  gap: 10px;
+  margin-bottom: 10px;
 }
 
-.notification-item--info {
-  border-left-color: #2196F3; /* Blue */
-}
-.notification-item--success {
-  border-left-color: #4CAF50; /* Green */
-}
-.notification-item--warning {
-  border-left-color: #FF9800; /* Orange */
-}
-.notification-item--error {
-  border-left-color: #F44336; /* Red */
+.notification__badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  font-size: 14px;
 }
 
-.notification-content {
-  flex-grow: 1;
+.notification__badge--urgent {
+  background: #ffebee;
 }
 
-.notification-title {
-  font-weight: bold;
-  margin-bottom: 5px;
-  display: block;
+.notification__badge--response {
+  background: #e3f2fd;
 }
 
-.notification-message {
-  margin: 0;
-  font-size: 0.9rem;
-}
-.notification-details {
-  margin-top: 5px;
-  font-size: 0.8rem;
-  color: #666;
+.notification__message {
+  flex: 1;
+  font-size: 14px;
+  line-height: 1.4;
 }
 
-.notification-close {
-  background: none;
-  border: none;
-  color: #aaa;
-  font-size: 20px;
-  line-height: 1;
+.notification__actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.notification__action {
+  padding: 6px 12px;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+  background: white;
+  font-size: 12px;
   cursor: pointer;
-  padding: 0 0 0 10px; /* Add some padding to make it easier to click */
-  align-self: flex-start; /* Align to the top of the flex container */
-}
-.notification-close:hover {
-  color: #333;
+  transition: all 0.2s ease;
 }
 
-/* Transitions */
-.notification-fade-enter-active,
-.notification-fade-leave-active {
-  transition: all 0.5s ease;
+.notification__action:hover {
+  background: #f5f5f5;
 }
-.notification-fade-enter-from,
-.notification-fade-leave-to {
-  opacity: 0;
-  transform: translateX(30px);
+
+.notification__action--primary {
+  background: #1976d2;
+  border-color: #1976d2;
+  color: white;
+}
+
+.notification__action--primary:hover {
+  background: #1565c0;
+}
+
+.notification-system__empty {
+  color: #666;
+  text-align: center;
+  padding: 20px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 </style>

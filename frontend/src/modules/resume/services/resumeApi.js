@@ -1,35 +1,43 @@
-import axios from 'axios'
-
-const api = axios.create({
-  baseURL: 'http://localhost:3000',
-  headers: {
-    Authorization: localStorage.getItem('token') ? `Bearer ${localStorage.getItem('token')}` : undefined
-  }
-})
+import { supabase } from '@/lib/supabase'
 
 export default {
-  // Получить все резюме
-  async getResumes() {
-    return api.get('/resumes')
-  },
-
-  // Получить резюме текущего пользователя
+  // Получить все резюме текущего пользователя
   async getUserResumes() {
-    return api.get('/users/me/resumes')
+    const { data, error } = await supabase
+      .from('resumes')
+      .select('*')
+      .order('created_at', { ascending: false })
+    if (error) throw error
+    return data
   },
 
   // Создать новое резюме
-  async createResume(data) {
-    return api.post('/resumes', data)
+  async createResume(payload) {
+    const { data, error } = await supabase
+      .from('resumes')
+      .insert([payload])
+      .select()
+    if (error) throw error
+    return data
   },
 
-  // Переключить статус доступности резюме
+  // Обновить статус доступности резюме
   async toggleResumeStatus(id, isAvailable) {
-    return api.put(`/resumes/${id}/status`, { is_available: isAvailable })
+    const { data, error } = await supabase
+      .from('resumes')
+      .update({ is_available: isAvailable })
+      .eq('id', id)
+      .select()
+    if (error) throw error
+    return data
   },
 
   // Удалить резюме
   async deleteResume(id) {
-    return api.delete(`/resumes/${id}`)
+    const { error } = await supabase
+      .from('resumes')
+      .delete()
+      .eq('id', id)
+    if (error) throw error
   }
-} 
+}

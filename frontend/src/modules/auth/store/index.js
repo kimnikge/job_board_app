@@ -39,19 +39,21 @@ export default {
       return true
     },
 
-    async register({ commit }, { email, password }) {
+    async register({ commit }, { email, password, type }) {
       commit('SET_LOADING', true)
       commit('SET_ERROR', null)
-      
-      const { data, error } = await authService.register(email, password)
-      
+      const { data, error } = await authService.register(email, password, type)
       if (error) {
         commit('SET_ERROR', error.message)
         commit('SET_LOADING', false)
         return false
       }
-      
-      commit('SET_USER', data.user)
+      // Сохраняем токен в localStorage
+      if (data.token) {
+        localStorage.setItem('token', data.token)
+      }
+      // Сохраняем пользователя (если есть)
+      commit('SET_USER', data.user || null)
       commit('SET_LOADING', false)
       return true
     },
@@ -91,4 +93,4 @@ export default {
     isLoading: state => state.loading,
     error: state => state.error
   }
-} 
+}

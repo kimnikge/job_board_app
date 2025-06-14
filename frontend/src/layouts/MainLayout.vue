@@ -55,7 +55,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { useStore } from 'vuex'
+import { useAuthStore } from '@/modules/auth/store/auth'
 import { 
   BellIcon, 
   SunIcon, 
@@ -70,11 +70,11 @@ import {
 } from 'lucide-vue-next'
 
 const router = useRouter()
-const store = useStore()
+const authStore = useAuthStore()
 const theme = ref('light')
 const isMenuOpen = ref(false)
 
-const isAuthenticated = computed(() => store.getters['auth/isAuthenticated'])
+const isAuthenticated = computed(() => authStore.isAuthenticated)
 
 function toggleTheme() {
   theme.value = theme.value === 'dark' ? 'light' : 'dark'
@@ -91,7 +91,7 @@ function closeMenu() {
 }
 
 async function handleLogout() {
-  await store.dispatch('auth/logout')
+  await authStore.logout()
   closeMenu()
   router.push('/auth/login')
 }

@@ -4,6 +4,39 @@
     
     <form @submit.prevent="handleSubmit" class="form">
       <div class="form-group">
+        <label>Тип аккаунта</label>
+        <div class="user-type-selector">
+          <label class="user-type-option" :class="{ active: userType === 'specialist' }">
+            <input
+              type="radio"
+              name="userType"
+              value="specialist"
+              v-model="userType"
+              required
+            >
+            <span class="option-content">
+              <span class="icon">👨‍💼</span>
+              <span class="text">Соискатель</span>
+            </span>
+          </label>
+          
+          <label class="user-type-option" :class="{ active: userType === 'company' }">
+            <input
+              type="radio"
+              name="userType"
+              value="company"
+              v-model="userType"
+              required
+            >
+            <span class="option-content">
+              <span class="icon">🏢</span>
+              <span class="text">Компания</span>
+            </span>
+          </label>
+        </div>
+      </div>
+
+      <div class="form-group">
         <label for="email">Email</label>
         <input
           type="email"
@@ -60,7 +93,7 @@
 </template>
 
 <script>
-import { mapState, mapActions } from 'vuex'
+import { useAuthStore } from '../store/auth'
 
 export default {
   name: 'RegisterForm',
@@ -70,6 +103,7 @@ export default {
       email: '',
       password: '',
       confirmPassword: '',
+      userType: 'specialist', // По умолчанию регистрируем как специалиста
       errors: {
         email: '',
         password: '',
@@ -79,15 +113,17 @@ export default {
   },
 
   computed: {
-    ...mapState('auth', ['loading', 'error']),
     isLoading() {
-      return this.loading
+      const authStore = useAuthStore()
+      return authStore.loading
+    },
+    error() {
+      const authStore = useAuthStore()
+      return authStore.error
     }
   },
 
   methods: {
-    ...mapActions('auth', ['register']),
-
     validateForm() {
       this.errors = {
         email: '',
@@ -107,9 +143,7 @@ export default {
         this.errors.password = 'Пароль должен быть не менее 6 символов'
       }
 
-      if (!this.confirmPassword) {
-        this.errors.confirmPassword = 'Подтверждение пароля обязательно'
-      } else if (this.password !== this.confirmPassword) {
+      if (this.password !== this.confirmPassword) {
         this.errors.confirmPassword = 'Пароли не совпадают'
       }
 
@@ -119,9 +153,11 @@ export default {
     async handleSubmit() {
       if (!this.validateForm()) return
 
-      const success = await this.register({
+      const authStore = useAuthStore()
+      const success = await authStore.register({
         email: this.email,
-        password: this.password
+        password: this.password,
+        type: this.userType
       })
 
       if (success) {
@@ -247,5 +283,50 @@ input.error {
   border-radius: 8px;
   color: #f44336;
   text-align: center;
+}
+
+.user-type-selector {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.user-type-option {
+  position: relative;
+  cursor: pointer;
+}
+
+.user-type-option input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.option-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.user-type-option.active .option-content {
+  border-color: #4CAF50;
+  background-color: #f1f8e9;
+}
+
+.icon {
+  font-size: 2rem;
+}
+
+.text {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #333;
 }
 </style> 

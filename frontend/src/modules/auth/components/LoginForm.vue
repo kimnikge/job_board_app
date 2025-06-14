@@ -48,7 +48,7 @@
 </template>
 
 <script>
-import { mapState, mapActions } from 'vuex'
+import { useAuthStore } from '../store/auth'
 
 export default {
   name: 'LoginForm',
@@ -69,15 +69,17 @@ export default {
   },
 
   computed: {
-    ...mapState('auth', ['loading', 'error']),
     isLoading() {
-      return this.loading
+      const authStore = useAuthStore()
+      return authStore.loading
+    },
+    error() {
+      const authStore = useAuthStore()
+      return authStore.error
     }
   },
 
   methods: {
-    ...mapActions('auth', ['login']),
-
     validateForm() {
       this.errors = {
         email: '',
@@ -102,7 +104,8 @@ export default {
     async handleSubmit() {
       if (!this.validateForm()) return
 
-      const success = await this.login({
+      const authStore = useAuthStore()
+      const success = await authStore.login({
         email: this.email,
         password: this.password
       })
@@ -160,7 +163,7 @@ input {
   border-radius: 8px;
   font-size: 16px;
   transition: border-color 0.3s;
-  width: 100%;
+  inline-size: 100%;
   box-sizing: border-box;
 }
 
@@ -183,7 +186,7 @@ input.error {
 }
 
 .form-actions button {
-  width: 100%;
+  inline-size: 100%;
   padding: 12px;
   background: #4CAF50;
   color: white;

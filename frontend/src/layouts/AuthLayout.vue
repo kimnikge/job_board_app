@@ -1,5 +1,6 @@
 <template>
   <div class="auth-layout">
+    <AppHeader />
     <header class="auth-header">
       <slot name="header">
         <h1 class="logo">Job Board — Вход</h1>
@@ -17,6 +18,7 @@
 </template>
 
 <script setup>
+import AppHeader from '@/components/AppHeader.vue'
 // Можно добавить provide/inject для глобальных сервисов
 </script>
 
