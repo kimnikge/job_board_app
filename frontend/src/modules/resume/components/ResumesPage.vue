@@ -1,643 +1,276 @@
 <template>
-  <div class="resumes-page">
-    <div class="pt-4 pb-16">
-      <!-- Заголовок -->
-      <div class="page-header">
-        <h1 class="text-2xl font-bold text-gray-900">Резюме</h1>
-        <p class="text-gray-600 mt-2">Найдите подходящего специалиста</p>
-      </div>
+  <BasePageLayout>
+    <h1 class="page-title">Резюме</h1>
+    <p class="page-subtitle">Найдите талантливых специалистов для вашей команды</p>
 
-      <!-- Фильтры -->
-      <div class="filters">
-        <div class="search-box">
-          <SearchIcon class="w-5 h-5 text-gray-400" />
-          <input 
-            type="text" 
-            placeholder="Поиск резюме..."
-            v-model="searchQuery"
-            @input="handleSearch"
-            class="w-full bg-transparent border-none outline-none text-gray-700"
-          >
-        </div>
-        
-        <!-- Сетка основных кнопок фильтров -->
-        <div class="filter-grid">
-          <div 
-            class="filter-button"
-            :class="{ active: !selectedCategory }"
-            @click="toggleDropdown('category')"
-          >
-            Все категории
-          </div>
-          <div 
-            class="filter-button"
-            :class="{ active: !selectedExperience }"
-            @click="toggleDropdown('experience')"
-          >
-            Любой опыт
-          </div>
-          <div 
-            class="filter-button"
-            :class="{ active: !selectedSalary }"
-            @click="toggleDropdown('salary')"
-          >
-            Оплата
-          </div>
-           <div 
-            class="filter-button"
-            :class="{ active: !selectedLocation }"
-            @click="toggleDropdown('location')"
-          >
-            Все города
+    <div class="search-container">
+      <SearchIcon class="w-6 h-6 text-gray-400" />
+      <input 
+        type="text" 
+        v-model="searchQuery" 
+        placeholder="Поиск специалистов..." 
+        class="search-input"
+      />
+    </div>
+
+    <div class="filter-container">
+      <button 
+        v-for="filter in filters" 
+        :key="filter.id"
+        :class="['filter-button', { active: activeFilters.includes(filter.id) }]"
+        @click="toggleFilter(filter.id)"
+      >
+        {{ filter.name }}
+      </button>
+    </div>
+
+    <div v-if="loading" class="loading-container">
+      <div class="loading-spinner"></div>
+    </div>
+
+    <div v-else class="grid-container">
+      <div 
+        v-for="resume in filteredResumes" 
+        :key="resume.id" 
+        class="content-card"
+      >
+        <div class="flex items-start gap-4 mb-4">
+          <img 
+            :src="resume.avatar || '/images/default-avatar.png'" 
+            :alt="resume.full_name"
+            class="w-16 h-16 rounded-lg object-cover"
+          />
+          <div>
+            <h3 class="text-xl font-semibold mb-1">{{ resume.full_name }}</h3>
+            <p class="text-white/80">{{ resume.position }}</p>
           </div>
         </div>
 
-        <!-- Выпадающие списки для фильтров -->
-        <div v-if="showCategoryDropdown" class="dropdown-options">
-          <div 
-            class="dropdown-item"
-            :class="{ active: !selectedCategory }"
-            @click="selectOption('category', '')"
-          >
-            Все категории
+        <div class="flex flex-wrap gap-4 mb-4">
+          <div class="flex items-center">
+            <MapPinIcon class="w-4 h-4 mr-2 opacity-70" />
+            <span class="text-sm">{{ resume.location }}</span>
           </div>
-          <div 
-            v-for="category in categories" 
-            :key="category.id"
-            class="dropdown-item"
-            :class="{ active: selectedCategory === category.id }"
-            @click="selectOption('category', category.id)"
-          >
-            {{ category.name }}
+          <div class="flex items-center">
+            <GraduationCapIcon class="w-4 h-4 mr-2 opacity-70" />
+            <span class="text-sm">{{ resume.education_level }}</span>
+          </div>
+          <div class="flex items-center">
+            <BriefcaseIcon class="w-4 h-4 mr-2 opacity-70" />
+            <span class="text-sm">{{ resume.experience_years }} лет опыта</span>
           </div>
         </div>
 
-        <div v-if="showExperienceDropdown" class="dropdown-options">
-           <div 
-            class="dropdown-item"
-            :class="{ active: !selectedExperience }"
-            @click="selectOption('experience', '')"
+        <div class="flex flex-wrap gap-2 mb-4">
+          <span 
+            v-for="skill in resume.skills" 
+            :key="skill"
+            class="px-3 py-1 text-xs rounded-full bg-white/10"
           >
-            Любой опыт
-          </div>
-          <div 
-            v-for="exp in experienceOptions" 
-            :key="exp.value"
-            class="dropdown-item"
-            :class="{ active: selectedExperience === exp.value }"
-            @click="selectOption('experience', exp.value)"
-          >
-            {{ exp.text }}
-          </div>
+            {{ skill }}
+          </span>
         </div>
 
-        <div v-if="showSalaryDropdown" class="dropdown-options">
-           <div 
-            class="dropdown-item"
-            :class="{ active: !selectedSalary }"
-            @click="selectOption('salary', '')"
+        <p class="text-white/80 mb-4 line-clamp-2">{{ resume.summary }}</p>
+
+        <div class="flex justify-between items-center">
+          <router-link 
+            :to="{ name: 'resume-details', params: { id: resume.id }}" 
+            class="flex items-center text-white hover:opacity-80 transition-opacity"
           >
-            Оплата
-          </div>
-          <div 
-            v-for="salary in salaryOptions" 
-            :key="salary.value"
-            class="dropdown-item"
-            :class="{ active: selectedSalary === salary.value }"
-            @click="selectOption('salary', salary.value)"
-          >
-            {{ salary.text }}
-          </div>
-        </div>
-
-        <div v-if="showLocationDropdown" class="dropdown-options">
-          <div 
-            class="dropdown-item"
-            :class="{ active: !selectedLocation }"
-            @click="selectOption('location', '')"
-          >
-            Все города
-          </div>
-          <div 
-            v-for="loc in locationOptions" 
-            :key="loc.value"
-            class="dropdown-item"
-            :class="{ active: selectedLocation === loc.value }"
-            @click="selectOption('location', loc.value)"
-          >
-            {{ loc.text }}
-          </div>
-        </div>
-
-      </div>
-
-      <!-- Список резюме -->
-      <div class="resumes-list">
-        <div 
-          v-for="resume in filteredResumes" 
-          :key="resume.id"
-          class="resume-card"
-          @click="navigateToResume(resume.id)"
-        >
-          <div class="resume-header">
-            <div class="candidate-info">
-              <img :src="resume.avatar" :alt="resume.fullName" class="avatar">
-              <div class="info">
-                <h3 class="text-lg font-semibold text-gray-900">{{ resume.fullName }}</h3>
-                <p class="text-gray-600">{{ resume.position }}</p>
-              </div>
-            </div>
-            <div class="resume-actions">
-              <button 
-                class="save-btn"
-                @click.stop="toggleSave(resume)"
-                :class="{ 'saved': resume.isSaved }"
-              >
-                <BookmarkIcon :class="['w-5 h-5', resume.isSaved ? 'text-yellow-400' : '']" />
-              </button>
-            </div>
-          </div>
-
-          <div class="resume-details">
-            <div class="detail-item">
-              <BanknoteIcon class="w-5 h-5 text-gray-400" />
-              <span class="text-gray-700">Ожидания: {{ resume.salary.toLocaleString() }} ₸</span>
-            </div>
-            <div class="detail-item">
-              <MapPinIcon class="w-5 h-5 text-gray-400" />
-              <span class="text-gray-700">{{ resume.location }}</span>
-            </div>
-            <div class="detail-item">
-              <BriefcaseIcon class="w-5 h-5 text-gray-400" />
-              <span class="text-gray-700">Опыт: {{ resume.experience }}</span>
-            </div>
-            <div class="detail-item">
-              <LanguagesIcon class="w-5 h-5 text-gray-400" />
-              <span class="text-gray-700">Языки: {{ resume.languages.join(', ') }}</span>
-            </div>
-          </div>
-
-          <div class="resume-description text-gray-600">
-            {{ resume.description }}
-          </div>
-
-          <div class="skills">
-            <h4 class="text-sm font-semibold text-gray-900 mb-2">Навыки</h4>
-            <div class="skills-list">
-              <span 
-                v-for="skill in resume.skills" 
-                :key="skill"
-                class="skill-tag"
-              >
-                {{ skill }}
-              </span>
-            </div>
-          </div>
-
-          <div class="resume-footer">
-            <span class="updated-date text-sm text-gray-500">Обновлено {{ resume.updatedDate }}</span>
-            <button 
-              class="contact-btn"
-              @click.stop="contactCandidate(resume)"
-            >
-              Связаться
-            </button>
-          </div>
+            Подробнее
+            <ArrowRightIcon class="w-4 h-4 ml-2" />
+          </router-link>
+          <span class="text-sm opacity-60">
+            Обновлено {{ formatDate(resume.updated_at) }}
+          </span>
         </div>
       </div>
     </div>
-  </div>
+  </BasePageLayout>
 </template>
 
-<script>
+<script setup>
 import { ref, computed } from 'vue'
-import { useRouter } from 'vue-router'
-import { SearchIcon, BookmarkIcon, BanknoteIcon, MapPinIcon, BriefcaseIcon, LanguagesIcon } from 'lucide-vue-next'
+import { MapPinIcon, BriefcaseIcon, GraduationCapIcon, ArrowRightIcon, SearchIcon } from 'lucide-vue-next'
+import BasePageLayout from '@/layouts/BasePageLayout.vue'
 
-export default {
-  name: 'ResumesPage',
-  components: {
-    SearchIcon,
-    BookmarkIcon,
-    BanknoteIcon,
-    MapPinIcon,
-    BriefcaseIcon,
-    LanguagesIcon
-  },
-  data() {
-    return {
-      searchQuery: '',
-      selectedCategory: '',
-      selectedExperience: '',
-      selectedSalary: '',
-      selectedLocation: '',
-      categories: [
-        { id: '', name: 'Все категории' },
-        { id: 1, name: 'Повар' },
-        { id: 2, name: 'Официант/Бармен' },
-        { id: 3, name: 'Администратор/Хостес' },
-        { id: 4, name: 'Кухонный работник' },
-        { id: 5, name: 'Уборщик/Посудомойщик' },
-        { id: 6, name: 'Менеджер зала' }
-      ],
-      experienceOptions: [
-        { value: '', text: 'Любой опыт' },
-        { value: 'Без опыта', text: 'Без опыта' },
-        { value: 'До 1 года', text: 'До 1 года' },
-        { value: '1-3 года', text: '1-3 года' },
-        { value: '3-5 лет', text: '3-5 лет' },
-        { value: 'Более 5 лет', text: 'Более 5 лет' }
-      ],
-      salaryOptions: [
-        { value: '', text: 'Оплата' },
-        { value: '0-200000', text: 'До 200 000 ₸' },
-        { value: '200000-400000', text: '200 000 - 400 000 ₸' },
-        { value: '400000-600000', text: '400 000 - 600 000 ₸' },
-        { value: '600000+', text: 'Более 600 000 ₸' }
-      ],
-      locationOptions: [
-         { value: '', text: 'Все города' },
-        { value: 'алматы', text: 'Алматы' },
-        { value: 'астана', text: 'Астана' },
-        { value: 'шымкент', text: 'Шымкент' },
-        { value: 'караганда', text: 'Караганда' },
-        { value: 'актобе', text: 'Актобе' }
-      ],
-      resumes: [
-        {
-          id: 1,
-          fullName: 'Александра Смирнова',
-          position: 'UI/UX Designer',
-          location: 'Алматы',
-          salary: '220 000 ₸',
-          experience: '3 года',
-          avatar: '👩‍💻',
-          skills: ['Figma', 'Sketch', 'Adobe XD', 'UX Research', 'Prototyping', 'Usability Testing'],
-          languages: ['Рус', 'Каз'],
-          updatedDate: '1 день назад',
-          isSaved: false
-        },
-        {
-          id: 2,
-          fullName: 'Дмитрий Козлов',
-          position: 'Full-stack Developer',
-          location: 'Астана',
-          salary: '300 000 ₸',
-          experience: '5 лет',
-          avatar: '👨‍💻',
-          skills: ['JavaScript', 'Vue.js', 'Node.js', 'Express', 'MongoDB', 'SQL', 'Git'],
-          languages: ['Рус', 'Каз', 'Англ (базовый)'],
-          updatedDate: '3 дня назад',
-          isSaved: false
-        },
-         {
-          id: 3,
-          fullName: 'Мария Иванова',
-          position: 'Project Manager',
-          location: 'Шымкент',
-          salary: '250 000 ₸',
-          experience: '7 лет',
-          avatar: '👩‍💼',
-          skills: ['Agile', 'Scrum', 'Jira', 'Confluence', 'Risk Management', 'Team Leadership'],
-          languages: ['Рус'],
-          updatedDate: '1 неделя назад',
-          isSaved: false
-        }
-      ],
-      showCategoryDropdown: false,
-      showExperienceDropdown: false,
-      showSalaryDropdown: false,
-      showLocationDropdown: false,
-    }
-  },
-  computed: {
-    filteredResumes() {
-      return this.resumes.filter(resume => {
-        const matchesSearch = this.searchQuery ? resume.fullName.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-                            resume.position.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-                             resume.description.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-                            resume.skills.some(skill => skill.toLowerCase().includes(this.searchQuery.toLowerCase()))
-                          : true
-        const matchesCategory = this.selectedCategory ? resume.categoryId === this.selectedCategory : true
-        const matchesExperience = this.selectedExperience ? resume.experience === this.selectedExperience : true
-        const matchesSalary = this.selectedSalary ? this.checkSalaryRange(resume.salary, this.selectedSalary) : true
-        const matchesLocation = this.selectedLocation ? resume.location.toLowerCase().includes(this.selectedLocation.toLowerCase()) : true
-        
-        return matchesSearch && matchesCategory && matchesExperience && matchesSalary && matchesLocation
-      })
-    }
-  },
-  methods: {
-    handleSearch() {
-       // Логика поиска уже в computed свойстве filteredResumes
-    },
-    applyFilters() {
-       // Логика фильтрации уже в computed свойстве filteredResumes
-       this.closeAllDropdowns();
-    },
-    navigateToResume(resumeId) {
-      this.$router.push({ 
-        name: 'resume-details', 
-        params: { id: resumeId }
-      })
-    },
-    toggleSave(resume) {
-      resume.isSaved = !resume.isSaved
-      // Здесь можно добавить логику сохранения в избранное
-    },
-    contactCandidate(resume) {
-      // Здесь можно добавить логику связи с кандидатом
-      console.log('Contacting candidate:', resume.id)
-    },
-    checkSalaryRange(salary, range) {
-      const salaryNum = salary
-      switch(range) {
-        case '0-100000':
-          return salaryNum <= 100000
-        case '100001-200000':
-          return salaryNum > 100000 && salaryNum <= 200000
-        case '200001-300000':
-          return salaryNum > 200000 && salaryNum <= 300000
-         case '300001-500000':
-          return salaryNum > 300000 && salaryNum <= 500000
-        case '500001+':
-          return salaryNum > 500000
-        default:
-          return true
-      }
-    },
-    toggleDropdown(type) {
-      // Закрываем все dropdowns, кроме текущего
-      this.closeAllDropdowns(type);
-      
-      switch(type) {
-        case 'category':
-          this.showCategoryDropdown = !this.showCategoryDropdown;
-          break;
-        case 'experience':
-          this.showExperienceDropdown = !this.showExperienceDropdown;
-          break;
-        case 'salary':
-          this.showSalaryDropdown = !this.showSalaryDropdown;
-          break;
-        case 'location':
-          this.showLocationDropdown = !this.showLocationDropdown;
-          break;
-      }
-    },
-    closeAllDropdowns(excludeType = null) {
-      if (excludeType !== 'category') this.showCategoryDropdown = false;
-      if (excludeType !== 'experience') this.showExperienceDropdown = false;
-      if (excludeType !== 'salary') this.showSalaryDropdown = false;
-      if (excludeType !== 'location') this.showLocationDropdown = false;
-    },
-     selectOption(type, value) {
-      switch(type) {
-        case 'category':
-          this.selectedCategory = value;
-          break;
-        case 'experience':
-          this.selectedExperience = value;
-          break;
-        case 'salary':
-          this.selectedSalary = value;
-          break;
-        case 'location':
-          this.selectedLocation = value;
-          break;
-      }
-      this.closeAllDropdowns(); // Закрываем dropdown после выбора опции
-      this.applyFilters();
-    },
-    handleClickOutside(event) {
-      const filtersContainer = this.$refs.filtersContainer; // Используем ref
-      if (filtersContainer && !filtersContainer.contains(event.target)) {
-        this.closeAllDropdowns();
-      }
-    }
-  },
-  mounted() {
-    // Добавляем обработчик клика по документу для закрытия dropdowns при клике вне их
-    document.addEventListener('click', this.handleClickOutside);
-  },
-   beforeUnmount() {
-    // Удаляем обработчик при уничтожении компонента
-    document.removeEventListener('click', this.handleClickOutside);
+const loading = ref(false)
+const searchQuery = ref('')
+const activeFilters = ref([])
+
+const filters = [
+  { id: 'remote', name: 'Удаленная работа' },
+  { id: 'relocation', name: 'Готов к релокации' },
+  { id: 'student', name: 'Студенты' },
+  { id: 'experienced', name: 'Опыт от 3 лет' }
+]
+
+const resumes = ref([])
+// Здесь будет логика загрузки резюме
+
+const filteredResumes = computed(() => {
+  let result = resumes.value
+
+  if (searchQuery.value) {
+    const query = searchQuery.value.toLowerCase()
+    result = result.filter(resume => 
+      resume.full_name.toLowerCase().includes(query) ||
+      resume.position.toLowerCase().includes(query) ||
+      resume.skills.some(skill => skill.toLowerCase().includes(query))
+    )
   }
+
+  if (activeFilters.value.length > 0) {
+    result = result.filter(resume => {
+      if (activeFilters.value.includes('remote') && !resume.is_remote_ready) return false
+      if (activeFilters.value.includes('relocation') && !resume.is_relocation_ready) return false
+      if (activeFilters.value.includes('student') && resume.experience_years > 2) return false
+      if (activeFilters.value.includes('experienced') && resume.experience_years < 3) return false
+      return true
+    })
+  }
+
+  return result
+})
+
+const toggleFilter = (filterId) => {
+  const index = activeFilters.value.indexOf(filterId)
+  if (index === -1) {
+    activeFilters.value.push(filterId)
+  } else {
+    activeFilters.value.splice(index, 1)
+  }
+}
+
+const formatDate = (date) => {
+  return new Date(date).toLocaleDateString('ru-RU', {
+    day: 'numeric',
+    month: 'short'
+  })
 }
 </script>
 
 <style scoped>
-.resumes-page {
-  max-width: 414px;
-  margin: 0 auto;
-  padding: 0;
+.page-title {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 0.5rem;
 }
 
-.page-header {
-  text-align: center;
-  margin-bottom: 2rem;
+.page-subtitle {
+  font-size: 1rem;
+  font-weight: 400;
+  color: #6b7280;
+  margin-bottom: 1.5rem;
 }
 
-.filters {
-  margin-bottom: 2rem;
+.search-container {
   position: relative;
+  margin-bottom: 1.5rem;
 }
 
-.search-box {
+.search-input {
+  width: 100%;
+  padding: 0.75rem 2rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  background-color: #fff;
+  font-size: 1rem;
+  color: #111827;
+}
+
+.search-input::placeholder {
+  color: #9ca3af;
+}
+
+.filter-container {
   display: flex;
-  align-items: center;
-  background: white;
-  border-radius: 0.75rem;
-  padding: 0.75rem 1rem;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-  margin-bottom: 1rem;
-}
-
-.filter-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
-  margin-bottom: 10px;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
 }
 
 .filter-button {
-  background: #f3f4f6;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  padding: 15px;
+  flex: 1;
+  padding: 0.75rem;
+  border: 1px solid transparent;
+  border-radius: 0.375rem;
+  background-color: #f3f4f6;
+  color: #111827;
+  font-weight: 500;
   text-align: center;
   cursor: pointer;
   transition: all 0.2s ease;
-  color: #4b5563;
-  font-weight: 500;
 }
 
 .filter-button.active {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border-color: transparent;
+  background-color: #4f46e5;
+  color: #fff;
+  border-color: #4f46e5;
 }
 
 .filter-button:hover {
   opacity: 0.9;
 }
 
-.dropdown-options {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  z-index: 10;
-  padding: 10px 0;
-  margin-top: 5px;
-}
-
-.dropdown-item {
-  padding: 10px 15px;
-  cursor: pointer;
-  color: #4b5563;
-  transition: background 0.2s ease;
-}
-
-.dropdown-item:hover {
-  background: #f3f4f6;
-}
-
-.dropdown-item.active {
-  background: #e5e7eb;
-  font-weight: 600;
-}
-
-.filter-options select {
-  display: none;
-}
-
-.resumes-list {
-  display: grid;
-  gap: 1rem;
-}
-
-.resume-card {
-  background: white;
-  border-radius: 1rem;
-  padding: 1.25rem;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-  transition: all 0.3s ease;
-  cursor: pointer;
-}
-
-.resume-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-}
-
-.resume-header {
+.loading-container {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 1rem;
-}
-
-.candidate-info {
-  display: flex;
+  justify-content: center;
   align-items: center;
-  gap: 1rem;
+  height: 200px;
 }
 
-.avatar {
-  width: 3rem;
-  height: 3rem;
+.loading-spinner {
+  width: 2rem;
+  height: 2rem;
+  border: 4px solid #e5e7eb;
+  border-top-color: #4f46e5;
   border-radius: 50%;
-  object-fit: cover;
+  animation: spin 1s linear infinite;
 }
 
-.save-btn {
-  background: none;
-  border: none;
-  color: #9ca3af;
-  font-size: 1.25rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  padding: 0.5rem;
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
-.save-btn.saved {
-  color: #667eea;
+.grid-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
 }
 
-.save-btn:hover {
-  transform: scale(1.1);
-}
-
-.resume-details {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-}
-
-.detail-item {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.detail-item i {
-  width: 1rem;
-  text-align: center;
-}
-
-.resume-description {
-  margin-bottom: 1rem;
-  line-height: 1.5;
-  font-size: 0.875rem;
-}
-
-.skills {
-  margin-bottom: 1rem;
-}
-
-.skills-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-.skill-tag {
-  color: #15803d;
-  background: #bbf7d0;
-  padding: 0.25rem 0.75rem;
-  border-radius: 9999px;
-  font-size: 0.75rem;
-  font-weight: 500;
-  margin-right: 0.25rem;
-}
-
-.resume-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid #e5e7eb;
-}
-
-.contact-btn {
-  background: linear-gradient(90deg, #ff9800 0%, #ef4444 100%);
-  color: #fff;
-  font-weight: 600;
-  padding: 0.75rem 1.5rem;
+.content-card {
+  background-color: #fff;
   border-radius: 0.5rem;
-  border: none;
-  font-size: 1rem;
-  box-shadow: 0 2px 8px rgba(239,68,68,0.08);
-  transition: background 0.2s;
+  padding: 1.5rem;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
-.contact-btn:hover {
-  background: linear-gradient(90deg, #ffb347 0%, #ff5252 100%);
+
+.content-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
 }
-</style> 
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+.opacity-70 {
+  opacity: 0.7;
+}
+
+.hover\:opacity-80:hover {
+  opacity: 0.8;
+}
+
+.transition-opacity {
+  transition: opacity 0.2s ease;
+}
+</style>

@@ -1,4 +1,5 @@
-import { createClient, SupabaseClient } from '@supabase/supabase-js'
+import { supabase } from '../lib/supabase.js'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import { ref, Ref } from 'vue'
 
 interface Notification {
@@ -17,12 +18,9 @@ export class NotificationService {
   private telegramApiUrl: string
 
   constructor() {
-    this.supabase = createClient(
-      process.env.VITE_SUPABASE_URL || '',
-      process.env.VITE_SUPABASE_ANON_KEY || ''
-    )
+    this.supabase = supabase
     this.notifications = ref([])
-    this.telegramApiUrl = process.env.VITE_TELEGRAM_BOT_API_URL || ''
+    this.telegramApiUrl = import.meta.env.VITE_TELEGRAM_BOT_API_URL || ''
     this.setupRealtimeListeners()
   }
 
@@ -163,7 +161,7 @@ ${job.description}
             inline_keyboard: [[
               {
                 text: '👉 Открыть в приложении',
-                web_app: { url: `${process.env.VITE_APP_URL}/jobs/${jobId}` }
+                web_app: { url: `${import.meta.env.VITE_APP_URL}/jobs/${jobId}` }
               }
             ]]
           }

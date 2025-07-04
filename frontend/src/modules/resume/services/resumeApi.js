@@ -39,5 +39,57 @@ export default {
       .delete()
       .eq('id', id)
     if (error) throw error
+  },
+
+  // Получить публичные резюме (для главной страницы)
+  async getPublicResumes(limit = 10) {
+    const { data, error } = await supabase
+      .from('resumes')
+      .select(`
+        *,
+        profiles (
+          id,
+          full_name,
+          avatar_url
+        )
+      `)
+      .eq('is_available', true)
+      .order('created_at', { ascending: false })
+      .limit(limit)
+    
+    if (error) throw error
+    return data
+  },
+
+  // Получить резюме по ID
+  async getResumeById(id) {
+    const { data, error } = await supabase
+      .from('resumes')
+      .select(`
+        *,
+        profiles (
+          id,
+          full_name,
+          avatar_url,
+          phone,
+          email
+        )
+      `)
+      .eq('id', id)
+      .single()
+    
+    if (error) throw error
+    return data
+  },
+
+  // Получить количество публичных резюме
+  async getPublicResumesCount() {
+    const { count, error } = await supabase
+      .from('resumes')
+      .select('*', { count: 'exact', head: true })
+      .eq('is_available', true)
+    
+    if (error) throw error
+    return count
   }
 }

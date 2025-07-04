@@ -19,8 +19,12 @@
     "vue-router": "^4.2.4"
   },
   "devDependencies": {
+    "@pinia/testing": "^1.0.2",
     "@testing-library/jest-dom": "^6.6.3",
     "@vitejs/plugin-vue": "^4.4.0",
+    "autoprefixer": "^10.4.21",
+    "rollup-plugin-visualizer": "^6.0.3",
+    "terser": "^5.43.1",
     "vite": "^4.4.11",
     "vite-plugin-vue-devtools": "^7.7.6",
     "vitest": "^0.34.6"

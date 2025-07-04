@@ -4,43 +4,52 @@ import { useAuthStore } from '../modules/auth/store/auth'
 import MainLayout from '../layouts/MainLayout.vue'
 import AuthLayout from '../layouts/AuthLayout.vue'
 
-// Основные страницы
-const HomePage = () => import('../modules/home/pages/HomePage.vue')
-const JobsPage = () => import('../modules/jobs/components/JobsPage.vue')
-const ResumesPage = () => import('../modules/resume/components/ResumesPage.vue')
-const UrgentPage = () => import('../modules/urgent/components/UrgentPage.vue')
+// Основные страницы - каждая страница в отдельном chunk
+const HomePage = () => import(/* webpackChunkName: "page-home" */ '../modules/home/pages/HomePage.vue')
 
-// Компоненты профиля
-const ProfilePage = () => import('../modules/profile/components/ProfilePage.vue')
-const ProfileSetup = () => import('../modules/profile/components/ProfileSetup.vue')
-const ProfileSubscriptions = () => import('../modules/profile/components/ProfileSubscriptions.vue')
-const ProfileApplications = () => import('../modules/profile/components/ProfileApplications.vue')
-const SettingsPage = () => import('@/modules/profile/components/SettingsPage.vue')
+// Jobs модуль
+const JobsPage = () => import(/* webpackChunkName: "page-jobs" */ '../modules/jobs/components/JobsPage.vue')
+const JobDetails = () => import(/* webpackChunkName: "page-job-details" */ '../modules/jobs/components/JobDetails.vue')
 
-// Компоненты компаний
-const CompaniesPage = () => import('../modules/companies/components/CompaniesPage.vue')
-const CompanyDetails = () => import('../modules/companies/components/CompanyDetails.vue')
-const CompanySetup = () => import('../modules/companies/components/CompanySetup.vue')
-const CompanyDashboard = () => import('../modules/companies/components/CompanyDashboard.vue')
+// Resume модуль
+const ResumesPage = () => import(/* webpackChunkName: "page-resumes" */ '../modules/resume/components/ResumesPage.vue')
+const ResumeDetails = () => import(/* webpackChunkName: "page-resume-details" */ '../modules/resume/components/ResumeDetails.vue')
 
-// Дополнительные компоненты
-const JobDetails = () => import('../modules/jobs/components/JobDetails.vue')
-const ResumeDetails = () => import('../modules/resume/components/ResumeDetails.vue')
-import LoginForm from '../modules/auth/components/LoginForm.vue'
-const RegisterForm = () => import('../modules/auth/components/RegisterForm.vue')
-const ResetPassword = () => import('../modules/auth/components/ResetPassword.vue')
+// Urgent модуль
+const UrgentPage = () => import(/* webpackChunkName: "page-urgent" */ '../modules/urgent/components/UrgentPage.vue')
+
+// Profile модуль
+const ProfilePage = () => import(/* webpackChunkName: "page-profile" */ '../modules/profile/components/ProfilePage.vue')
+const ProfileSetup = () => import(/* webpackChunkName: "page-profile-setup" */ '../modules/profile/components/ProfileSetup.vue')
+const ProfileSubscriptions = () => import(/* webpackChunkName: "page-profile-subscriptions" */ '../modules/profile/components/ProfileSubscriptions.vue')
+const ProfileApplications = () => import(/* webpackChunkName: "page-profile-applications" */ '../modules/profile/components/ProfileApplications.vue')
+const SettingsPage = () => import(/* webpackChunkName: "page-settings" */ '@/modules/profile/components/SettingsPage.vue')
+
+// Companies модуль
+const CompaniesPage = () => import(/* webpackChunkName: "page-companies" */ '../modules/companies/components/CompaniesPage.vue')
+const CompanyDetails = () => import(/* webpackChunkName: "page-company-details" */ '../modules/companies/components/CompanyDetails.vue')
+const CompanySetup = () => import(/* webpackChunkName: "page-company-setup" */ '../modules/companies/components/CompanySetup.vue')
+const CompanyDashboard = () => import(/* webpackChunkName: "page-company-dashboard" */ '../modules/companies/components/CompanyDashboard.vue')
+
+// Auth модуль
+const LoginForm = () => import(/* webpackChunkName: "page-login" */ '../modules/auth/components/LoginForm.vue')
+const RegisterForm = () => import(/* webpackChunkName: "page-register" */ '../modules/auth/components/RegisterForm.vue')
+const ResetPassword = () => import(/* webpackChunkName: "page-reset-password" */ '../modules/auth/components/ResetPassword.vue')
 
 const routes = [
+  // Главная страница без layout (у неё свой header)
+  { 
+    path: '/', 
+    name: 'home',
+    component: HomePage,
+    meta: { title: 'Главная' }
+  },
+  
+  // Остальные страницы с MainLayout
   {
-    path: '/',
+    path: '/app',
     component: MainLayout,
     children: [
-      { 
-        path: '', 
-        name: 'home',
-        component: HomePage,
-        meta: { title: 'Главная' }
-      },
       { 
         path: 'jobs', 
         name: 'jobs',

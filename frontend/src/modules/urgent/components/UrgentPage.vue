@@ -1,308 +1,142 @@
 <template>
-  <div class="urgent-page">
-    <div class="pt-4 pb-16">
-      <!-- Заголовок -->
-      <div class="page-header">
-        <h1 class="text-2xl font-bold text-gray-900">Срочные вакансии</h1>
-        <p class="text-gray-600 mt-2">Актуальные предложения, требующие быстрого отклика</p>
-      </div>
+  <BasePageLayout>
+    <h1 class="page-title">Срочные вакансии</h1>
+    <p class="page-subtitle">Вакансии, требующие срочного закрытия с повышенной оплатой</p>
 
-      <!-- Фильтры -->
-      <div class="filters" ref="filtersContainer">
-        <div class="search-box">
-          <SearchIcon class="w-5 h-5 text-gray-400" />
-          <input 
-            type="text" 
-            placeholder="Поиск срочных вакансий..."
-            v-model="searchQuery"
-            @input="handleSearch"
-            class="w-full bg-transparent border-none outline-none text-gray-700"
-          >
-        </div>
-        
-        <div class="filter-grid">
-          <div 
-            class="filter-button"
-            :class="{ active: !selectedCategory }"
-            @click="toggleDropdown('category')"
-          >
-            Все категории
-          </div>
-           <div 
-            class="filter-button"
-            :class="{ active: !selectedLocation }"
-            @click="toggleDropdown('location')"
-          >
-            Все города
-          </div>
-        </div>
-
-        <div v-if="showCategoryDropdown" class="dropdown-options">
-           <div 
-            class="dropdown-item"
-            :class="{ active: !selectedCategory }"
-            @click="selectOption('category', '')"
-          >
-            Все категории
-          </div>
-          <div 
-            v-for="category in categories" 
-            :key="category.id"
-            class="dropdown-item"
-            :class="{ active: selectedCategory === category.id }"
-            @click="selectOption('category', category.id)"
-          >
-            {{ category.name }}
-          </div>
-        </div>
-
-        <div v-if="showLocationDropdown" class="dropdown-options">
-           <div 
-            class="dropdown-item"
-            :class="{ active: !selectedLocation }"
-            @click="selectOption('location', '')"
-          >
-            Все города
-          </div>
-          <div 
-            v-for="loc in locationOptions" 
-            :key="loc.value"
-            class="dropdown-item"
-            :class="{ active: selectedLocation === loc.value }"
-            @click="selectOption('location', loc.value)"
-          >
-            {{ loc.text }}
-          </div>
-        </div>
-      </div>
-
-      <!-- Список срочных вакансий -->
-      <div v-if="loading" class="flex justify-center">
-        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-      </div>
-
-      <div v-else-if="error" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-        {{ error }}
-      </div>
-
-      <div v-else>
-        <div v-if="filteredJobs && filteredJobs.length === 0" class="text-center py-12">
-          <p class="text-gray-600 mb-4">Срочные вакансии не найдены</p>
-        </div>
-
-        <div v-else-if="filteredJobs" class="urgent-jobs">
-          <UrgentJobCard
-            v-for="job in filteredJobs"
-            :key="job.id"
-            :title="job.title"
-            :company="job.company.name"
-            :salary="job.salary_range"
-            :city="job.location"
-            :deadline="job.deadline"
-            :description="job.description"
-            :tags="job.tags"
-            :benefits="job.benefits"
-            :published="job.created_at"
-            :companyLogo="job.company.logo || '🏢'"
-            :isUrgent="job.is_urgent"
-            :isRegular="!job.is_urgent"
-            @apply="applyForJob(job)"
-          />
-        </div>
-      </div>
+    <div class="search-container">
+      <SearchIcon class="w-6 h-6 text-gray-400" />
+      <input 
+        type="text" 
+        v-model="searchQuery" 
+        placeholder="Поиск срочных вакансий..." 
+        class="search-input"
+      />
     </div>
-  </div>
+
+    <div v-if="loading" class="loading-container">
+      <div class="loading-spinner"></div>
+    </div>
+
+    <div v-else-if="urgentJobs.length === 0" class="text-center mt-12">
+      <div class="mb-4">
+        <AlertCircleIcon class="w-16 h-16 mx-auto opacity-50" />
+      </div>
+      <h3 class="text-xl font-semibold mb-2">Срочных вакансий пока нет</h3>
+      <p class="text-white/70">Загляните позже или посмотрите все вакансии</p>
+      <router-link 
+        to="/jobs"
+        class="inline-flex items-center mt-4 text-white hover:opacity-80 transition-opacity"
+      >
+        Все вакансии
+        <ArrowRightIcon class="w-4 h-4 ml-2" />
+      </router-link>
+    </div>
+
+    <div v-else class="grid-container">
+      <UrgentJobCard 
+        v-for="job in filteredJobs" 
+        :key="job.id" 
+        :job="job" 
+      />
+    </div>
+  </BasePageLayout>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
-import { SearchIcon, ZapIcon, BanknoteIcon, MapPinIcon, ClockIcon, CheckIcon } from 'lucide-vue-next'
+import { ref, computed, onMounted } from 'vue'
+import { SearchIcon, AlertCircleIcon, ArrowRightIcon } from 'lucide-vue-next'
+import BasePageLayout from '@/layouts/BasePageLayout.vue'
 import UrgentJobCard from '@/components/UrgentJobCard.vue'
-import { useJobsStore } from '@/modules/jobs/store/jobs'
-import { storeToRefs } from 'pinia'
+import { jobsService } from '@/modules/jobs/services/jobsService'
 
-const today = new Date();
-const tomorrow = new Date();
-tomorrow.setDate(today.getDate() + 1);
-
-const jobsStore = useJobsStore()
-const { urgentJobs, loading, error } = storeToRefs(jobsStore)
+const loading = ref(true)
 const searchQuery = ref('')
-const selectedCategory = ref('')
-const selectedLocation = ref('')
-const showCategoryDropdown = ref(false)
-const showLocationDropdown = ref(false)
-
-const categories = ref([
-  { id: 1, name: 'Повар' },
-  { id: 2, name: 'Официант/Бармен' },
-  { id: 3, name: 'Администратор/Хостес' },
-  { id: 4, name: 'Кухонный работник' },
-  { id: 5, name: 'Уборщик/Посудомойщик' },
-  { id: 6, name: 'Менеджер зала' }
-])
-const locationOptions = ref([
-  { value: '', text: 'Все города' },
-  { value: 'алматы', text: 'Алматы' },
-  { value: 'астана', text: 'Астана' },
-  { value: 'шымкент', text: 'Шымкент' },
-  { value: 'караганда', text: 'Караганда' },
-  { value: 'актобе', text: 'Актобе' }
-])
+const urgentJobs = ref([])
 
 const filteredJobs = computed(() => {
-  if (!urgentJobs.value) {
-    return []
-  }
-  return urgentJobs.value.filter(job => {
-    const matchesSearch = job.title.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-                          job.description.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-                          job.company.name.toLowerCase().includes(searchQuery.value.toLowerCase())
+  if (!searchQuery.value) return urgentJobs.value
 
-    const matchesCategory = true // Временно всегда true
-    const matchesLocation = !selectedLocation.value || job.location.toLowerCase().includes(selectedLocation.value)
-    
-    return matchesSearch && matchesCategory && matchesLocation
-  })
+  const query = searchQuery.value.toLowerCase()
+  return urgentJobs.value.filter(job => 
+    job.title.toLowerCase().includes(query) ||
+    job.company_name.toLowerCase().includes(query) ||
+    job.location.toLowerCase().includes(query) ||
+    job.tags.some(tag => tag.toLowerCase().includes(query))
+  )
 })
 
-const fetchUrgentJobs = async () => {
+onMounted(async () => {
   try {
-    await jobsStore.fetchUrgentJobs({
-      search: searchQuery.value,
-      location: selectedLocation.value,
-    })
-  } catch (err) {
-    console.error('Ошибка при загрузке срочных вакансий:', err)
+    urgentJobs.value = await jobsService.getUrgentJobs()
+  } catch (error) {
+    console.error('Error fetching urgent jobs:', error)
+  } finally {
+    loading.value = false
   }
-}
-
-onMounted(() => {
-  fetchUrgentJobs()
-  document.addEventListener('click', closeAllDropdowns)
 })
-
-onBeforeUnmount(() => {
-  document.removeEventListener('click', closeAllDropdowns)
-})
-
-const handleSearch = () => {
-  fetchUrgentJobs()
-}
-
-const selectOption = (type, value) => {
-  if (type === 'category') {
-    selectedCategory.value = value
-  } else if (type === 'location') {
-    selectedLocation.value = value
-  }
-  fetchUrgentJobs()
-  closeAllDropdowns()
-}
-
-const toggleDropdown = (type) => {
-  if (type === 'category') {
-    showCategoryDropdown.value = !showCategoryDropdown.value
-    showLocationDropdown.value = false
-  } else if (type === 'location') {
-    showLocationDropdown.value = !showLocationDropdown.value
-    showCategoryDropdown.value = false
-  }
-}
-
-const closeAllDropdowns = (event) => {
-  const filtersContainer = document.querySelector('.filters')
-  if (filtersContainer && !filtersContainer.contains(event.target)) {
-    showCategoryDropdown.value = false
-    showLocationDropdown.value = false
-  }
-}
-
-const applyForJob = (job) => {
-  console.log('Откликнуться на вакансию:', job.title)
-}
 </script>
 
 <style scoped>
-.urgent-page {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 1rem;
-}
-
-.page-header {
+.page-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 0.5rem;
   text-align: center;
-  margin-bottom: 2rem;
 }
 
-.filters {
+.page-subtitle {
+  font-size: 1rem;
+  color: #6b7280;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.search-container {
   position: relative;
   margin-bottom: 2rem;
 }
 
-.search-box {
+.search-input {
+  width: 100%;
+  padding: 0.75rem 2rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  font-size: 1rem;
+  color: #111827;
+  background-color: #fff;
+  transition: border-color 0.3s;
+}
+
+.search-input:focus {
+  border-color: #4f46e5;
+  outline: none;
+}
+
+.loading-container {
   display: flex;
+  justify-content: center;
   align-items: center;
-  background: white;
-  border-radius: 0.5rem;
-  padding: 0.75rem 1rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  margin-bottom: 1rem;
+  height: 200px;
 }
 
-.filter-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
+.loading-spinner {
+  border: 4px solid #e5e7eb;
+  border-top-color: #4f46e5;
+  border-radius: 50%;
+  width: 2rem;
+  height: 2rem;
+  animation: spin 1s linear infinite;
 }
 
-.filter-button {
-  background: white;
-  border-radius: 0.5rem;
-  padding: 0.75rem 1rem;
-  text-align: center;
-  cursor: pointer;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
-.filter-button.active {
-  background: #4F46E5;
-  color: white;
-}
-
-.dropdown-options {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  background: white;
-  border-radius: 0.5rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  z-index: 10;
-  margin-top: 0.5rem;
-}
-
-.dropdown-item {
-  padding: 0.75rem 1rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.dropdown-item:hover {
-  background: #F3F4F6;
-}
-
-.dropdown-item.active {
-  background: #4F46E5;
-  color: white;
-}
-
-.urgent-jobs {
+.grid-container {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 1.5rem;
 }
-/* Удаляем все старые стили, относящиеся к .urgent-job-card и его внутренним элементам */
-/* Эти стили теперь будут управляться компонентом UrgentJobCard.vue */
-</style> 
+</style>

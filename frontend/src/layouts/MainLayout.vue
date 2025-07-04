@@ -10,43 +10,37 @@
         <button class="header-btn">
           <BellIcon class="w-5 h-5" />
         </button>
-        <div class="menu-container">
-          <button class="header-btn" @click="toggleMenu">
-            <MenuIcon class="w-5 h-5" />
-          </button>
-          <div v-if="isMenuOpen" class="dropdown-menu">
-            <RouterLink to="/" class="menu-item" @click="closeMenu">
-              <HomeIcon class="w-5 h-5" />
-              <span>Главная</span>
-            </RouterLink>
-            <RouterLink to="/urgent" class="menu-item" @click="closeMenu">
-              <ZapIcon class="w-5 h-5" />
-              <span>Срочно</span>
-            </RouterLink>
-            <RouterLink to="/jobs" class="menu-item" @click="closeMenu">
-              <BriefcaseIcon class="w-5 h-5" />
-              <span>Вакансии</span>
-            </RouterLink>
-            <RouterLink to="/resumes" class="menu-item" @click="closeMenu">
-              <FileTextIcon class="w-5 h-5" />
-              <span>Резюме</span>
-            </RouterLink>
-            <RouterLink to="/profile" class="menu-item" @click="closeMenu">
-              <UserIcon class="w-5 h-5" />
-              <span>Профиль</span>
-            </RouterLink>
-            <div class="menu-divider"></div>
-            <button v-if="isAuthenticated" class="menu-item logout" @click="handleLogout">
-              <LogOutIcon class="w-5 h-5" />
-              <span>Выйти</span>
-            </button>
-          </div>
-        </div>
+        <BurgerMenu />
+        <RouterLink to="/urgent" class="menu-item" @click="closeMenu">
+          <ZapIcon class="w-5 h-5" />
+          <span>Срочно</span>
+        </RouterLink>
+        <RouterLink to="/jobs" class="menu-item" @click="closeMenu">
+          <BriefcaseIcon class="w-5 h-5" />
+          <span>Вакансии</span>
+        </RouterLink>
+        <RouterLink to="/resumes" class="menu-item" @click="closeMenu">
+          <FileTextIcon class="w-5 h-5" />
+          <span>Резюме</span>
+        </RouterLink>
+        <RouterLink to="/profile" class="menu-item" @click="closeMenu">
+          <UserIcon class="w-5 h-5" />
+          <span>Профиль</span>
+        </RouterLink>
+        <div class="menu-divider"></div>
+        <button v-if="isAuthenticated" class="menu-item logout" @click="handleLogout">
+          <LogOutIcon class="w-5 h-5" />
+          <span>Выйти</span>
+        </button>
       </div>
     </header>
     <main class="main-content">
       <div>
-        <router-view />
+        <router-view v-slot="{ Component }">
+          <transition name="page-transition" mode="out-in">
+            <component :is="Component" />
+          </transition>
+        </router-view>
       </div>
     </main>
   </div>
@@ -68,6 +62,7 @@ import {
   UserIcon,
   LogOutIcon
 } from 'lucide-vue-next'
+import BurgerMenu from '@/shared/ui/BurgerMenu.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -228,5 +223,12 @@ onUnmounted(() => {
   padding: 32px 20px 60px 20px;
   background: var(--color-bg);
   min-height: calc(100vh - 60px);
+}
+
+.page-transition-enter-active, .page-transition-leave-active {
+  transition: opacity 0.5s;
+}
+.page-transition-enter, .page-transition-leave-to /* .page-transition-leave-active in <2.1.8 */ {
+  opacity: 0;
 }
 </style>

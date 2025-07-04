@@ -36,3 +36,5 @@ yarn-error.log*
 .vuepress/dist
 .temp
 .cache 
+# Local Netlify folder
+.netlify
