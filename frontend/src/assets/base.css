@@ -1,54 +1,67 @@
-/* color palette from <https://github.com/vuejs/theme> */
+/* НОВАЯ ЦВЕТОВАЯ ПАЛИТРА ДЛЯ ОБЩЕПИТА АСТАНЫ */
 :root {
-  --vt-c-white: #ffffff;
-  --vt-c-white-soft: #f8f8f8;
-  --vt-c-white-mute: #f2f2f2;
-
-  --vt-c-black: #181818;
-  --vt-c-black-soft: #222222;
-  --vt-c-black-mute: #282828;
-
-  --vt-c-indigo: #2c3e50;
-
-  --vt-c-divider-light-1: rgba(60, 60, 60, 0.29);
-  --vt-c-divider-light-2: rgba(60, 60, 60, 0.12);
-  --vt-c-divider-dark-1: rgba(84, 84, 84, 0.65);
-  --vt-c-divider-dark-2: rgba(84, 84, 84, 0.48);
-
-  --vt-c-text-light-1: var(--vt-c-indigo);
-  --vt-c-text-light-2: rgba(60, 60, 60, 0.66);
-  --vt-c-text-dark-1: var(--vt-c-white);
-  --vt-c-text-dark-2: rgba(235, 235, 235, 0.64);
-}
-
-/* semantic color variables for this project */
-:root {
-  --color-background: var(--vt-c-white);
-  --color-background-soft: var(--vt-c-white-soft);
-  --color-background-mute: var(--vt-c-white-mute);
-
-  --color-border: var(--vt-c-divider-light-2);
-  --color-border-hover: var(--vt-c-divider-light-1);
-
-  --color-heading: var(--vt-c-text-light-1);
-  --color-text: var(--vt-c-text-light-1);
-
+  /* Основная палитра из first.md */
+  --color-bg: #0a0a0a;                /* Темный фон */
+  --color-primary: #667eea;           /* Основной синий */
+  --color-secondary: #764ba2;         /* Фиолетовый */
+  --color-accent: #f093fb;            /* Розовый акцент */
+  --color-danger: #f5576c;            /* Красный для срочных */
+  --color-success: #4CAF50;           /* Зеленый для готовности */
+  --color-warning: #ff9800;           /* Оранжевый для предупреждений */
+  --color-info: #2196F3;              /* Синий для информации */
+  
+  /* Градиенты */
+  --gradient-main: linear-gradient(45deg, #667eea, #764ba2, #f093fb, #f5576c);
+  --gradient-cards: rgba(255, 255, 255, 0.1);
+  --gradient-header: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --gradient-urgent: linear-gradient(45deg, #f5576c, #ff6b8a);
+  --gradient-ready: linear-gradient(45deg, #4CAF50, #66BB6A);
+  
+  /* Стеклянные эффекты */
+  --glass-bg: rgba(255, 255, 255, 0.1);
+  --glass-bg-hover: rgba(255, 255, 255, 0.15);
+  --glass-border: rgba(255, 255, 255, 0.2);
+  --glass-blur: blur(20px);
+  
+  /* Текст и фон */
+  --color-text-primary: #ffffff;
+  --color-text-secondary: rgba(255, 255, 255, 0.8);
+  --color-text-muted: rgba(255, 255, 255, 0.6);
+  --color-background: var(--color-bg);
+  --color-background-soft: rgba(16, 16, 16, 0.9);
+  --color-background-mute: rgba(32, 32, 32, 0.8);
+  
+  /* Границы и разделители */
+  --color-border: rgba(255, 255, 255, 0.1);
+  --color-border-hover: rgba(255, 255, 255, 0.3);
+  --color-divider: rgba(255, 255, 255, 0.1);
+  
+  /* Тени */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.15);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.25);
+  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.35);
+  --shadow-xl: 0 25px 50px rgba(0, 0, 0, 0.45);
+  
+  /* Переменные совместимости */
+  --color-heading: var(--color-text-primary);
+  --color-text: var(--color-text-secondary);
   --section-gap: 160px;
+  
+  /* Специфичные для общепита */
+  --color-catering-kitchen: #ff6b35;   /* Кухня */
+  --color-catering-service: #4ecdc4;   /* Обслуживание */
+  --color-catering-management: #45b7d1; /* Управление */
+  --color-catering-support: #96ceb4;   /* Поддержка */
+  
+  /* Валюта и зарплаты */
+  --color-salary-kzt: #ffd700;        /* Золотой для тенге */
+  --color-salary-high: var(--color-success);
+  --color-salary-medium: var(--color-warning);
+  --color-salary-low: var(--color-text-muted);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-background: var(--vt-c-black);
-    --color-background-soft: var(--vt-c-black-soft);
-    --color-background-mute: var(--vt-c-black-mute);
-
-    --color-border: var(--vt-c-divider-dark-2);
-    --color-border-hover: var(--vt-c-divider-dark-1);
-
-    --color-heading: var(--vt-c-text-dark-1);
-    --color-text: var(--vt-c-text-dark-2);
-  }
-}
+/* Удаляем светлую тему - оставляем только темную */
+/* @media (prefers-color-scheme: dark) удален - используем только темную тему */
 
 *,
 *::before,
@@ -64,9 +77,49 @@ body {
   background: var(--color-background);
   transition: color 0.5s, background-color 0.5s;
   line-height: 1.6;
-  font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
   font-size: 15px;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+/* Анимированный фон */
+.bg-animation {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  background: var(--gradient-main);
+  background-size: 400% 400%;
+  animation: gradientShift 15s ease infinite;
+}
+
+.bg-animation::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
+    radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.3) 0%, transparent 50%);
+  animation: float 20s ease-in-out infinite;
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  33% { transform: translateY(-30px) rotate(0.5deg); }
+  66% { transform: translateY(15px) rotate(-0.5deg); }
 }

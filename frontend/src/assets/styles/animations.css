@@ -1,0 +1,283 @@
+/* ДОПОЛНИТЕЛЬНЫЕ АНИМАЦИИ И ГРАДИЕНТЫ ДЛЯ ОБЩЕПИТА */
+
+/* Анимация появления элементов */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInFromLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInFromRight {
+  from {
+    opacity: 0;
+    transform: translateX(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Анимация пульсации для срочных элементов */
+@keyframes urgentPulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(245, 87, 108, 0.7);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 10px rgba(245, 87, 108, 0);
+  }
+}
+
+/* Анимация готовности */
+@keyframes readyGlow {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(76, 175, 80, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(76, 175, 80, 0.8);
+  }
+}
+
+/* Анимация загрузки */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Анимация волны для карточек */
+@keyframes wave {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Анимация блеска */
+@keyframes shine {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+/* Анимация тряски для уведомлений */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+  20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+/* Универсальные классы анимаций */
+.animate-slide-up {
+  animation: slideUp 0.6s ease-out;
+}
+
+.animate-slide-in-left {
+  animation: slideInFromLeft 0.6s ease-out;
+}
+
+.animate-slide-in-right {
+  animation: slideInFromRight 0.6s ease-out;
+}
+
+.animate-urgent-pulse {
+  animation: urgentPulse 2s infinite;
+}
+
+.animate-ready-glow {
+  animation: readyGlow 3s ease-in-out infinite;
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+.animate-shake {
+  animation: shake 0.5s ease-in-out;
+}
+
+/* Градиенты для специализаций */
+.gradient-kitchen {
+  background: linear-gradient(135deg, #ff6b35 0%, #ff8f65 100%);
+}
+
+.gradient-service {
+  background: linear-gradient(135deg, #4ecdc4 0%, #7ee8e0 100%);
+}
+
+.gradient-management {
+  background: linear-gradient(135deg, #45b7d1 0%, #75c7e0 100%);
+}
+
+.gradient-support {
+  background: linear-gradient(135deg, #96ceb4 0%, #b8dcc4 100%);
+}
+
+/* Градиенты для статусов вакансий */
+.gradient-active {
+  background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);
+}
+
+.gradient-urgent {
+  background: linear-gradient(135deg, #f5576c 0%, #ff6b8a 100%);
+}
+
+.gradient-filled {
+  background: linear-gradient(135deg, #9E9E9E 0%, #BDBDBD 100%);
+}
+
+.gradient-expired {
+  background: linear-gradient(135deg, #FF5722 0%, #FF7043 100%);
+}
+
+/* Эффекты для карточек */
+.card-hover-effect {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.card-hover-effect::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  transition: left 0.5s;
+  z-index: 1;
+}
+
+.card-hover-effect:hover::before {
+  left: 100%;
+}
+
+.card-hover-effect:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--shadow-xl);
+}
+
+/* Стеклянный эффект для модальных окон */
+.glass-modal {
+  background: rgba(10, 10, 10, 0.8);
+  backdrop-filter: blur(30px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: 20px;
+}
+
+.glass-card-hover {
+  transition: all 0.3s ease;
+}
+
+.glass-card-hover:hover {
+  background: var(--glass-bg-hover);
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Эффекты для кнопок */
+.btn-gradient {
+  background: var(--gradient-header);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-gradient::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.btn-gradient:hover::before {
+  left: 100%;
+}
+
+.btn-gradient:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Эффект мерцания для новых элементов */
+.sparkle-effect {
+  position: relative;
+}
+
+.sparkle-effect::after {
+  content: '✨';
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  font-size: 1.2rem;
+  animation: sparkle 2s ease-in-out infinite;
+}
+
+@keyframes sparkle {
+  0%, 100% {
+    opacity: 0;
+    transform: scale(0.8) rotate(0deg);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2) rotate(180deg);
+  }
+}
+
+/* Градиентные границы */
+.gradient-border {
+  position: relative;
+  background: var(--glass-bg);
+  border-radius: 12px;
+}
+
+.gradient-border::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  padding: 2px;
+  background: var(--gradient-main);
+  border-radius: inherit;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: xor;
+  -webkit-mask-composite: xor;
+}

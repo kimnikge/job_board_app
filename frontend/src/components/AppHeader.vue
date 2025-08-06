@@ -1,9 +1,10 @@
 <template>
-  <header class="app-header glass-dark">
+  <header class="app-header glass-header">
     <div class="header-content">
       <router-link to="/" class="logo">
-        <img src="@/assets/logo.svg" alt="Job Board" class="logo-image" />
-        <span class="logo-text">Job Board</span>
+        <span class="logo-icon">🍽️</span>
+        <span class="logo-text">Job Board Астана</span>
+        <span class="logo-subtitle">Общепит</span>
       </router-link>
 
       <nav class="nav-menu">
@@ -14,6 +15,7 @@
           class="nav-link"
           :class="{ active: isCurrentRoute(item.path) }"
         >
+          <span v-if="item.icon" class="nav-icon">{{ item.icon }}</span>
           {{ item.label }}
         </router-link>
       </nav>
@@ -29,6 +31,13 @@
         </button>
 
         <template v-else>
+          <!-- Кнопка срочных вакансий -->
+          <router-link to="/urgent" class="urgent-button">
+            <span class="urgent-icon">🚨</span>
+            <span>СРОЧНО</span>
+            <span v-if="urgentJobsCount" class="urgent-badge">{{ urgentJobsCount }}</span>
+          </router-link>
+
           <div class="notifications-menu" v-click-outside="closeNotifications">
             <button class="icon-button" @click="toggleNotifications">
               <BellIcon class="w-5 h-5" />
@@ -40,10 +49,10 @@
             <!-- Дропдаун уведомлений -->
             <div 
               v-if="isNotificationsOpen"
-              class="notifications-dropdown glass"
+              class="notifications-dropdown glass-card"
             >
               <div class="notifications-header">
-                <h3>Уведомления</h3>
+                <h3>🔔 Уведомления</h3>
                 <button 
                   v-if="notifications.length" 
                   @click="markAllAsRead"
@@ -63,6 +72,7 @@
                   <div class="notification-icon">
                     <span v-if="notification.type === 'urgent'">🚨</span>
                     <span v-else-if="notification.type === 'response'">✨</span>
+                    <span v-else-if="notification.type === 'catering'">👨‍🍳</span>
                     <span v-else>📨</span>
                   </div>
                   <div class="notification-content">
@@ -154,11 +164,26 @@ const unreadNotifications = computed(() =>
 const isProfileMenuOpen = ref(false)
 
 const menuItems = [
-  { path: '/jobs', label: 'Вакансии' },
-  { path: '/resumes', label: 'Резюме' },
-  { path: '/companies', label: 'Компании' },
-  { path: '/urgent', label: 'Срочные' }
+  { path: '/jobs', label: 'Вакансии', icon: '💼' },
+  { path: '/resumes', label: 'Резюме', icon: '📄' },
+  { path: '/companies', label: 'Заведения', icon: '🏪' },
+  { path: '/urgent', label: 'СРОЧНО', icon: '🚨' }
 ]
+
+// Добавляем переменную для подсчета срочных вакансий
+const urgentJobsCount = ref(0)
+
+// Функция для загрузки количества срочных вакансий
+const loadUrgentJobsCount = async () => {
+  try {
+    // TODO: Заменить на реальный API вызов
+    // const { data } = await urgentJobsService.getActiveCount()
+    // urgentJobsCount.value = data?.count || 0
+    urgentJobsCount.value = 3 // Заглушка
+  } catch (error) {
+    console.error('Ошибка загрузки счетчика срочных вакансий:', error)
+  }
+}
 
 const profileMenuItems = [
   { path: '/profile', label: 'Профиль', icon: UserCircleIcon },
@@ -242,67 +267,114 @@ const handleLogout = async () => {
   left: 0;
   right: 0;
   z-index: 50;
+  height: 80px;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  border-bottom: 1px solid var(--glass-border);
+  transition: all 0.3s ease;
+}
+
+.glass-header {
+  background: rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(20px);
+}
+
+.app-header.scrolled {
+  background: rgba(0, 0, 0, 0.8);
   height: 70px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .header-content {
   max-width: 1400px;
   margin: 0 auto;
-  padding: 0 20px;
+  padding: 0 24px;
   height: 100%;
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 
+/* Логотип для общепита */
 .logo {
   display: flex;
   align-items: center;
   text-decoration: none;
-  color: white;
+  color: var(--color-text-primary);
+  gap: 12px;
 }
 
-.logo-image {
-  height: 32px;
-  width: auto;
-  margin-right: 12px;
+.logo-icon {
+  font-size: 2rem;
+  animation: pulse 3s ease-in-out infinite;
 }
 
 .logo-text {
-  font-size: 1.5rem;
-  font-weight: 700;
+  font-size: 1.8rem;
+  font-weight: 900;
+  background: linear-gradient(45deg, #fff, #f0f0f0);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.logo-subtitle {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-primary);
+  padding: 2px 8px;
+  background: rgba(102, 126, 234, 0.2);
+  border-radius: 12px;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
 }
 
 .nav-menu {
   display: flex;
-  gap: 30px;
+  gap: 32px;
 }
 
 .nav-link {
-  color: rgba(255, 255, 255, 0.7);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--color-text-secondary);
   text-decoration: none;
-  font-weight: 500;
-  transition: all 0.3s;
+  font-weight: 600;
+  transition: all 0.3s ease;
   position: relative;
+  padding: 8px 16px;
+  border-radius: 12px;
+}
+
+.nav-icon {
+  font-size: 1.2rem;
 }
 
 .nav-link:hover {
-  color: white;
+  color: var(--color-text-primary);
+  background: var(--glass-bg);
+  transform: translateY(-2px);
 }
 
 .nav-link.active {
-  color: white;
+  color: var(--color-text-primary);
+  background: var(--glass-bg-hover);
+  border: 1px solid var(--color-primary);
 }
 
 .nav-link.active::after {
   content: '';
   position: absolute;
-  bottom: -4px;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, #fff, transparent);
+  bottom: -2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 20px;
+  height: 3px;
+  background: var(--gradient-header);
+  border-radius: 2px;
 }
 
 .header-actions {
@@ -311,35 +383,98 @@ const handleLogout = async () => {
   gap: 20px;
 }
 
+/* Кнопка срочных вакансий */
+.urgent-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--color-urgent-bg);
+  color: white;
+  padding: 10px 18px;
+  border-radius: 25px;
+  text-decoration: none;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+}
+
+.urgent-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.urgent-button:hover::before {
+  left: 100%;
+}
+
+.urgent-button:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-xl);
+}
+
+.urgent-icon {
+  font-size: 1.1rem;
+  animation: flash 2s infinite;
+}
+
+.urgent-badge {
+  background: white;
+  color: var(--color-danger);
+  font-size: 0.8rem;
+  font-weight: 900;
+  padding: 2px 6px;
+  border-radius: 50%;
+  min-width: 20px;
+  text-align: center;
+}
+
+@keyframes flash {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0.7; }
+}
+
 .auth-button {
   display: flex;
   align-items: center;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: white;
-  padding: 8px 16px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  color: var(--color-text-primary);
+  padding: 10px 18px;
   border-radius: 12px;
-  font-weight: 500;
-  transition: all 0.3s;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  backdrop-filter: var(--glass-blur);
 }
 
 .auth-button:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--glass-bg-hover);
   transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
 }
 
 .icon-button {
   position: relative;
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
   border-radius: 12px;
-  color: white;
-  transition: all 0.3s;
+  color: var(--color-text-primary);
+  transition: all 0.3s ease;
+  backdrop-filter: var(--glass-blur);
 }
 
 .icon-button:hover {

@@ -1,4 +1,5 @@
 @import './base.css';
+@import './styles/animations.css';
 
 #app {
   width: 100%;
@@ -29,73 +30,125 @@ a,
 }
 
 :root {
-  --color-bg: #f8f9ff;
-  --color-header: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  --color-card: #fff;
-  --color-text: #222;
+  /* Новая палитра для общепита Астаны */
+  --color-bg: #0a0a0a;
+  --color-header: var(--gradient-header);
+  --color-card: var(--glass-bg);
+  --color-text: var(--color-text-primary);
   --color-primary: #667eea;
   --color-secondary: #764ba2;
-  --color-accent: #e0e7ff;
-  --color-shadow: 0 0 30px rgba(0,0,0,0.2);
-  --color-footer: #1e293b;
-  --color-badge: #fff;
-  --color-badge-text: #764ba2;
+  --color-accent: #f093fb;
+  --color-shadow: var(--shadow-lg);
+  --color-footer: rgba(0, 0, 0, 0.8);
+  --color-badge: var(--glass-bg);
+  --color-badge-text: var(--color-text-primary);
+  
+  /* Специфичные цвета для срочных вакансий */
+  --color-urgent: var(--color-danger);
+  --color-urgent-bg: var(--gradient-urgent);
+  --color-ready: var(--color-success);
+  --color-ready-bg: var(--gradient-ready);
+  
+  /* Кулинарные специализации */
+  --color-kitchen: #ff6b35;
+  --color-service: #4ecdc4;
+  --color-management: #45b7d1;
+  --color-support: #96ceb4;
 }
 
-[data-theme="dark"] {
-  --color-bg: #23243a;
-  --color-header: linear-gradient(135deg, #23243a 0%, #3a3b5a 100%);
-  --color-card: #2d2e4a;
-  --color-text: #f3f3f3;
-  --color-primary: #667eea;
-  --color-secondary: #764ba2;
-  --color-accent: #3a3b5a;
-  --color-shadow: 0 0 30px rgba(0,0,0,0.5);
-  --color-footer: #18192b;
-  --color-badge: #764ba2;
-  --color-badge-text: #fff;
-}
+/* Удаляем старую темную тему - заменяем на единую систему */
 
-/* Стили для кнопок в темной теме */
-[data-theme="dark"] .btn-primary,
-[data-theme="dark"] .action-card,
-[data-theme="dark"] .contact-btn,
-[data-theme="dark"] .apply-btn,
-[data-theme="dark"] .submit-button {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+/* Универсальные стили кнопок для общепита */
+.btn-primary,
+.action-card,
+.contact-btn,
+.apply-btn,
+.submit-button {
+  background: var(--gradient-header);
   color: white;
   border: none;
   cursor: pointer;
-  opacity: 1;
-  pointer-events: auto;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
-[data-theme="dark"] .btn-primary:hover,
-[data-theme="dark"] .action-card:hover,
-[data-theme="dark"] .contact-btn:hover,
-[data-theme="dark"] .apply-btn:hover,
-[data-theme="dark"] .submit-button:hover {
+.btn-primary:hover,
+.action-card:hover,
+.contact-btn:hover,
+.apply-btn:hover,
+.submit-button:hover {
   background: linear-gradient(135deg, #5a6fd6 0%, #6a3d9a 100%);
   transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  box-shadow: var(--shadow-lg);
 }
 
-[data-theme="dark"] .btn-primary:disabled,
-[data-theme="dark"] .action-card:disabled,
-[data-theme="dark"] .contact-btn:disabled,
-[data-theme="dark"] .apply-btn:disabled,
-[data-theme="dark"] .submit-button:disabled {
-  background: #3a3b5a;
-  color: #6b7280;
+.btn-primary:disabled,
+.action-card:disabled,
+.contact-btn:disabled,
+.apply-btn:disabled,
+.submit-button:disabled {
+  background: var(--glass-bg);
+  color: var(--color-text-muted);
   cursor: not-allowed;
   transform: none;
   box-shadow: none;
 }
 
-[data-theme="dark"] .share-btn {
-  background: #2d2e4a;
-  color: #f3f3f3;
-  border: 1px solid #3a3b5a;
+/* Кнопки для срочных вакансий */
+.btn-urgent {
+  background: var(--color-urgent-bg);
+  color: white;
+  border: none;
+  padding: 14px 28px;
+  border-radius: 25px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  box-shadow: var(--shadow-md);
+}
+
+.btn-urgent:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-xl);
+  background: linear-gradient(45deg, #e84545, #ff5757);
+}
+
+/* Кнопки "ГОТОВ ВЫЙТИ" */
+.btn-ready {
+  background: var(--color-ready-bg);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 20px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-ready:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  background: linear-gradient(45deg, #388E3C, #57C85A);
+}
+
+.share-btn {
+  background: var(--glass-bg);
+  color: var(--color-text-primary);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: var(--glass-blur);
+  padding: 8px 16px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
 }
 
 [data-theme="dark"] .share-btn:hover {
