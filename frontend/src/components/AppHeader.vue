@@ -31,6 +31,17 @@
         </button>
 
         <template v-else>
+          <!-- Демонстрация анимаций (только в dev режиме) -->
+          <router-link 
+            v-if="isDev" 
+            to="/demo/animations" 
+            class="demo-button"
+            title="Демонстрация анимаций"
+          >
+            <span class="demo-icon">🎨</span>
+            <span>DEMO</span>
+          </router-link>
+
           <!-- Кнопка срочных вакансий -->
           <router-link to="/urgent" class="urgent-button">
             <span class="urgent-icon">🚨</span>
@@ -148,6 +159,9 @@ import { notificationService } from '@/services/notificationService'
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
+
+// Определение dev режима
+const isDev = computed(() => import.meta.env.DEV)
 
 const isAuthenticated = computed(() => authStore.isAuthenticated)
 const userName = computed(() => authStore.user?.full_name || 'Пользователь')
@@ -441,6 +455,48 @@ const handleLogout = async () => {
 @keyframes flash {
   0%, 50% { opacity: 1; }
   51%, 100% { opacity: 0.7; }
+}
+
+/* Кнопка демонстрации анимаций */
+.demo-button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--gradient-primary);
+  color: white;
+  padding: 8px 14px;
+  border-radius: 20px;
+  text-decoration: none;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  margin-right: 10px;
+}
+
+.demo-button:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+  background: var(--gradient-warning);
+  text-decoration: none;
+}
+
+.demo-icon {
+  font-size: 1rem;
+  animation: rainbow 3s infinite ease-in-out;
+}
+
+@keyframes rainbow {
+  0%, 100% { filter: hue-rotate(0deg); }
+  16.66% { filter: hue-rotate(60deg); }
+  33.33% { filter: hue-rotate(120deg); }
+  50% { filter: hue-rotate(180deg); }
+  66.66% { filter: hue-rotate(240deg); }
+  83.33% { filter: hue-rotate(300deg); }
 }
 
 .auth-button {

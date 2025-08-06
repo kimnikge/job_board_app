@@ -36,6 +36,9 @@ const LoginForm = () => import(/* webpackChunkName: "page-login" */ '../modules/
 const RegisterForm = () => import(/* webpackChunkName: "page-register" */ '../modules/auth/components/RegisterForm.vue')
 const ResetPassword = () => import(/* webpackChunkName: "page-reset-password" */ '../modules/auth/components/ResetPassword.vue')
 
+// Demo компоненты
+const AnimationShowcase = () => import(/* webpackChunkName: "animation-showcase" */ '../components/AnimationShowcase.vue')
+
 const routes = [
   // Главная страница без layout (у неё свой header)
   { 
@@ -43,6 +46,14 @@ const routes = [
     name: 'home',
     component: HomePage,
     meta: { title: 'Главная' }
+  },
+
+  // Демонстрация анимаций (отдельная страница)
+  { 
+    path: '/demo/animations', 
+    name: 'animation-showcase',
+    component: AnimationShowcase,
+    meta: { title: '🍽️ Демонстрация анимаций для общепита' }
   },
   
   // Остальные страницы с MainLayout
