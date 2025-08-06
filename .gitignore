@@ -1,40 +1,61 @@
+# =============================================================================
+# ОБЪЕДИНЕННЫЙ .GITIGNORE ДЛЯ HR-ПЛАТФОРМЫ ОБЩЕПИТА
+# =============================================================================
+
 # Dependencies
 node_modules/
 .pnp
 .pnp.js
 
-# Testing
-coverage/
-
-# Production
-build/
-dist/
-
-# Misc
-.DS_Store
+# Environment variables
 .env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
+*.local
+
+# Testing
+coverage/
+/cypress/videos/
+/cypress/screenshots/
+
+# Production builds
+build/
+dist/
+dist-ssr/
+.vuepress/dist
 
 # Logs
+logs/
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# System files
+.DS_Store
+*.tsbuildinfo
 
 # Editor directories and files
 .idea/
-.vscode/
+.vscode/*
+!.vscode/extensions.json
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
 
-# Vue
-.vuepress/dist
-.temp
-.cache 
-# Local Netlify folder
-.netlify
+# Temporary files
+.temp/
+.cache/
+
+# Deployment
+.netlify/
+
+# Supabase specific
+.branches
+.env.keys

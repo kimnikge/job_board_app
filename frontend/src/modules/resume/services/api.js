@@ -4,67 +4,69 @@ export default {
   async createResume(data) {
     const { data: { user } } = await supabase.auth.getUser()
     
-    // Если есть файл резюме, сначала загрузим его
-    let fileUrl = null
-    if (data.file) {
-      const fileExt = data.file.name.split('.').pop()
-      const filePath = `resumes/${user.id}/${Date.now()}.${fileExt}`
-      
-      const { error: uploadError } = await supabase.storage
-        .from('resumes')
-        .upload(filePath, data.file)
-      if (uploadError) throw uploadError
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('resumes')
-        .getPublicUrl(filePath)
-      fileUrl = publicUrl
-    }
-
-    // Создаем запись резюме
-    const { data: resume, error } = await supabase
-      .from('resumes')
+    // Создаем профиль кандидата
+    const { data: profile, error } = await supabase
+      .from('candidate_profiles')
       .insert([{
         ...data,
         user_id: user.id,
-        file_url: fileUrl
+        is_available: true
       }])
       .select()
     if (error) throw error
-    return { data: resume }
+    return { data: profile }
   },
 
   async getResumes() {
     const { data, error } = await supabase
-      .from('resumes')
+      .from('candidate_profiles')
       .select(`
         *,
-        profiles:user_id (
-          first_name,
-          last_name,
-          avatar_url
+        specializations (
+          name
+        ),
+        city_districts (
+          name
         )
       `)
-      .eq('is_active', true)
+      .eq('is_available', true)
       .order('created_at', { ascending: false })
     if (error) throw error
-    return { data }
+    return data
+  },
+
+  async getPublicResumes(limit = 10) {
+    const { data, error } = await supabase
+      .from('candidate_profiles')
+      .select(`
+        *,
+        specializations (
+          name
+        ),
+        city_districts (
+          name
+        )
+      `)
+      .eq('is_available', true)
+      .order('created_at', { ascending: false })
+      .limit(limit)
+    if (error) throw error
+    return data
   },
 
   async getUserResumes() {
     const { data: { user } } = await supabase.auth.getUser()
     const { data, error } = await supabase
-      .from('resumes')
+      .from('candidate_profiles')
       .select('*')
       .eq('user_id', user.id)
-      .order('created_at', { ascending: false })
     if (error) throw error
-    return { data }
+    return data
   },
 
   async updateResume(id, data) {
     const { data: resume, error } = await supabase
-      .from('resumes')
+      .from('candidate_profiles')
       .update(data)
       .eq('id', id)
       .select()
@@ -74,10 +76,47 @@ export default {
 
   async deleteResume(id) {
     const { error } = await supabase
-      .from('resumes')
+      .from('candidate_profiles')
       .delete()
       .eq('id', id)
     if (error) throw error
-    return { data: { id } }
+    return { success: true }
+  }
+}
+
+export const resumeApi = {
+  async createResume(data) {
+    const { data: { user } } = await supabase.auth.getUser()
+    
+    // Создаем профиль кандидата
+    const { data: profile, error } = await supabase
+      .from('candidate_profiles')
+      .insert([{
+        ...data,
+        user_id: user.id,
+        is_available: true
+      }])
+      .select()
+    if (error) throw error
+    return { data: profile }
+  },
+
+  async getPublicResumes(limit = 10) {
+    const { data, error } = await supabase
+      .from('candidate_profiles')
+      .select(`
+        *,
+        specializations (
+          name
+        ),
+        city_districts (
+          name
+        )
+      `)
+      .eq('is_available', true)
+      .order('created_at', { ascending: false })
+      .limit(limit)
+    if (error) throw error
+    return data
   }
 }

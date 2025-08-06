@@ -3,9 +3,23 @@ import { supabase } from '@/lib/supabase'
 export const jobsService = {
   async getUrgentJobs(limit = 6) {
     const { data: jobs, error } = await supabase
-      .from('job_postings')
-      .select('*')
-      .eq('is_urgent', true)
+      .from('urgent_jobs')
+      .select(`
+        *,
+        companies (
+          name,
+          logo
+        ),
+        specializations (
+          name
+        ),
+        city_districts (
+          name
+        ),
+        venue_types (
+          name
+        )
+      `)
       .eq('status', 'active')
       .order('created_at', { ascending: false })
       .limit(limit)
@@ -21,7 +35,22 @@ export const jobsService = {
   async getJobs(params = {}) {
     let query = supabase
       .from('job_postings')
-      .select('*')
+      .select(`
+        *,
+        companies (
+          name,
+          logo
+        ),
+        specializations (
+          name
+        ),
+        city_districts (
+          name
+        ),
+        venue_types (
+          name
+        )
+      `)
       .eq('status', 'active')
       .order('created_at', { ascending: false })
 

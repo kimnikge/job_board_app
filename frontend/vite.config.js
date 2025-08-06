@@ -2,7 +2,6 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import path from 'path'
 import { visualizer } from 'rollup-plugin-visualizer'
-import { preloadPlugin } from './plugins/preload.js'
 
 export default defineConfig({
   plugins: [
@@ -12,8 +11,7 @@ export default defineConfig({
       open: false,
       gzipSize: true,
       brotliSize: true,
-    }),
-    preloadPlugin()
+    })
   ],
   resolve: {
     alias: {

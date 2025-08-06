@@ -99,28 +99,28 @@
                  @click="goToJob(job.id)">
               <div class="job-header">
                 <div class="job-company">
-                  {{ getCompanyInitials(job.company_name) }}
+                  {{ getCompanyInitials(job.venue_name) }}
                 </div>
                 <span class="job-status urgent">СРОЧНО</span>
               </div>
               <h3 class="job-title">{{ job.title }}</h3>
-              <p class="job-company-name">{{ job.company_name }}</p>
+              <p class="job-company-name">{{ job.venue_name }}</p>
               <div class="job-details">
                 <span class="job-detail">
                   <DynamicIcon name="MapPin" class="detail-icon" />
-                  {{ job.location }}
+                  {{ job.city_districts?.name || job.address }}
                 </span>
                 <span class="job-detail">
                   <DynamicIcon name="Clock" class="detail-icon" />
-                  {{ job.employment_type }}
+                  {{ formatShiftTime(job.needed_date, job.needed_time) }}
                 </span>
                 <span class="job-detail">
                   <DynamicIcon name="Briefcase" class="detail-icon" />
-                  {{ job.experience_level }}
+                  {{ job.specializations?.name }}
                 </span>
               </div>
               <div class="job-salary">
-                {{ formatSalary(job.salary_min, job.salary_max) }}
+                {{ formatUrgentPay(job.pay_per_shift) }}
               </div>
             </div>
           </div>
@@ -216,15 +216,15 @@
                  :key="resume.id"
                  @click="goToResume(resume.id)">
               <div class="resume-avatar">
-                <img v-if="resume.profiles?.avatar_url" 
-                     :src="resume.profiles.avatar_url" 
-                     :alt="resume.profiles?.full_name || resume.full_name"
+                <img v-if="resume.avatar_url" 
+                     :src="resume.avatar_url" 
+                     :alt="resume.full_name"
                      class="avatar-img">
                 <span v-else class="avatar-initials">
-                  {{ getNameInitials(resume.profiles?.full_name || resume.full_name) }}
+                  {{ getNameInitials(resume.full_name) }}
                 </span>
               </div>
-              <h3 class="resume-name">{{ resume.profiles?.full_name || resume.full_name }}</h3>
+              <h3 class="resume-name">{{ resume.full_name }}</h3>
               <p class="resume-position">{{ resume.position }}</p>
               <div class="resume-details">
                 <span class="resume-detail">
@@ -283,10 +283,10 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import DynamicIcon from '@/components/DynamicIcon.vue'
-import { jobsService } from '@/modules/jobs/services/jobsService'
+import urgentJobsService from '@/modules/urgent/services/urgentJobsService'
 import { useCompaniesStore } from '@/modules/companies/store/companies'
-import resumeApi from '@/modules/resume/services/resumeApi'
-import userApi from '@/modules/user/services/userApi'
+import { resumeApi } from '@/modules/resume/services/api'
+import { referencesService } from '@/shared/services/referencesService'
 import { supabase } from '@/lib/supabase'
 
 export default {
@@ -323,9 +323,9 @@ export default {
     // Methods
     const loadStats = async () => {
       try {
-        // Load jobs count
-        const { count: jobsCount } = await supabase
-          .from('job_postings')
+        // Load urgent jobs count
+        const { count: urgentJobsCount } = await supabase
+          .from('urgent_jobs')
           .select('*', { count: 'exact', head: true })
           .eq('status', 'active')
         
@@ -333,33 +333,40 @@ export default {
         const { count: companiesCount } = await supabase
           .from('companies')
           .select('*', { count: 'exact', head: true })
+          .eq('verified', true)
         
-        // Load resumes count
-        const { count: resumesCount } = await supabase
-          .from('resumes')
+        // Load candidate profiles count
+        const { count: candidatesCount } = await supabase
+          .from('candidate_profiles')
           .select('*', { count: 'exact', head: true })
-          .eq('is_available', true)
-        
-        // Load users count
-        const { count: usersCount } = await supabase
-          .from('profiles')
+          
+        // Load employer profiles count
+        const { count: employersCount } = await supabase
+          .from('employer_profiles')
           .select('*', { count: 'exact', head: true })
         
         stats.value = {
-          jobs: jobsCount || 0,
+          jobs: urgentJobsCount || 0,
           companies: companiesCount || 0,
-          resumes: resumesCount || 0,
-          users: usersCount || 0
+          resumes: candidatesCount || 0,
+          users: (candidatesCount || 0) + (employersCount || 0)
         }
       } catch (error) {
         console.error('Error loading stats:', error)
+        // Fallback данные для демонстрации
+        stats.value = {
+          jobs: 6,
+          companies: 6,
+          resumes: 0,
+          users: 0
+        }
       }
     }
     
     const loadUrgentJobs = async () => {
       loadingJobs.value = true
       try {
-        const jobs = await jobsService.getUrgentJobs(8)
+        const jobs = await urgentJobsService.getUrgentJobs(8)
         urgentJobs.value = jobs || []
       } catch (error) {
         console.error('Error loading urgent jobs:', error)
@@ -426,6 +433,35 @@ export default {
       if (max) return `до ${max.toLocaleString()} ₽`
       return 'Зарплата не указана'
     }
+
+    const formatUrgentPay = (payPerShift) => {
+      if (!payPerShift) return 'Оплата не указана'
+      return `${payPerShift.toLocaleString()} ₽ за смену`
+    }
+
+    const formatShiftTime = (neededDate, neededTime) => {
+      if (!neededDate) return 'Время не указано'
+      
+      const date = new Date(neededDate)
+      const today = new Date()
+      const tomorrow = new Date(today)
+      tomorrow.setDate(tomorrow.getDate() + 1)
+      
+      let dateStr
+      if (date.toDateString() === today.toDateString()) {
+        dateStr = 'Сегодня'
+      } else if (date.toDateString() === tomorrow.toDateString()) {
+        dateStr = 'Завтра'
+      } else {
+        dateStr = date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })
+      }
+      
+      if (neededTime) {
+        return `${dateStr} в ${neededTime.slice(0, 5)}`
+      }
+      
+      return dateStr
+    }
     
     const scrollToSection = (sectionId) => {
       const element = document.getElementById(sectionId)
@@ -446,7 +482,7 @@ export default {
           loadStats()
           loadTopCompanies()
         })
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'resumes' }, () => {
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'candidate_profiles' }, () => {
           loadStats()
           loadFreshResumes()
         })
@@ -487,6 +523,8 @@ export default {
       getCompanyInitials,
       getNameInitials,
       formatSalary,
+      formatUrgentPay,
+      formatShiftTime,
       scrollToSection
     }
   }
@@ -1234,4 +1272,11 @@ export default {
     min-width: 280px;
   }
 }
-</style>
+</style># По тегу
+git checkout v1.0.0-homepage-showcase
+
+# По хешу коммита
+git checkout a58ba69
+
+# Посмотреть изменения
+git show v1.0.0-homepage-showcase

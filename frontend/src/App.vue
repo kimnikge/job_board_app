@@ -1,23 +1,13 @@
 <template>
-  <GlobalErrorBoundary>
-    <div id="debug">
-      <!-- Отладочная информация -->
-    </div>
+  <div id="app">
     <router-view />
-    <NotificationSystem />
-  </GlobalErrorBoundary>
+  </div>
 </template>
 
 <script setup>
 import { onMounted } from 'vue'
-import GlobalErrorBoundary from '@/shared/ui/GlobalErrorBoundary.vue'
-import NotificationSystem from '@/shared/ui/NotificationSystem.vue'
 
 onMounted(() => {
-  console.log('App mounted')
-  window.onerror = function(msg, url, lineNo, columnNo, error) {
-    console.log('Window Error: ', msg, url, lineNo, columnNo, error)
-    return false
-  }
+  console.log('App mounted successfully')
 })
 </script>

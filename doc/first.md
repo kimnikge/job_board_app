@@ -857,3 +857,13 @@
         document.getElementById('searchOverlay').addEventListener('click', (e) => {
             if (e.target === e.currentTarget) {
                 closeSearch
+
+
+                # По тегу
+git checkout v1.0.0-homepage-showcase
+
+# По хешу коммита
+git checkout a58ba69
+
+# Посмотреть изменения
+git show v1.0.0-homepage-showcase
