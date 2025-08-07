@@ -1,8 +1,10 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { supabase } from '@/lib/supabase'
 
 export const useAuthStore = defineStore('auth', () => {
+  const router = useRouter()
   const user = ref(null)
   const loading = ref(false)
   const error = ref(null)
@@ -55,7 +57,7 @@ export const useAuthStore = defineStore('auth', () => {
   async function logout() {
     await supabase.auth.signOut()
     user.value = null
-    // Удаляем router.push, так как это должно обрабатываться в компоненте
+    router.push('/auth/login')
   }
 
   async function fetchUser() {

@@ -17,22 +17,21 @@ VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 
 ## Troubleshooting
 
-### "Cannot access uninitialized variable" Error
+### Ошибка "vite: not found"
+- Убедитесь, что `npm ci` выполняется перед `npm run build`
+- Проверьте наличие vite в devDependencies
+- Используйте `npm ci` вместо `npm install` для более надежной установки
 
-This error typically occurs when:
-1. Environment variables are not set properly
-2. Supabase configuration is missing
-3. Router is used incorrectly in stores
+### Ошибка пути публикации
+- Базовая директория: `frontend`
+- Директория публикации: `frontend/dist` (относительно корня репозитория)
+- НЕ используйте `frontend/frontend/dist` - это дублирование пути
 
-### Solutions Applied
+### Environment Variables
+- Все переменные VITE_* должны быть установлены в Netlify Dashboard
+- Без них приложение не будет корректно работать
 
-1. **Fixed auth store**: Removed `useRouter` from Pinia store
-2. **Improved supabase.js**: Added proper error handling for missing env vars
-3. **Updated netlify.toml**: Corrected build paths and settings
-
-### Demo Animation Page
-
-In development mode, you can access the animation showcase at:
-`/demo/animations`
-
-This page demonstrates all the new dark theme animations and glass effects.
+### Последние исправления (7 августа 2025)
+- Исправлена команда сборки: добавлен `npm ci` перед `npm run build`
+- Исправлен путь публикации в netlify.toml
+- Добавлена установка зависимостей в команду сборки
