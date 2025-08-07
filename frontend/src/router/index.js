@@ -1,182 +1,116 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { useAuthStore } from '../modules/auth/store/auth'
+import { useAuthStore } from '../stores/auth'
 
-import MainLayout from '../layouts/MainLayout.vue'
-import AuthLayout from '../layouts/AuthLayout.vue'
+// ✨ ПРОСТОЙ РОУТЕР - СОГЛАСНО ПЛАНУ УПРОЩЕНИЯ
+// Все страницы в views/ - один файл = одна страница
 
-// Основные страницы - каждая страница в отдельном chunk
-const HomePage = () => import(/* webpackChunkName: "page-home" */ '../modules/home/pages/HomePage.vue')
+// Главная страница (из modules/home перенесена в views/)
+const Jobs = () => import('@/views/Jobs.vue') // Главная с вакансиями
 
-// Jobs модуль
-const JobsPage = () => import(/* webpackChunkName: "page-jobs" */ '../modules/jobs/components/JobsPage.vue')
-const JobDetails = () => import(/* webpackChunkName: "page-job-details" */ '../modules/jobs/components/JobDetails.vue')
+// Страницы вакансий  
+const UrgentJobs = () => import('@/views/UrgentJobs.vue')
+const JobCreate = () => import('@/views/JobCreate.vue')
+const JobDetail = () => import('@/views/JobDetail.vue')
 
-// Resume модуль
-const ResumesPage = () => import(/* webpackChunkName: "page-resumes" */ '../modules/resume/components/ResumesPage.vue')
-const ResumeDetails = () => import(/* webpackChunkName: "page-resume-details" */ '../modules/resume/components/ResumeDetails.vue')
+// Страницы профиля
+const Profile = () => import('@/views/Profile.vue')
+const Resume = () => import('@/views/Resume.vue')
 
-// Urgent модуль
-const UrgentPage = () => import(/* webpackChunkName: "page-urgent" */ '../modules/urgent/components/UrgentPage.vue')
+// Страницы компаний
+const Companies = () => import('@/views/Companies.vue')
+const CompanyDetail = () => import('@/views/CompanyDetail.vue')
+const Dashboard = () => import('@/views/Dashboard.vue')
 
-// Profile модуль
-const ProfilePage = () => import(/* webpackChunkName: "page-profile" */ '../modules/profile/components/ProfilePage.vue')
-const ProfileSetup = () => import(/* webpackChunkName: "page-profile-setup" */ '../modules/profile/components/ProfileSetup.vue')
-const ProfileSubscriptions = () => import(/* webpackChunkName: "page-profile-subscriptions" */ '../modules/profile/components/ProfileSubscriptions.vue')
-const ProfileApplications = () => import(/* webpackChunkName: "page-profile-applications" */ '../modules/profile/components/ProfileApplications.vue')
-const SettingsPage = () => import(/* webpackChunkName: "page-settings" */ '@/modules/profile/components/SettingsPage.vue')
+// Layouts
+const MainLayout = () => import('@/layouts/MainLayout.vue')
+const AuthLayout = () => import('@/layouts/AuthLayout.vue')
 
-// Companies модуль
-const CompaniesPage = () => import(/* webpackChunkName: "page-companies" */ '../modules/companies/components/CompaniesPage.vue')
-const CompanyDetails = () => import(/* webpackChunkName: "page-company-details" */ '../modules/companies/components/CompanyDetails.vue')
-const CompanySetup = () => import(/* webpackChunkName: "page-company-setup" */ '../modules/companies/components/CompanySetup.vue')
-const CompanyDashboard = () => import(/* webpackChunkName: "page-company-dashboard" */ '../modules/companies/components/CompanyDashboard.vue')
+// Auth (временно из старых модулей)
+const LoginForm = () => import('../modules/auth/components/LoginForm.vue')
+const RegisterForm = () => import('../modules/auth/components/RegisterForm.vue')
+const ResetPassword = () => import('../modules/auth/components/ResetPassword.vue')
 
-// Auth модуль
-const LoginForm = () => import(/* webpackChunkName: "page-login" */ '../modules/auth/components/LoginForm.vue')
-const RegisterForm = () => import(/* webpackChunkName: "page-register" */ '../modules/auth/components/RegisterForm.vue')
-const ResetPassword = () => import(/* webpackChunkName: "page-reset-password" */ '../modules/auth/components/ResetPassword.vue')
-
-// Demo компоненты
-const AnimationShowcase = () => import(/* webpackChunkName: "animation-showcase" */ '../components/AnimationShowcase.vue')
-
+// ✨ ПРОСТЫЕ МАРШРУТЫ - СОГЛАСНО ПЛАНУ
 const routes = [
-  // Главная страница без layout (у неё свой header)
+  // Главная страница (список всех вакансий)
   { 
     path: '/', 
-    name: 'home',
-    component: HomePage,
-    meta: { title: 'Главная' }
-  },
-
-  // Демонстрация анимаций (отдельная страница)
-  { 
-    path: '/demo/animations', 
-    name: 'animation-showcase',
-    component: AnimationShowcase,
-    meta: { title: '🍽️ Демонстрация анимаций для общепита' }
+    component: Jobs,
+    meta: { title: 'Вакансии общепита - Астана' }
   },
   
-  // Остальные страницы с MainLayout
-  {
-    path: '/app',
-    component: MainLayout,
-    children: [
-      { 
-        path: 'jobs', 
-        name: 'jobs',
-        component: JobsPage,
-        meta: { title: 'Объявления' }
-      },
-      { 
-        path: 'jobs/:id', 
-        name: 'job-details',
-        component: JobDetails,
-        meta: { title: 'Детали вакансии' }
-      },
-      { 
-        path: 'resumes', 
-        name: 'resumes',
-        component: ResumesPage,
-        meta: { title: 'Резюме' }
-      },
-      { 
-        path: 'resumes/:id', 
-        name: 'resume-details',
-        component: ResumeDetails,
-        meta: { title: 'Детали резюме' }
-      },
-      { 
-        path: 'urgent', 
-        name: 'urgent',
-        component: UrgentPage,
-        meta: { title: 'Срочные вакансии' }
-      },
-      // Маршруты профиля специалиста
-      { 
-        path: 'profile', 
-        name: 'profile',
-        component: ProfilePage,
-        meta: { 
-          title: 'Профиль',
-          requiresAuth: true,
-          userType: 'specialist'
-        }
-      },
-      { 
-        path: 'profile/setup', 
-        name: 'profile-setup',
-        component: ProfileSetup,
-        meta: { 
-          title: 'Настройка профиля',
-          requiresAuth: true,
-          userType: 'specialist'
-        }
-      },
-      { 
-        path: 'profile/subscriptions', 
-        name: 'profile-subscriptions',
-        component: ProfileSubscriptions,
-        meta: { 
-          title: 'Мои подписки',
-          requiresAuth: true,
-          userType: 'specialist'
-        }
-      },
-      { 
-        path: 'profile/applications', 
-        name: 'profile-applications',
-        component: ProfileApplications,
-        meta: { 
-          title: 'Мои отклики',
-          requiresAuth: true,
-          userType: 'specialist'
-        }
-      },
-      { 
-        path: 'profile/settings', 
-        name: 'profile-settings',
-        component: SettingsPage,
-        meta: { 
-          title: 'Настройки',
-          requiresAuth: true,
-          userType: 'specialist'
-        }
-      },
-      // Маршруты компаний
-      { 
-        path: 'companies', 
-        name: 'companies',
-        component: CompaniesPage,
-        meta: { title: 'Компании' }
-      },
-      { 
-        path: 'companies/:id', 
-        name: 'company-details',
-        component: CompanyDetails,
-        meta: { title: 'О компании' }
-      },
-      { 
-        path: 'company/setup', 
-        name: 'company-setup',
-        component: CompanySetup,
-        meta: { 
-          title: 'Настройка профиля компании',
-          requiresAuth: true,
-          userType: 'company'
-        }
-      },
-      { 
-        path: 'company/dashboard', 
-        name: 'company-dashboard',
-        component: CompanyDashboard,
-        meta: { 
-          title: 'Панель управления',
-          requiresAuth: true,
-          userType: 'company'
-        }
-      }
-    ]
+  // Срочные вакансии
+  { 
+    path: '/urgent', 
+    component: UrgentJobs,
+    meta: { title: 'Срочные вакансии' }
   },
+  
+  // Создание вакансии
+  { 
+    path: '/jobs/create', 
+    component: JobCreate,
+    meta: { 
+      title: 'Создать вакансию',
+      requiresAuth: true,
+      userType: 'employer'
+    }
+  },
+  
+  // Детали вакансии
+  { 
+    path: '/jobs/:id', 
+    component: JobDetail,
+    meta: { title: 'Детали вакансии' }
+  },
+  
+  // Профиль пользователя
+  { 
+    path: '/profile', 
+    component: Profile,
+    meta: { 
+      title: 'Мой профиль',
+      requiresAuth: true
+    }
+  },
+  
+  // Резюме пользователя
+  { 
+    path: '/resume', 
+    component: Resume,
+    meta: { 
+      title: 'Мое резюме',
+      requiresAuth: true,
+      userType: 'candidate'
+    }
+  },
+  
+  // Список заведений
+  { 
+    path: '/companies', 
+    component: Companies,
+    meta: { title: 'Заведения Астаны' }
+  },
+  
+  // Детали заведения
+  { 
+    path: '/companies/:id', 
+    component: CompanyDetail,
+    meta: { title: 'О заведении' }
+  },
+  
+  // Дашборд работодателя
+  { 
+    path: '/dashboard', 
+    component: Dashboard,
+    meta: { 
+      title: 'Панель управления',
+      requiresAuth: true,
+      userType: 'employer'
+    }
+  },
+
+  // Авторизация (с layout)
   {
     path: '/auth',
     component: AuthLayout,
@@ -217,24 +151,30 @@ const router = createRouter({
   routes
 })
 
+// ✨ ПРОСТОЙ ROUTER GUARD
 router.beforeEach(async (to, from, next) => {
-  document.title = to.meta.title ? `${to.meta.title} | Job App` : 'Job App'
+  // Установка заголовка страницы
+  document.title = to.meta.title ? `${to.meta.title} | Job Board Астана` : 'Job Board Астана'
 
+  // Проверка авторизации (упрощенная)
   const authStore = useAuthStore()
   await authStore.fetchUser()
   const isAuthenticated = !!authStore.user
   const userType = authStore.user?.user_metadata?.user_type
 
+  // Защищенные маршруты
   if (to.meta.requiresAuth && !isAuthenticated) {
-    return next({ name: 'login', query: { redirect: to.fullPath } })
+    return next({ path: '/auth/login', query: { redirect: to.fullPath } })
   }
 
+  // Гостевые маршруты
   if (to.meta.guest && isAuthenticated) {
-    return next({ name: 'home' })
+    return next({ path: '/' })
   }
 
+  // Проверка типа пользователя
   if (to.meta.userType && to.meta.userType !== userType) {
-    return next({ name: 'home' })
+    return next({ path: '/' })
   }
 
   next()
