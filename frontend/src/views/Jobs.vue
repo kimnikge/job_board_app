@@ -1,14 +1,13 @@
 <template>
   <div class="jobs-page">
-    <!-- Используем существующую HomePage как основу для списка всех вакансий -->
-    <HomePage />
+    <!-- ✨ ОБНОВЛЕНО ДЛЯ ЭТАПА 3 - ИСПОЛЬЗУЕТ НОВЫЕ STORES -->
+    <JobsMainPage />
   </div>
 </template>
 
 <script setup>
-// ✨ ВРЕМЕННО: используем HomePage как основу
-// В ЭТАПЕ 3 перенесем всю логику сюда напрямую
-import HomePage from '../modules/home/pages/HomePage.vue'
+// Используем новую главную страницу с объединенными stores
+import JobsMainPage from './JobsMainPage.vue'
 </script>
 
 <style scoped>

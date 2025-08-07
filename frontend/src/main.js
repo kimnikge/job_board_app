@@ -5,6 +5,10 @@ import router from './router'
 import './assets/main.css'
 import './assets/styles/common.css'
 
+// ✨ STORES ИНИЦИАЛИЗАЦИЯ - ЭТАП 3
+import { useAuthStore } from './stores/auth'
+import { useNotificationsStore } from './stores/notifications'
+
 // Импортируем только необходимые иконки
 import {
   Search,
@@ -76,5 +80,20 @@ Object.entries(icons).forEach(([name, component]) => {
 
 app.use(router)
 app.use(pinia)
+
+// ✨ ИНИЦИАЛИЗАЦИЯ STORES ПОСЛЕ СОЗДАНИЯ PINIA
+const authStore = useAuthStore()
+const notificationsStore = useNotificationsStore()
+
+// Инициализируем авторизацию
+authStore.init()
+
+// Загружаем настройки уведомлений
+notificationsStore.loadSubscriptions()
+
+// Демонстрационные уведомления для разработки
+if (import.meta.env.DEV) {
+  notificationsStore.initDemoNotifications()
+}
 
 app.mount('#app')
