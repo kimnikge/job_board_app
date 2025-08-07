@@ -6,11 +6,11 @@ export default {
     
     // Создаем профиль кандидата
     const { data: profile, error } = await supabase
-      .from('candidate_profiles')
+      .from('user_profiles')
       .insert([{
         ...data,
         user_id: user.id,
-        is_available: true
+        role: 'candidate'
       }])
       .select()
     if (error) throw error
@@ -19,7 +19,7 @@ export default {
 
   async getResumes() {
     const { data, error } = await supabase
-      .from('candidate_profiles')
+      .from('user_profiles')
       .select(`
         *,
         specializations (
@@ -29,7 +29,7 @@ export default {
           name
         )
       `)
-      .eq('is_available', true)
+      .eq('role', 'candidate')
       .order('created_at', { ascending: false })
     if (error) throw error
     return data
@@ -37,7 +37,7 @@ export default {
 
   async getPublicResumes(limit = 10) {
     const { data, error } = await supabase
-      .from('candidate_profiles')
+      .from('user_profiles')
       .select(`
         *,
         specializations (
@@ -47,7 +47,7 @@ export default {
           name
         )
       `)
-      .eq('is_available', true)
+      .eq('role', 'candidate')
       .order('created_at', { ascending: false })
       .limit(limit)
     if (error) throw error
@@ -57,18 +57,20 @@ export default {
   async getUserResumes() {
     const { data: { user } } = await supabase.auth.getUser()
     const { data, error } = await supabase
-      .from('candidate_profiles')
+      .from('user_profiles')
       .select('*')
       .eq('user_id', user.id)
+      .eq('role', 'candidate')
     if (error) throw error
     return data
   },
 
   async updateResume(id, data) {
     const { data: resume, error } = await supabase
-      .from('candidate_profiles')
+      .from('user_profiles')
       .update(data)
       .eq('id', id)
+      .eq('role', 'candidate')
       .select()
     if (error) throw error
     return { data: resume }
@@ -76,9 +78,10 @@ export default {
 
   async deleteResume(id) {
     const { error } = await supabase
-      .from('candidate_profiles')
+      .from('user_profiles')
       .delete()
       .eq('id', id)
+      .eq('role', 'candidate')
     if (error) throw error
     return { success: true }
   }
@@ -90,11 +93,11 @@ export const resumeApi = {
     
     // Создаем профиль кандидата
     const { data: profile, error } = await supabase
-      .from('candidate_profiles')
+      .from('user_profiles')
       .insert([{
         ...data,
         user_id: user.id,
-        is_available: true
+        role: 'candidate'
       }])
       .select()
     if (error) throw error
@@ -103,7 +106,7 @@ export const resumeApi = {
 
   async getPublicResumes(limit = 10) {
     const { data, error } = await supabase
-      .from('candidate_profiles')
+      .from('user_profiles')
       .select(`
         *,
         specializations (
@@ -113,7 +116,7 @@ export const resumeApi = {
           name
         )
       `)
-      .eq('is_available', true)
+      .eq('role', 'candidate')
       .order('created_at', { ascending: false })
       .limit(limit)
     if (error) throw error

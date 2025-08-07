@@ -4,7 +4,7 @@
 
 import { createRouter, createWebHistory } from 'vue-router'
 
-const HomePage = () => import('../../pages/HomePage.vue')
+const HomePage = () => import('../../modules/home/pages/HomePage.vue')
 const JobsPage = () => import('../../pages/JobsPage.vue')  
 const UrgentJobsPage = () => import('../../features/urgent-jobs/pages/UrgentJobsPage.vue')
 const CreateUrgentJob = () => import('../../features/urgent-jobs/pages/CreateUrgentJob.vue')

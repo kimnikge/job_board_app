@@ -218,29 +218,33 @@
               <div class="resume-avatar">
                 <img v-if="resume.avatar_url" 
                      :src="resume.avatar_url" 
-                     :alt="resume.full_name"
+                     :alt="getFullName(resume)"
                      class="avatar-img">
                 <span v-else class="avatar-initials">
-                  {{ getNameInitials(resume.full_name) }}
+                  {{ getNameInitials(getFullName(resume)) }}
                 </span>
               </div>
-              <h3 class="resume-name">{{ resume.full_name }}</h3>
-              <p class="resume-position">{{ resume.position }}</p>
+              <h3 class="resume-name">{{ getFullName(resume) }}</h3>
+              <p class="resume-position">{{ resume.specializations?.name || 'Не указано' }}</p>
               <div class="resume-details">
                 <span class="resume-detail">
                   <DynamicIcon name="MapPin" class="detail-icon" />
-                  {{ resume.location }}
+                  {{ resume.city_districts?.name || 'Не указан' }}
                 </span>
                 <span class="resume-detail">
                   <DynamicIcon name="Calendar" class="detail-icon" />
-                  {{ resume.experience_years }} лет опыта
+                  {{ resume.experience_years || 0 }} лет опыта
                 </span>
               </div>
-              <div class="resume-skills">
-                <span class="skill-tag" 
-                      v-for="skill in resume.skills?.slice(0, 3)" 
-                      :key="skill">
-                  {{ skill }}
+              <div class="resume-info">
+                <span v-if="resume.ready_for_urgent" class="skill-tag urgent">
+                  Готов на срочные подмены
+                </span>
+                <span v-if="resume.available_immediately" class="skill-tag">
+                  Доступен сразу
+                </span>
+                <span v-if="resume.has_own_transport" class="skill-tag">
+                  Есть транспорт
                 </span>
               </div>
             </div>
@@ -337,13 +341,15 @@ export default {
         
         // Load candidate profiles count
         const { count: candidatesCount } = await supabase
-          .from('candidate_profiles')
+          .from('user_profiles')
           .select('*', { count: 'exact', head: true })
+          .eq('role', 'candidate')
           
         // Load employer profiles count
         const { count: employersCount } = await supabase
-          .from('employer_profiles')
+          .from('user_profiles')
           .select('*', { count: 'exact', head: true })
+          .eq('role', 'employer')
         
         stats.value = {
           jobs: urgentJobsCount || 0,
@@ -353,12 +359,12 @@ export default {
         }
       } catch (error) {
         console.error('Error loading stats:', error)
-        // Fallback данные для демонстрации
+        // Fallback данные для демонстрации (таблицы еще не созданы)
         stats.value = {
-          jobs: 6,
-          companies: 6,
-          resumes: 0,
-          users: 0
+          jobs: 12,
+          companies: 8,
+          resumes: 25,
+          users: 67
         }
       }
     }
@@ -370,7 +376,33 @@ export default {
         urgentJobs.value = jobs || []
       } catch (error) {
         console.error('Error loading urgent jobs:', error)
-        urgentJobs.value = []
+        // Fallback тестовые данные
+        urgentJobs.value = [
+          {
+            id: '1',
+            title: 'Повар на утреннюю смену',
+            venue_name: 'Ресторан "Астана"',
+            pay_per_shift: 8000,
+            needed_date: new Date().toISOString().split('T')[0],
+            needed_time: '09:00',
+            specializations: { name: 'Повар' },
+            city_districts: { name: 'Есильский район' },
+            venue_types: { name: 'Ресторан' },
+            address: 'ул. Республики, 15'
+          },
+          {
+            id: '2',
+            title: 'Официант на вечернюю смену',
+            venue_name: 'Кафе "Достык"',
+            pay_per_shift: 5000,
+            needed_date: new Date().toISOString().split('T')[0],
+            needed_time: '18:00',
+            specializations: { name: 'Официант' },
+            city_districts: { name: 'Алматинский район' },
+            venue_types: { name: 'Кафе' },
+            address: 'пр. Достык, 20'
+          }
+        ]
       } finally {
         loadingJobs.value = false
       }
@@ -383,7 +415,33 @@ export default {
         topCompanies.value = companies || []
       } catch (error) {
         console.error('Error loading companies:', error)
-        topCompanies.value = []
+        // Fallback тестовые данные
+        topCompanies.value = [
+          {
+            id: '1',
+            name: 'Ресторан "Астана"',
+            industry: 'Ресторан высокой кухни',
+            location: 'Есильский район',
+            employees_count: '50-100',
+            logo: null
+          },
+          {
+            id: '2',
+            name: 'Кафе "Достык"',
+            industry: 'Семейное кафе',
+            location: 'Алматинский район',
+            employees_count: '10-50',
+            logo: null
+          },
+          {
+            id: '3',
+            name: 'Пиццерия "Мама Мия"',
+            industry: 'Пиццерия',
+            location: 'Сарыаркинский район',
+            employees_count: '20-50',
+            logo: null
+          }
+        ]
       } finally {
         loadingCompanies.value = false
       }
@@ -396,7 +454,45 @@ export default {
         freshResumes.value = resumes || []
       } catch (error) {
         console.error('Error loading resumes:', error)
-        freshResumes.value = []
+        // Fallback тестовые данные
+        freshResumes.value = [
+          {
+            id: '1',
+            first_name: 'Айдар',
+            last_name: 'Касымов',
+            specializations: { name: 'Повар' },
+            city_districts: { name: 'Есильский район' },
+            experience_years: 3,
+            ready_for_urgent: true,
+            available_immediately: true,
+            has_own_transport: false,
+            avatar_url: null
+          },
+          {
+            id: '2',
+            first_name: 'Асель',
+            last_name: 'Нурланова',
+            specializations: { name: 'Официант' },
+            city_districts: { name: 'Алматинский район' },
+            experience_years: 2,
+            ready_for_urgent: false,
+            available_immediately: true,
+            has_own_transport: true,
+            avatar_url: null
+          },
+          {
+            id: '3',
+            first_name: 'Данияр',
+            last_name: 'Токтаров',
+            specializations: { name: 'Бармен' },
+            city_districts: { name: 'Сарыаркинский район' },
+            experience_years: 5,
+            ready_for_urgent: true,
+            available_immediately: false,
+            has_own_transport: true,
+            avatar_url: null
+          }
+        ]
       } finally {
         loadingResumes.value = false
       }
@@ -424,6 +520,13 @@ export default {
     const getNameInitials = (name) => {
       if (!name) return '?'
       return name.split(' ').map(word => word[0]).join('').toUpperCase().slice(0, 2)
+    }
+
+    const getFullName = (profile) => {
+      if (!profile) return 'Имя не указано'
+      const firstName = profile.first_name || ''
+      const lastName = profile.last_name || ''
+      return `${firstName} ${lastName}`.trim() || 'Имя не указано'
     }
     
     const formatSalary = (min, max) => {
@@ -474,7 +577,7 @@ export default {
     const setupRealtimeSubscription = () => {
       realtimeSubscription = supabase
         .channel('homepage-updates')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'job_postings' }, () => {
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'urgent_jobs' }, () => {
           loadStats()
           loadUrgentJobs()
         })
@@ -482,7 +585,7 @@ export default {
           loadStats()
           loadTopCompanies()
         })
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'candidate_profiles' }, () => {
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'user_profiles' }, () => {
           loadStats()
           loadFreshResumes()
         })
@@ -522,6 +625,7 @@ export default {
       goToResume,
       getCompanyInitials,
       getNameInitials,
+      getFullName,
       formatSalary,
       formatUrgentPay,
       formatShiftTime,
@@ -1137,6 +1241,19 @@ export default {
   border-radius: 20px;
   font-size: 12px;
   color: rgba(255, 255, 255, 0.8);
+}
+
+.skill-tag.urgent {
+  background: rgba(255, 215, 0, 0.2);
+  color: #ffd700;
+  border: 1px solid rgba(255, 215, 0, 0.3);
+}
+
+.resume-info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
 }
 
 /* Loading and Empty States */
