@@ -1,9 +1,0 @@
-{
-  "compilerOptions": {
-    "paths": {
-      "@/*": ["./src/*"]
-    },
-    "skipLibCheck": true
-  },
-  "exclude": ["node_modules", "dist", "**/.svelte2tsx-language-server-files/**", "**/*.d.ts"]
-}

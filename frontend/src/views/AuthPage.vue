@@ -58,8 +58,8 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { useAuthStore } from '@/modules/auth/store/auth'
-import { showSuccess } from '@/shared/services/notificationService'
+import { useAuthStore } from '@/stores/auth'
+import { useNotificationsStore } from '@/stores/notifications'
 
 const router = useRouter()
 const authStore = useAuthStore()

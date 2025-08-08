@@ -1,14 +1,13 @@
 <template>
   <div class="dashboard-page">
-    <!-- Используем существующую CompanyDashboard -->
-    <CompanyDashboard />
+    <!-- Используем DashboardPage из views -->
+    <DashboardPage />
   </div>
 </template>
 
 <script setup>
-// ✨ ВРЕМЕННО: используем CompanyDashboard из старого модуля
-// В ЭТАПЕ 3 перенесем всю логику сюда напрямую
-import CompanyDashboard from '../modules/companies/components/CompanyDashboard.vue'
+// ✨ ИСПРАВЛЕНО: используем DashboardPage из views
+import DashboardPage from './DashboardPage.vue'
 </script>
 
 <style scoped>

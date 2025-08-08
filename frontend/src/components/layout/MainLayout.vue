@@ -49,7 +49,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { useAuthStore } from '@/modules/auth/store/auth'
+import { useAuthStore } from '@/stores/auth.js'
 import { 
   BellIcon, 
   SunIcon, 
@@ -62,7 +62,7 @@ import {
   UserIcon,
   LogOutIcon
 } from 'lucide-vue-next'
-import BurgerMenu from '@/shared/ui/BurgerMenu.vue'
+import BurgerMenu from '@/components/ui/BurgerMenu.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()

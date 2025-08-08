@@ -2,6 +2,9 @@
   <div 
     class="urgent-job-card glass-card-hover animate-slide-up animate-urgent-pulse"
     :class="{ 'highlighted': job.is_highlighted }"
+    @click="openJobDetails"
+    style="cursor: pointer;"
+    @click.capture="console.log('Клик зафиксирован на карточке')"
   >
     <!-- Бейдж срочности -->
     <div class="urgent-badge">
@@ -87,7 +90,7 @@
     <div class="card-footer">
       <button 
         class="ready-btn btn-gradient animate-ready-glow"
-        @click="handleReadyClick"
+        @click.stop="handleReadyClick"
         :disabled="loading || userResponse"
       >
         <span class="ready-icon">🙋‍♂️</span>
@@ -98,14 +101,14 @@
       </button>
 
       <div class="action-buttons">
-        <router-link 
-          :to="{ name: 'job-details', params: { id: job.id }}" 
+        <button 
           class="view-details"
+          @click.stop="openJobDetails"
         >
           Подробнее
-        </router-link>
+        </button>
         
-        <button class="share-btn" @click="shareJob">
+        <button class="share-btn" @click.stop="shareJob">
           <span>📤</span>
         </button>
       </div>
@@ -179,6 +182,12 @@ const handleReadyClick = async () => {
 const shareJob = () => {
   emit('share', props.job)
   // TODO: Реализовать шэринг
+}
+
+const openJobDetails = () => {
+  console.log('openJobDetails вызван для job.id:', props.job.id)
+  console.log('Полные данные job:', props.job)
+  router.push(`/jobs/${props.job.id}`)
 }
 
 // Вспомогательные функции

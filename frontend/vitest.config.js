@@ -8,6 +8,8 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
+    watch: false,
+    run: true,
     setupFiles: [
       './src/test/setup.js',
       './src/test/supabase-setup.js' // Добавляем настройку Supabase

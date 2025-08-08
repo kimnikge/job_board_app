@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { supabase } from '../lib/supabase'
+import { authService } from '../services/auth.service.js'
 
 // ✨ УПРОЩЕННЫЙ AUTH STORE - СОГЛАСНО ПЛАНУ ЭТАПА 3
 export const useAuthStore = defineStore('auth', () => {
@@ -18,8 +18,10 @@ export const useAuthStore = defineStore('auth', () => {
   // Действия
   const fetchUser = async () => {
     try {
-      const { data: { user: currentUser } } = await supabase.auth.getUser()
-      user.value = currentUser
+      const { data, error } = await authService.getCurrentUser()
+      if (error) throw error
+      
+      user.value = data?.user || null
     } catch (err) {
       console.error('Ошибка загрузки пользователя:', err)
       user.value = null
@@ -31,14 +33,14 @@ export const useAuthStore = defineStore('auth', () => {
       loading.value = true
       error.value = null
       
-      const { data, error: authError } = await supabase.auth.signInWithPassword({
-        email: credentials.email,
-        password: credentials.password
-      })
+      const { data, error: authError } = await authService.login(
+        credentials.email,
+        credentials.password
+      )
       
       if (authError) throw authError
       
-      user.value = data.user
+      user.value = data?.user || null
       return { success: true }
     } catch (err) {
       error.value = err.message
@@ -53,20 +55,18 @@ export const useAuthStore = defineStore('auth', () => {
       loading.value = true
       error.value = null
       
-      const { data, error: authError } = await supabase.auth.signUp({
-        email: credentials.email,
-        password: credentials.password,
-        options: {
-          data: {
-            user_type: credentials.userType,
-            full_name: credentials.fullName
-          }
+      const { data, error: authError } = await authService.register(
+        credentials.email,
+        credentials.password,
+        {
+          user_type: credentials.userType,
+          full_name: credentials.fullName
         }
-      })
+      )
       
       if (authError) throw authError
       
-      user.value = data.user
+      user.value = data?.user || null
       return { success: true }
     } catch (err) {
       error.value = err.message
@@ -79,7 +79,8 @@ export const useAuthStore = defineStore('auth', () => {
   const logout = async () => {
     try {
       loading.value = true
-      await supabase.auth.signOut()
+      const { error: logoutError } = await authService.logout()
+      if (logoutError) throw logoutError
       user.value = null
       error.value = null
     } catch (err) {
@@ -93,8 +94,8 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       loading.value = true
       error.value = null
-      
-      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email)
+
+      const { error: resetError } = await authService.resetPassword(email)
       if (resetError) throw resetError
       
       return { success: true }
@@ -108,10 +109,9 @@ export const useAuthStore = defineStore('auth', () => {
   
   // Инициализация
   const init = () => {
-    // Слушаем изменения авторизации
-    supabase.auth.onAuthStateChange((event, session) => {
+    // Слушаем изменения авторизации через сервис
+    authService.onAuthStateChange((event, session) => {
       user.value = session?.user || null
-      
       if (event === 'SIGNED_OUT') {
         user.value = null
       }

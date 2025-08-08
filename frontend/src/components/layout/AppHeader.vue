@@ -153,7 +153,7 @@ import {
   UserIcon, BellIcon, ChevronDownIcon, LogOutIcon,
   UserCircleIcon, SettingsIcon, BriefcaseIcon
 } from 'lucide-vue-next'
-import { useAuthStore } from '@/modules/auth/store/auth'
+import { useAuthStore } from '@/stores/auth.js'
 import { notificationService } from '@/services/notificationService'
 
 const route = useRoute()

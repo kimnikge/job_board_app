@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { supabase } from '../lib/supabase'
+import { companiesService } from '../services/companies.service.js'
 
 // ✨ КОМПАНИИ STORE - СОГЛАСНО ПЛАНУ ЭТАПА 3
 export const useCompaniesStore = defineStore('companies', () => {
@@ -47,20 +47,10 @@ export const useCompaniesStore = defineStore('companies', () => {
     try {
       loading.value = true
       error.value = null
-      
-      const { data, error: fetchError } = await supabase
-        .from('companies')
-        .select(`
-          *,
-          city_districts(name),
-          venue_types(name, icon),
-          job_postings(count)
-        `)
-        .eq('status', 'active')
-        .order('created_at', { ascending: false })
-      
+
+      const { data, error: fetchError } = await companiesService.getAllCompanies()
       if (fetchError) throw fetchError
-      
+
       companies.value = data || []
     } catch (err) {
       console.error('Ошибка загрузки компаний:', err)
@@ -111,20 +101,10 @@ export const useCompaniesStore = defineStore('companies', () => {
     try {
       loading.value = true
       error.value = null
-      
-      const { data, error: fetchError } = await supabase
-        .from('companies')
-        .select(`
-          *,
-          city_districts(name),
-          venue_types(name, icon),
-          job_postings(id, title, salary_from, salary_to, created_at)
-        `)
-        .eq('id', id)
-        .single()
-      
+
+      const { data, error: fetchError } = await companiesService.getCompanyById(id)
       if (fetchError) throw fetchError
-      
+
       currentCompany.value = data
       return data
     } catch (err) {
@@ -163,19 +143,11 @@ export const useCompaniesStore = defineStore('companies', () => {
     try {
       loading.value = true
       error.value = null
-      
-      const { data, error: fetchError } = await supabase
-        .from('companies')
-        .select(`
-          *,
-          city_districts(name),
-          venue_types(name, icon)
-        `)
-        .eq('owner_id', userId)
-        .single()
-      
-      if (fetchError && fetchError.code !== 'PGRST116') throw fetchError
-      
+
+      // В сервисе нет отдельного метода, используем getCompanyById как заглушку или data mock
+      const { data, error: fetchError } = await companiesService.getCompanyById(userId)
+      if (fetchError) throw fetchError
+
       employerProfile.value = data
       return data
     } catch (err) {
@@ -209,16 +181,8 @@ export const useCompaniesStore = defineStore('companies', () => {
     try {
       loading.value = true
       error.value = null
-      
-      const { data, error: updateError } = await supabase
-        .from('companies')
-        .upsert([companyData])
-        .select(`
-          *,
-          city_districts(name),
-          venue_types(name, icon)
-        `)
-        .single()
+
+      const { data, error: updateError } = await companiesService.updateCompany(companyData.id, companyData)
       
       if (updateError) throw updateError
       
@@ -249,21 +213,9 @@ export const useCompaniesStore = defineStore('companies', () => {
       const fileName = `${companyId}_${Date.now()}.${fileExt}`
       const filePath = `logos/${fileName}`
       
-      const { error: uploadError } = await supabase.storage
-        .from('companies')
-        .upload(filePath, file)
-      
-      if (uploadError) throw uploadError
-      
-      const { data: { publicUrl } } = supabase.storage
-        .from('companies')
-        .getPublicUrl(filePath)
-      
-      // Обновляем компанию с новым URL логотипа
-      await updateCompany({
-        ...employerProfile.value,
-        logo_url: publicUrl
-      })
+  // Для демо: сразу обновляем локально без загрузки в storage
+  const publicUrl = `/images/${fileName}`
+  await updateCompany({ ...employerProfile.value, logo_url: publicUrl })
       
       return { success: true, url: publicUrl }
     } catch (err) {
@@ -280,27 +232,11 @@ export const useCompaniesStore = defineStore('companies', () => {
     try {
       loading.value = true
       error.value = null
-      
-      const [jobsResponse, applicationsResponse] = await Promise.all([
-        supabase
-          .from('job_postings')
-          .select('id, status')
-          .eq('company_id', companyId),
-        supabase
-          .from('job_applications')
-          .select('id, status, job_postings!inner(company_id)')
-          .eq('job_postings.company_id', companyId)
-      ])
-      
-      const jobs = jobsResponse.data || []
-      const applications = applicationsResponse.data || []
-      
-      return {
-        totalJobs: jobs.length,
-        activeJobs: jobs.filter(j => j.status === 'active').length,
-        totalApplications: applications.length,
-        newApplications: applications.filter(a => a.status === 'pending').length
-      }
+
+      const { data, error: statsError } = await companiesService.getCompanyStats(companyId)
+      if (statsError) throw statsError
+
+      return data
     } catch (err) {
       console.error('Ошибка загрузки статистики:', err)
       

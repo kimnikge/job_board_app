@@ -82,7 +82,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useAuthStore } from '@/modules/auth/store/auth'
+import { useAuthStore } from '@/stores/auth'
 
 const authStore = useAuthStore()
 const user = ref({
