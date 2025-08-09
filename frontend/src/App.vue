@@ -2,7 +2,9 @@
   <ErrorBoundary>
     <div id="app">
       <AnimatedBackground />
-      <router-view />
+      <AppLayout>
+        <router-view />
+      </AppLayout>
     </div>
   </ErrorBoundary>
 </template>
@@ -11,10 +13,12 @@
 import { onMounted } from 'vue'
 import AnimatedBackground from './components/AnimatedBackground.vue'
 import ErrorBoundary from './components/ErrorBoundary.vue'
+import AppLayout from './components/layout/AppLayout.vue'
 
 onMounted(() => {
   console.log('🍽️ Job Board App для общепита Астаны запущен!')
   console.log('🎨 Применена новая темная тема с градиентами')
+  console.log('📱 Добавлена адаптивная навигация согласно плану разработки')
 })
 </script>
 

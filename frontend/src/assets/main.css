@@ -183,22 +183,79 @@ body {
   max-width: 1200px;
   margin: 0 auto;
   width: 100%;
+  box-sizing: border-box;
 }
 
-/* Адаптивная типографика и отступы */
+/* Базовые адаптивные стили */
+@media (max-width: 1200px) {
+  .main-content { 
+    padding: 18px;
+    max-width: 100%;
+  }
+}
+
 @media (max-width: 1024px) {
-  .main-content { padding: 16px; }
+  .main-content { 
+    padding: 16px;
+  }
 }
+
 @media (max-width: 768px) {
-  .main-content { padding: 14px; }
-  h1 { font-size: 1.9rem; }
-  h2 { font-size: 1.5rem; }
+  .main-content { 
+    padding: 14px;
+  }
+  
+  h1 { font-size: 1.8rem; line-height: 1.2; }
+  h2 { font-size: 1.4rem; line-height: 1.3; }
+  h3 { font-size: 1.2rem; line-height: 1.3; }
+  
+  /* Адаптивные карточки */
+  .job-card, .company-card, .resume-card {
+    margin-bottom: 12px;
+  }
 }
+
 @media (max-width: 480px) {
-  .main-content { padding: 12px; }
-  h1 { font-size: 1.6rem; }
-  h2 { font-size: 1.3rem; }
-  h3 { font-size: 1.1rem; }
+  .main-content { 
+    padding: 12px;
+  }
+  
+  h1 { font-size: 1.5rem; line-height: 1.2; }
+  h2 { font-size: 1.3rem; line-height: 1.3; }
+  h3 { font-size: 1.1rem; line-height: 1.3; }
+  
+  /* Мобильные кнопки */
+  .btn-primary, .action-card, .contact-btn, .apply-btn, .submit-button {
+    padding: 14px 20px;
+    font-size: 16px;
+    min-height: 48px; /* Touch target size */
+  }
+}
+
+/* Адаптивная сетка */
+.grid {
+  display: grid;
+  gap: 20px;
+}
+
+.grid-responsive {
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
+@media (max-width: 768px) {
+  .grid {
+    gap: 16px;
+  }
+  
+  .grid-responsive {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .grid {
+    gap: 12px;
+  }
 }
 
 /* Уважение prefers-reduced-motion */

@@ -26,4 +26,4 @@ RLS (цель):
 - skills/badges/work_logs: user_id владение
 - employers: публичный SELECT (MVP)
 
-Диаграмма: ERD_v2.png (в работе).
+Диаграмма: см. ERD_v2.svg (PNG экспорт опционален).

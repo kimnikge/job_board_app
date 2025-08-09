@@ -13,7 +13,8 @@
           <span class="logo-text">Job Board Астана</span>
         </div>
         
-        <nav class="nav-menu">
+        <!-- Desktop Navigation -->
+        <nav class="nav-menu desktop-nav">
           <router-link to="/urgent" class="nav-item urgent-link">
             <DynamicIcon name="AlertCircle" class="nav-icon" />
             Срочные
@@ -27,7 +28,55 @@
             Профиль
           </router-link>
         </nav>
+
+        <!-- Mobile Menu Button -->
+        <button 
+          class="mobile-menu-button"
+          @click="toggleMobileMenu"
+          aria-label="Открыть меню"
+        >
+          <span class="hamburger-line" :class="{ 'active': isMobileMenuOpen }"></span>
+          <span class="hamburger-line" :class="{ 'active': isMobileMenuOpen }"></span>
+          <span class="hamburger-line" :class="{ 'active': isMobileMenuOpen }"></span>
+        </button>
       </div>
+
+      <!-- Mobile Navigation Menu -->
+      <div 
+        class="mobile-nav-overlay"
+        :class="{ 'active': isMobileMenuOpen }"
+        @click="closeMobileMenu"
+      ></div>
+      
+      <nav 
+        class="mobile-nav"
+        :class="{ 'active': isMobileMenuOpen }"
+      >
+        <div class="mobile-nav-header">
+          <h3>Меню</h3>
+          <button 
+            class="close-mobile-menu"
+            @click="closeMobileMenu"
+          >
+            ✕
+          </button>
+        </div>
+
+        <div class="mobile-nav-content">
+          <router-link to="/urgent" class="mobile-nav-item urgent-item" @click="closeMobileMenu">
+            <DynamicIcon name="AlertCircle" class="nav-icon" />
+            <span>Срочные вакансии</span>
+          </router-link>
+          <router-link to="/companies" class="mobile-nav-item" @click="closeMobileMenu">
+            <DynamicIcon name="Building" class="nav-icon" />
+            <span>Заведения</span>
+          </router-link>
+          <router-link to="/profile" class="mobile-nav-item" @click="closeMobileMenu">
+            <DynamicIcon name="User" class="nav-icon" />
+            <span>Профиль</span>
+          </router-link>
+        </div>
+      </nav>
     </header>
 
     <!-- Hero Section -->
@@ -140,7 +189,10 @@
               <div class="job-date">
                 {{ formatDate(job.created_at) }}
               </div>
-              <button class="apply-btn">
+              <button 
+                class="apply-btn"
+                @click.stop="applyToJob(job)"
+              >
                 Откликнуться
               </button>
             </div>
@@ -223,6 +275,7 @@ const notificationsStore = useNotificationsStore()
 // Reactive state
 const loading = ref(true)
 const selectedSpecialization = ref('')
+const isMobileMenuOpen = ref(false)
 
 // Computed properties
 const urgentJobs = computed(() => jobsStore.urgentJobsList)
@@ -244,6 +297,14 @@ const stats = computed(() => ({
 }))
 
 // Methods
+const toggleMobileMenu = () => {
+  isMobileMenuOpen.value = !isMobileMenuOpen.value
+}
+
+const closeMobileMenu = () => {
+  isMobileMenuOpen.value = false
+}
+
 const updateFilters = () => {
   jobsStore.updateFilters({
     specialization: selectedSpecialization.value ? parseInt(selectedSpecialization.value) : null
@@ -256,6 +317,13 @@ const goToJob = (jobId) => {
 
 const goToCompany = (companyId) => {
   router.push(`/companies/${companyId}`)
+}
+
+const applyToJob = (job) => {
+  // Проверяем авторизацию
+  // Пока что направляем на детальную страницу вакансии
+  router.push(`/jobs/${job.id}`)
+  notificationsStore.showInfo(`Переход к вакансии: ${job.title}`)
 }
 
 const formatSalary = (from, to) => {
@@ -388,6 +456,134 @@ onMounted(async () => {
 .nav-icon {
   width: 16px;
   height: 16px;
+}
+
+/* Mobile Menu Button - hidden on desktop */
+.mobile-menu-button {
+  display: none;
+  flex-direction: column;
+  justify-content: space-around;
+  width: 30px;
+  height: 30px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  z-index: 1001;
+}
+
+.hamburger-line {
+  width: 25px;
+  height: 3px;
+  background: white;
+  transition: all 0.3s ease;
+  transform-origin: center;
+}
+
+.hamburger-line.active:nth-child(1) {
+  transform: rotate(45deg) translate(6px, 6px);
+}
+
+.hamburger-line.active:nth-child(2) {
+  opacity: 0;
+}
+
+.hamburger-line.active:nth-child(3) {
+  transform: rotate(-45deg) translate(6px, -6px);
+}
+
+/* Mobile Navigation */
+.mobile-nav-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+}
+
+.mobile-nav-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.mobile-nav {
+  position: fixed;
+  top: 0;
+  right: -320px;
+  width: 320px;
+  height: 100vh;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-left: 1px solid rgba(255, 255, 255, 0.2);
+  z-index: 1000;
+  transition: right 0.3s ease;
+  overflow-y: auto;
+}
+
+.mobile-nav.active {
+  right: 0;
+}
+
+.mobile-nav-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.mobile-nav-header h3 {
+  color: #333;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.close-mobile-menu {
+  background: transparent;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #333;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mobile-nav-content {
+  padding: 1rem 0;
+}
+
+.mobile-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 1rem 1.5rem;
+  color: #333;
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.mobile-nav-item:hover {
+  background: rgba(102, 126, 234, 0.1);
+  color: #667eea;
+}
+
+.mobile-nav-item.urgent-item {
+  background: linear-gradient(135deg, rgba(245, 87, 108, 0.1), rgba(255, 107, 138, 0.1));
+  color: #f5576c;
+}
+
+.mobile-nav-item.urgent-item:hover {
+  background: linear-gradient(135deg, rgba(245, 87, 108, 0.2), rgba(255, 107, 138, 0.2));
 }
 
 /* Hero Section */
@@ -730,26 +926,189 @@ onMounted(async () => {
   to { transform: rotate(360deg); }
 }
 
-/* Responsive */
-@media (max-width: 768px) {
+/* Responsive Design - Mobile First согласно плану разработки */
+@media (max-width: 480px) {
+  .header-container {
+    padding: 0.75rem 1rem;
+  }
+
+  .logo-text {
+    display: none;
+  }
+
+  .nav-menu {
+    gap: 1rem;
+  }
+
+  .nav-item {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.9rem;
+  }
+
+  .hero {
+    padding: 100px 1rem 60px;
+  }
+
   .hero-title {
-    font-size: 2rem;
+    font-size: 1.8rem;
+    line-height: 1.2;
+  }
+
+  .hero-subtitle {
+    font-size: 1rem;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+
+  .stat-card {
+    padding: 1rem;
+  }
+
+  .stat-number {
+    font-size: 1.5rem;
+  }
+
+  .section-container {
+    padding: 0 1rem;
+  }
+
+  .section-title {
+    font-size: 1.5rem;
+  }
+
+  .job-card {
+    padding: 1rem;
+  }
+
+  .job-title {
+    font-size: 1.1rem;
+  }
+
+  .apply-btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .header-container {
+    padding: 1rem;
+  }
+
+  .nav-menu.desktop-nav {
+    display: none; /* Hide desktop nav on mobile */
+  }
+
+  /* Show mobile menu button */
+  .mobile-menu-button {
+    display: flex;
+  }
+
+  .hero {
+    padding: 100px 1rem 60px;
+  }
+
+  .hero-title {
+    font-size: 1.8rem;
+    line-height: 1.2;
+  }
+
+  .hero-subtitle {
+    font-size: 1rem;
+    line-height: 1.4;
   }
   
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+  
+  .stat-card {
+    padding: 16px;
+  }
+  
+  .stat-number {
+    font-size: 1.8rem;
   }
   
   .section-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 1rem;
+    margin-bottom: 20px;
+  }
+  
+  .section-title {
+    font-size: 1.4rem;
   }
   
   .urgent-jobs-grid,
   .jobs-grid,
   .companies-grid {
     grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .section-container {
+    padding: 0 1rem;
+  }
+
+  .filters-quick {
+    width: 100%;
+    overflow-x: auto;
+    padding-bottom: 8px;
+  }
+
+  .filters-quick select {
+    min-width: 150px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero {
+    padding: 90px 1rem 50px;
+  }
+
+  .hero-title {
+    font-size: 1.5rem;
+  }
+
+  .hero-subtitle {
+    font-size: 0.9rem;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .stat-card {
+    padding: 12px;
+  }
+
+  .section-container {
+    padding: 0 12px;
+  }
+
+  .urgent-jobs-grid,
+  .jobs-grid,
+  .companies-grid {
+    gap: 12px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .urgent-jobs-grid,
+  .jobs-grid {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
+
+  .companies-grid {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   }
 }
 </style>

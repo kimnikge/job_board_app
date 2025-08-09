@@ -247,7 +247,57 @@ onMounted(() => {
   }
 }
 
-/* Адаптивность */
+/* Responsive Design согласно плану разработки */
+@media (max-width: 480px) {
+  .urgent-jobs-page {
+    padding: 0.5rem;
+  }
+
+  .page-container {
+    padding: 1rem;
+  }
+  
+  .urgent-header {
+    text-align: center;
+    margin-bottom: 1.5rem;
+  }
+
+  .urgent-header h1 {
+    font-size: 1.8rem;
+    line-height: 1.2;
+    margin-bottom: 0.5rem;
+  }
+
+  .urgent-header p {
+    font-size: 0.9rem;
+    line-height: 1.4;
+  }
+  
+  .urgent-jobs-list {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+
+  .no-jobs {
+    padding: 2rem 1rem;
+  }
+
+  .no-jobs h3 {
+    font-size: 1.5rem;
+  }
+
+  .no-jobs p {
+    font-size: 1rem;
+  }
+
+  .loading, .error {
+    text-align: center;
+    padding: 2rem 1rem;
+    font-size: 1rem;
+  }
+}
+
 @media (max-width: 768px) {
   .urgent-jobs-page {
     padding: 1rem;
@@ -260,6 +310,18 @@ onMounted(() => {
   .urgent-jobs-list {
     grid-template-columns: 1fr;
     gap: 1.5rem;
+  }
+}
+
+@media (max-width: 1024px) {
+  .urgent-jobs-list {
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  }
+}
+
+@media (max-width: 1200px) {
+  .urgent-jobs-list {
+    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
   }
 }
 </style>

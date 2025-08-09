@@ -675,18 +675,259 @@ const getPriorityClass = (priority) => {
   font-size: 0.875rem;
 }
 
-@media (max-width: 768px) {
+/* Responsive Design согласно плану разработки */
+@media (max-width: 480px) {
   .urgent-job-card {
-    padding: 20px;
+    padding: 16px;
+    margin: 8px 0;
+  }
+
+  .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .specialization-tag {
+    padding: 6px 10px;
+    font-size: 0.75rem;
+  }
+
+  .priority-indicator {
+    padding: 4px 8px;
+    font-size: 0.7rem;
   }
 
   .job-title {
-    font-size: 1.1rem;
+    font-size: 1rem;
+    line-height: 1.3;
+    margin: 12px 0;
+  }
+
+  .venue-info {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 8px;
+  }
+
+  .venue-logo {
+    width: 40px;
+    height: 40px;
   }
 
   .job-details {
     flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+  }
+
+  .detail-item {
+    gap: 8px;
+    font-size: 0.85rem;
+  }
+
+  .salary-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .salary-amount {
+    font-size: 1.1rem;
+  }
+
+  .card-footer {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .ready-btn {
+    width: 100%;
+    padding: 14px;
+    font-size: 0.9rem;
+  }
+
+  .action-buttons {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .view-details {
+    flex: 1;
+    justify-content: center;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+  }
+
+  .share-btn {
+    padding: 10px 12px;
+  }
+
+  .contact-info {
+    margin-top: 12px;
+    padding: 12px;
+  }
+
+  .contact-info h4 {
+    font-size: 0.9rem;
+    margin-bottom: 8px;
+  }
+
+  .contact-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    margin-bottom: 8px;
+  }
+
+  .urgent-badge {
+    padding: 6px 10px;
+    font-size: 0.75rem;
+  }
+
+  .auto-close-timer {
+    padding: 6px 10px;
+    font-size: 0.75rem;
+  }
+
+  .job-tags {
+    gap: 6px;
+  }
+
+  .tag {
+    padding: 4px 8px;
+    font-size: 0.7rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .urgent-job-card {
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+
+  .urgent-badge {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+  }
+
+  .job-title {
+    font-size: 1.1rem;
+    line-height: 1.3;
+  }
+
+  .venue-info {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .venue-name {
+    font-size: 1rem;
+  }
+
+  .job-details {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .detail-item {
+    font-size: 0.9rem;
+  }
+
+  .salary-amount {
+    font-size: 1.1rem;
+  }
+
+  .job-description {
+    padding: 10px;
+    font-size: 0.85rem;
+  }
+
+  .job-tags {
+    gap: 6px;
+  }
+
+  .tag {
+    padding: 3px 6px;
+    font-size: 0.75rem;
+  }
+
+  .card-footer {
+    flex-direction: column;
     gap: 10px;
+  }
+
+  .ready-btn {
+    width: 100%;
+    padding: 14px 20px;
+    font-size: 1rem;
+    min-height: 48px; /* Touch target */
+  }
+
+  .action-buttons {
+    justify-content: space-between;
+    width: 100%;
+    gap: 8px;
+  }
+
+  .action-buttons .action-btn {
+    flex: 1;
+    min-height: 44px;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .urgent-job-card {
+    padding: 12px;
+  }
+
+  .job-title {
+    font-size: 1rem;
+  }
+
+  .venue-name {
+    font-size: 0.9rem;
+  }
+
+  .detail-item {
+    font-size: 0.85rem;
+  }
+
+  .salary-amount {
+    font-size: 1rem;
+  }
+
+  .ready-btn {
+    padding: 12px 16px;
+    font-size: 0.9rem;
+  }
+
+  .action-buttons .action-btn {
+    padding: 8px 12px;
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 1024px) {
+  .urgent-job-card {
+    padding: 20px;
+  }
+
+  .venue-info {
+    flex-direction: row;
+    gap: 12px;
+  }
+
+  .job-details {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .detail-item {
+    min-width: calc(50% - 6px);
   }
 }
 </style>

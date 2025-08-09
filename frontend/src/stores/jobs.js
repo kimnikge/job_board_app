@@ -27,8 +27,8 @@ export const useJobsStore = defineStore('jobs', () => {
       const searchLower = filters.value.search.toLowerCase()
       result = result.filter(job => 
         job.title.toLowerCase().includes(searchLower) ||
-        job.description.toLowerCase().includes(searchLower) ||
-        job.company_name.toLowerCase().includes(searchLower)
+        (job.description && job.description.toLowerCase().includes(searchLower)) ||
+        (job.company_name && job.company_name.toLowerCase().includes(searchLower))
       )
     }
 

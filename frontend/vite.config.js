@@ -39,44 +39,18 @@ export default defineConfig({
             return 'vendor-other'
           }
 
-          // Разделение по модулям
-          if (id.includes('src/modules/auth')) {
-            return 'module-auth'
-          }
-          if (id.includes('src/modules/companies')) {
-            return 'module-companies'
-          }
-          if (id.includes('src/modules/jobs')) {
-            return 'module-jobs'
-          }
-          if (id.includes('src/modules/resume')) {
-            return 'module-resume'
-          }
-          if (id.includes('src/modules/profile')) {
-            return 'module-profile'
-          }
-          if (id.includes('src/modules/otclik')) {
-            return 'module-otclik'
-          }
-          if (id.includes('src/modules/urgent')) {
-            return 'module-urgent'
-          }
-          if (id.includes('src/modules/home')) {
-            return 'module-home'
-          }
-          if (id.includes('src/modules/user')) {
-            return 'module-user'
-          }
-
-          // Layouts и shared
+          // Логические группы (актуальная структура)
           if (id.includes('src/layouts')) {
             return 'layouts'
           }
-          if (id.includes('src/shared')) {
-            return 'shared'
-          }
           if (id.includes('src/components')) {
             return 'components'
+          }
+          if (id.includes('src/stores')) {
+            return 'stores'
+          }
+          if (id.includes('src/services')) {
+            return 'services'
           }
         }
       }
@@ -103,8 +77,8 @@ export default defineConfig({
     }
   },
   server: {
-    port: 8080,
-    host: '0.0.0.0',
+    port: 3000,
+    host: 'localhost',
     open: true
   }
 })

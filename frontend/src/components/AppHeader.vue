@@ -7,7 +7,8 @@
         <span class="logo-subtitle">Общепит</span>
       </router-link>
 
-      <nav class="nav-menu">
+      <!-- Desktop Navigation -->
+      <nav class="nav-menu desktop-nav">
         <router-link 
           v-for="item in menuItems" 
           :key="item.path"
@@ -19,6 +20,18 @@
           {{ item.label }}
         </router-link>
       </nav>
+
+      <!-- Mobile Menu Button -->
+      <button 
+        class="mobile-menu-button"
+        @click="toggleMobileMenu"
+        aria-label="Открыть меню"
+        :aria-expanded="isMobileMenuOpen.toString()"
+      >
+        <span class="hamburger-line" :class="{ 'active': isMobileMenuOpen }"></span>
+        <span class="hamburger-line" :class="{ 'active': isMobileMenuOpen }"></span>
+        <span class="hamburger-line" :class="{ 'active': isMobileMenuOpen }"></span>
+      </button>
 
       <div class="header-actions">
         <button 
@@ -144,6 +157,114 @@
         </template>
       </div>
     </div>
+
+    <!-- Mobile Navigation Menu -->
+    <div 
+      class="mobile-nav-overlay"
+      :class="{ 'active': isMobileMenuOpen }"
+      @click="closeMobileMenu"
+    ></div>
+    
+    <nav 
+      class="mobile-nav"
+      :class="{ 'active': isMobileMenuOpen }"
+    >
+      <div class="mobile-nav-header">
+        <h3>Меню</h3>
+        <button 
+          class="close-mobile-menu"
+          @click="closeMobileMenu"
+          aria-label="Закрыть меню"
+        >
+          ✕
+        </button>
+      </div>
+
+      <div class="mobile-nav-content">
+        <!-- Quick Actions for Mobile -->
+        <div class="mobile-quick-actions">
+          <router-link to="/urgent" class="mobile-urgent-btn" @click="closeMobileMenu">
+            <span class="urgent-icon">🚨</span>
+            <div>
+              <span>СРОЧНО</span>
+              <small v-if="urgentJobsCount">{{ urgentJobsCount }} вакансий</small>
+            </div>
+          </router-link>
+
+          <button 
+            v-if="isAuthenticated"
+            class="mobile-notifications-btn"
+            @click="toggleMobileNotifications"
+          >
+            <span class="bell-icon">🔔</span>
+            <div>
+              <span>Уведомления</span>
+              <small v-if="unreadNotifications">{{ unreadNotifications }} новых</small>
+            </div>
+          </button>
+        </div>
+
+        <!-- Main Navigation -->
+        <div class="mobile-nav-items">
+          <router-link 
+            v-for="item in menuItems" 
+            :key="item.path"
+            :to="item.path"
+            class="mobile-nav-link"
+            :class="{ active: isCurrentRoute(item.path) }"
+            @click="closeMobileMenu"
+          >
+            <span class="nav-icon">{{ item.icon }}</span>
+            <span>{{ item.label }}</span>
+          </router-link>
+        </div>
+
+        <!-- Profile Section for Mobile -->
+        <div v-if="isAuthenticated" class="mobile-profile-section">
+          <div class="mobile-profile-header">
+            <img 
+              :src="userAvatar || '/images/default-avatar.png'" 
+              :alt="userName"
+              class="mobile-avatar"
+            />
+            <div>
+              <span class="mobile-user-name">{{ userName }}</span>
+              <small class="mobile-user-role">{{ userRole }}</small>
+            </div>
+          </div>
+
+          <div class="mobile-profile-actions">
+            <router-link 
+              v-for="item in profileMenuItems" 
+              :key="item.path"
+              :to="item.path"
+              class="mobile-profile-link"
+              @click="closeMobileMenu"
+            >
+              <component :is="item.icon" class="w-5 h-5" />
+              <span>{{ item.label }}</span>
+            </router-link>
+
+            <button class="mobile-logout-btn" @click="handleMobileLogout">
+              <LogOutIcon class="w-5 h-5" />
+              <span>Выйти</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Auth Section for Mobile -->
+        <div v-else class="mobile-auth-section">
+          <router-link 
+            to="/auth/login" 
+            class="mobile-auth-btn"
+            @click="closeMobileMenu"
+          >
+            <UserIcon class="w-5 h-5" />
+            <span>Войти</span>
+          </router-link>
+        </div>
+      </div>
+    </nav>
   </header>
 </template>
 
@@ -167,6 +288,10 @@ const isDev = computed(() => import.meta.env.DEV)
 const isAuthenticated = computed(() => authStore.isAuthenticated)
 const userName = computed(() => authStore.user?.full_name || 'Пользователь')
 const userAvatar = computed(() => authStore.user?.avatar)
+const userRole = computed(() => authStore.user?.primary_role || 'Пользователь')
+
+// Mobile menu state
+const isMobileMenuOpen = ref(false)
 
 // Уведомления
 const isNotificationsOpen = ref(false)
@@ -273,6 +398,31 @@ const handleLogout = async () => {
   await authStore.logout()
   closeProfileMenu()
 }
+
+// Mobile menu methods
+const toggleMobileMenu = () => {
+  isMobileMenuOpen.value = !isMobileMenuOpen.value
+  // Закрываем другие меню при открытии мобильного
+  if (isMobileMenuOpen.value) {
+    isNotificationsOpen.value = false
+    isProfileMenuOpen.value = false
+  }
+}
+
+const closeMobileMenu = () => {
+  isMobileMenuOpen.value = false
+}
+
+const handleMobileLogout = async () => {
+  await authStore.logout()
+  closeMobileMenu()
+}
+
+const toggleMobileNotifications = () => {
+  // В мобильной версии переходим на страницу уведомлений
+  router.push('/notifications')
+  closeMobileMenu()
+}
 </script>
 
 <style scoped>
@@ -349,6 +499,45 @@ const handleLogout = async () => {
 .nav-menu {
   display: flex;
   gap: 32px;
+}
+
+/* Desktop navigation - hidden on mobile */
+.desktop-nav {
+  display: flex;
+}
+
+/* Mobile menu button - hidden on desktop */
+.mobile-menu-button {
+  display: none;
+  flex-direction: column;
+  justify-content: space-around;
+  width: 30px;
+  height: 30px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  z-index: 1001;
+}
+
+.hamburger-line {
+  width: 25px;
+  height: 3px;
+  background: var(--color-text-primary);
+  transition: all 0.3s ease;
+  transform-origin: center;
+}
+
+.hamburger-line.active:nth-child(1) {
+  transform: rotate(45deg) translate(6px, 6px);
+}
+
+.hamburger-line.active:nth-child(2) {
+  opacity: 0;
+}
+
+.hamburger-line.active:nth-child(3) {
+  transform: rotate(-45deg) translate(6px, -6px);
 }
 
 .nav-link {
@@ -740,16 +929,340 @@ const handleLogout = async () => {
 }
 
 @media (max-width: 768px) {
-  .nav-menu {
+  .header-content {
+    padding: 0 12px;
+    min-height: 60px;
+  }
+
+  /* Hide desktop navigation */
+  .desktop-nav {
     display: none;
+  }
+
+  /* Show mobile menu button */
+  .mobile-menu-button {
+    display: flex;
   }
 
   .logo-text {
     display: none;
   }
-  
-  .notifications-dropdown {
-    width: 280px;
+
+  .logo-subtitle {
+    display: none;
   }
+
+  .header-actions {
+    gap: 8px;
+  }
+
+  /* Hide desktop urgent button on mobile */
+  .urgent-button {
+    display: none;
+  }
+
+  /* Hide demo button on mobile */
+  .demo-button {
+    display: none;
+  }
+  
+  /* Adjust notifications dropdown */
+  .notifications-dropdown {
+    width: calc(100vw - 24px);
+    max-width: 320px;
+    right: 0;
+    left: auto;
+  }
+
+  /* Adjust profile dropdown */
+  .profile-dropdown {
+    right: 0;
+    left: auto;
+    width: 200px;
+  }
+
+  /* Smaller icons and text on mobile */
+  .icon-button {
+    padding: 8px;
+    min-height: 40px;
+    min-width: 40px;
+  }
+
+  .profile-button {
+    padding: 6px 12px;
+    font-size: 0.9rem;
+  }
+
+  .avatar {
+    width: 32px;
+    height: 32px;
+  }
+
+  .user-name {
+    display: none; /* Hide username on very small screens */
+  }
+}
+
+@media (max-width: 480px) {
+  .header-content {
+    padding: 0 8px;
+  }
+
+  .logo-icon {
+    font-size: 1.5rem;
+  }
+
+  .logo-text {
+    font-size: 1.2rem;
+  }
+
+  .header-actions {
+    gap: 4px;
+  }
+
+  .notifications-dropdown {
+    width: calc(100vw - 16px);
+    right: 8px;
+    left: 8px;
+  }
+
+  .mobile-nav {
+    width: calc(100vw - 40px);
+    max-width: 280px;
+  }
+}
+
+/* Mobile Navigation Styles */
+.mobile-nav-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 998;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+}
+
+.mobile-nav-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.mobile-nav {
+  position: fixed;
+  top: 0;
+  right: -100%;
+  width: 300px;
+  height: 100%;
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px);
+  border-left: 1px solid var(--glass-border);
+  z-index: 999;
+  transition: right 0.3s ease;
+  overflow-y: auto;
+}
+
+.mobile-nav.active {
+  right: 0;
+}
+
+.mobile-nav-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.mobile-nav-header h3 {
+  color: var(--color-text-primary);
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.close-mobile-menu {
+  background: none;
+  border: none;
+  color: var(--color-text-primary);
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  transition: background 0.2s;
+}
+
+.close-mobile-menu:hover {
+  background: var(--glass-bg-hover);
+}
+
+.mobile-nav-content {
+  padding: 20px;
+}
+
+/* Mobile Quick Actions */
+.mobile-quick-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.mobile-urgent-btn,
+.mobile-notifications-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: var(--glass-bg-hover);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  text-decoration: none;
+  color: var(--color-text-primary);
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.mobile-urgent-btn {
+  background: var(--color-urgent-bg);
+  color: white;
+}
+
+.mobile-urgent-btn:hover,
+.mobile-notifications-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.urgent-icon,
+.bell-icon {
+  font-size: 1.2rem;
+}
+
+/* Mobile Navigation Items */
+.mobile-nav-items {
+  margin-bottom: 24px;
+}
+
+.mobile-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  border-radius: 12px;
+  transition: all 0.2s;
+  margin-bottom: 8px;
+}
+
+.mobile-nav-link:hover {
+  background: var(--glass-bg-hover);
+  color: var(--color-text-primary);
+}
+
+.mobile-nav-link.active {
+  background: var(--glass-bg-hover);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-primary);
+}
+
+.mobile-nav-link .nav-icon {
+  font-size: 1.2rem;
+}
+
+/* Mobile Profile Section */
+.mobile-profile-section {
+  border-top: 1px solid var(--glass-border);
+  padding-top: 20px;
+}
+
+.mobile-profile-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.mobile-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.mobile-user-name {
+  font-weight: 600;
+  color: var(--color-text-primary);
+  display: block;
+}
+
+.mobile-user-role {
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+}
+
+.mobile-profile-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mobile-profile-link,
+.mobile-logout-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  border-radius: 8px;
+  transition: all 0.2s;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.mobile-profile-link:hover,
+.mobile-logout-btn:hover {
+  background: var(--glass-bg-hover);
+  color: var(--color-text-primary);
+}
+
+.mobile-logout-btn {
+  color: var(--color-danger);
+}
+
+.mobile-logout-btn:hover {
+  background: rgba(239, 68, 68, 0.1);
+}
+
+/* Mobile Auth Section */
+.mobile-auth-section {
+  border-top: 1px solid var(--glass-border);
+  padding-top: 20px;
+}
+
+.mobile-auth-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  padding: 16px;
+  background: var(--gradient-header);
+  color: white;
+  text-decoration: none;
+  border-radius: 12px;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.mobile-auth-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
 }
 </style>

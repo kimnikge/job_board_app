@@ -183,4 +183,47 @@ const handleSubmit = async () => {
 .auth-page__toggle-button:hover {
   color: var(--color-secondary);
 }
+
+/* Мобильная адаптивность */
+@media (max-width: 480px) {
+  .auth-page {
+    padding: 1rem;
+  }
+  
+  .auth-page__container {
+    padding: 1.5rem;
+    border-radius: 0.375rem;
+  }
+  
+  .auth-page__title {
+    font-size: 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .auth-page__input {
+    padding: 1rem 0.75rem;
+    font-size: 1rem;
+    min-height: 48px; /* Touch target */
+  }
+  
+  .auth-page__submit {
+    padding: 1rem;
+    font-size: 1rem;
+    min-height: 48px;
+  }
+  
+  .auth-page__form {
+    gap: 1.25rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .auth-page {
+    padding: 1.5rem;
+  }
+  
+  .auth-page__container {
+    max-width: 500px;
+  }
+}
 </style> 

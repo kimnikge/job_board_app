@@ -5,6 +5,9 @@ import { skillsService } from '../services/skills.service.js'
 import { badgesService } from '../services/badges.service.js'
 import { experienceService } from '../services/experience.service.js'
 import { mediaService } from '../services/media.service.js'
+// R2: Импорт mock данных и фича-флагов
+import { generateMockProfileData } from '../utils/mockProfileData.js'
+import { isFeatureEnabled, debugLog } from '../utils/featureFlags.js'
 
 // ✨ ПРОФИЛЬ STORE - чистая версия на сервисах
 export const useProfileStore = defineStore('profile', () => {
@@ -169,16 +172,66 @@ export const useProfileStore = defineStore('profile', () => {
 
   // Общие
   const fetchSkills = async (userId) => {
-    const { data, error: err } = await skillsService.list(userId)
-    if (!err && data) skills.value = data
+    try {
+      debugLog('profile', 'Загружаем навыки для пользователя', userId)
+      
+      // R2: Используем mock данные если включен флаг
+      if (isFeatureEnabled('useMockData')) {
+        const mockData = generateMockProfileData()
+        skills.value = mockData.skills
+        debugLog('profile', 'Загружены mock навыки', skills.value)
+        return { data: skills.value, error: null }
+      }
+      
+      const { data, error: err } = await skillsService.list(userId)
+      if (!err && data) skills.value = data
+      return { data, error: err }
+    } catch (err) {
+      console.error('Ошибка загрузки навыков:', err)
+      return { data: null, error: err }
+    }
   }
+  
   const fetchBadges = async (userId) => {
-    const { data, error: err } = await badgesService.list(userId)
-    if (!err && data) badges.value = data
+    try {
+      debugLog('profile', 'Загружаем бейджи для пользователя', userId)
+      
+      // R2: Используем mock данные если включен флаг
+      if (isFeatureEnabled('useMockData')) {
+        const mockData = generateMockProfileData()
+        badges.value = mockData.badges
+        debugLog('profile', 'Загружены mock бейджи', badges.value)
+        return { data: badges.value, error: null }
+      }
+      
+      const { data, error: err } = await badgesService.list(userId)
+      if (!err && data) badges.value = data
+      return { data, error: err }
+    } catch (err) {
+      console.error('Ошибка загрузки бейджей:', err)
+      return { data: null, error: err }
+    }
   }
+  
   const fetchExperience = async (userId) => {
-    const { data, error: err } = await experienceService.list(userId)
-    if (!err && data) experience.value = data
+    try {
+      debugLog('profile', 'Загружаем опыт работы для пользователя', userId)
+      
+      // R2: Используем mock данные если включен флаг
+      if (isFeatureEnabled('useMockData')) {
+        const mockData = generateMockProfileData()
+        experience.value = mockData.workLogs
+        debugLog('profile', 'Загружен mock опыт', experience.value)
+        return { data: experience.value, error: null }
+      }
+      
+      const { data, error: err } = await experienceService.list(userId)
+      if (!err && data) experience.value = data
+      return { data, error: err }
+    } catch (err) {
+      console.error('Ошибка загрузки опыта:', err)
+      return { data: null, error: err }
+    }
   }
   const loadUserData = async (userId) => {
     await Promise.all([

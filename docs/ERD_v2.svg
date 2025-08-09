@@ -1,0 +1,98 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="780" height="480" font-family="Arial, Helvetica" font-size="12">
+  <style>
+    .table { fill:#fff; stroke:#333; stroke-width:1; }
+    .header { fill:#333; stroke:#333; stroke-width:1; }
+    .header text { fill:#fff; font-weight:bold; }
+    .col text { fill:#111; }
+    .link { stroke:#555; stroke-width:1; marker-end:url(#arrow); fill:none; }
+  </style>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L9,3 L0,6 z" fill="#555" />
+    </marker>
+  </defs>
+  <!-- user_profiles -->
+  <g transform="translate(20,20)">
+    <rect class="header" width="180" height="24"/>
+    <text x="8" y="16" fill="#fff">user_profiles</text>
+    <rect class="table" y="24" width="180" height="136"/>
+    <g class="col" transform="translate(6,40)">
+      <text y="0">id (uuid PK)</text>
+      <text y="18">auth_user_id (uuid FK)</text>
+      <text y="36">full_name (text)</text>
+      <text y="54">primary_role (text)</text>
+      <text y="72">video_url (text)</text>
+      <text y="90">avatar_url (text)</text>
+      <text y="108">experience_years (smallint)</text>
+    </g>
+  </g>
+  <!-- skills -->
+  <g transform="translate(260,20)">
+    <rect class="header" width="160" height="24"/>
+    <text x="8" y="16" fill="#fff">skills</text>
+    <rect class="table" y="24" width="160" height="120"/>
+    <g class="col" transform="translate(6,40)">
+      <text y="0">id (uuid PK)</text>
+      <text y="18">user_id (uuid FK)</text>
+      <text y="36">name (text)</text>
+      <text y="54">base_level (smallint)</text>
+      <text y="72">calculated_level (smallint)</text>
+    </g>
+  </g>
+  <!-- badges -->
+  <g transform="translate(480,20)">
+    <rect class="header" width="170" height="24"/>
+    <text x="8" y="16" fill="#fff">badges</text>
+    <rect class="table" y="24" width="170" height="140"/>
+    <g class="col" transform="translate(6,40)">
+      <text y="0">id (uuid PK)</text>
+      <text y="18">user_id (uuid FK)</text>
+      <text y="36">employer_id (uuid FK?)</text>
+      <text y="54">name (text)</text>
+      <text y="72">source (text)</text>
+      <text y="90">awarded_at (timestamptz)</text>
+    </g>
+  </g>
+  <!-- badge_skill_links -->
+  <g transform="translate(700,20)">
+    <rect class="header" width="200" height="24"/>
+    <text x="8" y="16" fill="#fff">badge_skill_links</text>
+    <rect class="table" y="24" width="200" height="100"/>
+    <g class="col" transform="translate(6,40)">
+      <text y="0">badge_id (uuid FK)</text>
+      <text y="18">skill_name (text)</text>
+      <text y="36">delta (smallint)</text>
+    </g>
+  </g>
+  <!-- work_logs -->
+  <g transform="translate(260,220)">
+    <rect class="header" width="170" height="24"/>
+    <text x="8" y="16" fill="#fff">work_logs</text>
+    <rect class="table" y="24" width="170" height="140"/>
+    <g class="col" transform="translate(6,40)">
+      <text y="0">id (uuid PK)</text>
+      <text y="18">user_id (uuid FK)</text>
+      <text y="36">employer_id (uuid FK)</text>
+      <text y="54">period_from (date)</text>
+      <text y="72">period_to (date)</text>
+      <text y="90">shifts_count (smallint)</text>
+    </g>
+  </g>
+  <!-- employers -->
+  <g transform="translate(480,220)">
+    <rect class="header" width="150" height="24"/>
+    <text x="8" y="16" fill="#fff">employers</text>
+    <rect class="table" y="24" width="150" height="100"/>
+    <g class="col" transform="translate(6,40)">
+      <text y="0">id (uuid PK)</text>
+      <text y="18">name (text)</text>
+      <text y="36">logo_url (text)</text>
+    </g>
+  </g>
+  <!-- Links -->
+  <path class="link" d="M200,60 L260,60"/>
+  <path class="link" d="M420,60 L480,60"/>
+  <path class="link" d="M560,140 L700,60"/>
+  <path class="link" d="M340,140 L340,220"/>
+  <path class="link" d="M565,160 L565,220"/>
+</svg>

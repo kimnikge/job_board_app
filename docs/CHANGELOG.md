@@ -11,11 +11,15 @@
 - Скелет сервисов (skills, badges, experience, media) и расширение profile store.
 - Feature flags (demoData, videoProfile, badges, skills).
 - RPC заглушки: recalc_skills, get_user_profile_full.
+- Storage bucket profile_videos + политики RLS (storage.objects) через миграцию.
+- ERD обновлён (ERD_v2.md, ERD_v2.dbml, ERD_v2.svg — PNG не критичен).
+- Ранняя PWA инфраструктура: manifest.webmanifest, service worker (cache-first core).
+- Accessibility: skip link, ARIA labels в header, lazy avatar.
+- Responsive + prefers-reduced-motion стили профиля.
+- Упрощение manualChunks (удалены ссылки на устаревшие src/modules/* пути).
 
 ### Pending
-- ERD_v2.png (диаграмма) — будет добавлена после генерации.
-- Storage bucket profile_videos (создать вручную в Supabase Dashboard).
-- RLS политики user_profiles (SELECT/UPDATE/DELETE) в новой инкрементной миграции.
+- (none)
 
 ## [0.1.0] - TBD
 Инициализационный релиз R1 будет зафиксирован после завершения всех пунктов Action List R1.

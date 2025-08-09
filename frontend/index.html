@@ -12,9 +12,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="apple-touch-icon" href="/favicon.ico">
     
-    <!-- Preload критических ресурсов -->
-    <link rel="preload" href="/src/assets/main.css" as="style">
-    <link rel="preload" href="/src/main.js" as="script">
+  <!-- Удалён preload исходных Vite ресурсов: Safari кешировал CSS как style до трансформации и ломал import -->
     
     <!-- DNS prefetch для внешних ресурсов -->
     <link rel="dns-prefetch" href="//kuyudpxqlrinkcxvorom.supabase.co">
@@ -23,12 +21,46 @@
   <body>
   <a href="#app" class="skip-link">Перейти к содержимому</a>
     <div id="app"></div>
-    <script type="module" src="/src/main.js"></script>
+    <!-- DEV SAFEGUARD: если пользователь открыл http://localhost без порта и получает сырой исходник без трансформации Vite,
+         выполняем редирект на порт dev-сервера (3000). Это устраняет ошибку Safari 'text/css is not a valid JavaScript MIME type'. -->
     <script>
-      if ('serviceWorker' in navigator) {
+      (function() {
+        const expectedPort = '3000';
+        const isNoPort = !location.port || location.port === '80';
+        const isLocal = ['localhost','127.0.0.1','::1'].includes(location.hostname);
+        if (isLocal && isNoPort) {
+          // Проверяем чтобы не зациклиться (добавим маркер в hash)
+            if (!location.hash.includes('#__vite_port')) {
+              location.href = location.protocol + '//' + location.hostname + ':' + expectedPort + location.pathname + location.search + '#__vite_port';
+            }
+        }
+      })();
+    </script>
+    <script type="module" src="/src/main.js"></script>
+    <script type="module">
+      // PROD-ONLY SW REGISTRATION
+      // Причина: в dev (localhost) service worker кэшировал index.html и CSS до трансформации Vite,
+      // что приводило к ошибке Safari: "text/css is not a valid JavaScript MIME type" и падению HMR.
+      // Условие ниже предотвращает регистрацию SW на localhost / 127.* / ::1.
+      const isLocal = [
+        'localhost',
+        '127.0.0.1',
+        '::1'
+      ].includes(location.hostname)
+      if (!isLocal && 'serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js').catch(e => console.log('SW reg failed', e))
+          navigator.serviceWorker.register('/sw.js')
+            .catch(e => console.log('[SW] registration failed', e))
         })
+      } else {
+        // Попытка отрегистрации старого SW, если он ранее был установлен в dev
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.getRegistrations?.().then(regs => {
+            regs.forEach(r => r.unregister())
+          })
+          // Очистка кэшей чтобы устранить устаревшие ответы
+          caches?.keys?.().then(keys => keys.forEach(k => caches.delete(k)))
+        }
       }
     </script>
     <style>

@@ -634,6 +634,63 @@ onMounted(() => {
 }
 
 /* Адаптивность */
+@media (max-width: 480px) {
+  .job-detail-page {
+    padding: 0.5rem;
+  }
+  
+  .page-container {
+    padding: 1rem;
+  }
+  
+  .back-button {
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+  }
+  
+  .job-title {
+    font-size: 1.5rem;
+    line-height: 1.2;
+  }
+  
+  .company-info {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  
+  .company-logo {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .company-name {
+    font-size: 1.2rem;
+  }
+  
+  .job-content {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .info-card, .sidebar {
+    padding: 1rem;
+  }
+  
+  .info-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+  
+  .apply-button, .share-button, .favorite-button {
+    padding: 14px 20px;
+    font-size: 1rem;
+    min-height: 48px; /* Touch target */
+  }
+}
+
 @media (max-width: 768px) {
   .job-detail-page {
     padding: 1rem;
@@ -651,6 +708,21 @@ onMounted(() => {
   .company-info {
     flex-direction: column;
     align-items: flex-start;
+  }
+  
+  .actions-card {
+    gap: 0.75rem;
+  }
+  
+  .apply-button {
+    width: 100%;
+    padding: 1rem 1.5rem;
+  }
+}
+
+@media (max-width: 1024px) {
+  .job-content {
+    grid-template-columns: 1fr 300px;
   }
 }
 </style>

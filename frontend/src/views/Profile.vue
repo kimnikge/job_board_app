@@ -67,8 +67,50 @@
           <p class="profile-page__about">{{ userProfile.about }}</p>
         </div>
 
-        <!-- Навыки (для соискателей) -->
-        <div v-if="userProfile.skills && userProfile.skills.length" class="profile-section">
+        <!-- R2: Видео-приветствие -->
+        <div v-if="isFeatureEnabled('videoProfile')" class="profile-section">
+          <Suspense>
+            <DynamicVideoProfile 
+              :user-id="userProfile.id"
+              :initial-video-url="userProfile.video_url"
+              @video-uploaded="handleVideoUploaded"
+              @video-removed="handleVideoRemoved"
+              @upload-error="handleVideoError"
+            />
+          </Suspense>
+        </div>
+
+        <!-- R2: Интерактивные секции профиля -->
+        <!-- Навыки с прогресс-барами -->
+        <div v-if="skills.length && isFeatureEnabled('skillBars')" class="profile-section">
+          <h3 class="section-title">🎯 Навыки и уровни</h3>
+          <div class="skills-container">
+            <Suspense>
+              <DynamicSkillBar 
+                v-for="skill in skills" 
+                :key="skill.id"
+                :skill="skill"
+              />
+            </Suspense>
+          </div>
+        </div>
+
+        <!-- Бейджи и достижения -->
+        <div v-if="badges.length && isFeatureEnabled('badgeCarousel')" class="profile-section">
+          <Suspense>
+            <DynamicBadgeCarousel :badges="badges" />
+          </Suspense>
+        </div>
+
+        <!-- Опыт работы -->
+        <div v-if="experience.length && isFeatureEnabled('experienceTimeline')" class="profile-section">
+          <Suspense>
+            <DynamicExperienceTimeline :work-logs="experience" />
+          </Suspense>
+        </div>
+
+        <!-- Навыки (старый формат для совместимости) -->
+        <div v-if="userProfile.skills && userProfile.skills.length && !isFeatureEnabled('skillBars')" class="profile-section">
           <h3 class="section-title">🎯 Навыки</h3>
           <div class="skills-grid">
             <span 
@@ -113,15 +155,43 @@ import { ref, onMounted, computed, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useNotificationsStore } from '@/stores/notifications'
+import { useProfileStore } from '@/stores/profile'
 import { getCurrentUserProfile } from '@/data/index.js'
+// R2: Импорт новых компонентов и утилит
+import { isFeatureEnabled, debugLog } from '@/utils/featureFlags.js'
+// Ленивая загрузка или обычная в зависимости от флага
+import { 
+  LazySkillBar, 
+  LazyBadgeCarousel, 
+  LazyExperienceTimeline, 
+  LazyVideoProfile,
+  shouldUseLazyLoading 
+} from '@/utils/lazyComponents.js'
+import SkillBar from '@/components/profile/SkillBar.vue'
+import BadgeCarousel from '@/components/profile/BadgeCarousel.vue'
+import ExperienceTimeline from '@/components/profile/ExperienceTimeline.vue'
+import VideoProfile from '@/components/profile/VideoProfile.vue'
+
+// Выбираем компоненты в зависимости от настроек
+const DynamicSkillBar = shouldUseLazyLoading() && isFeatureEnabled('lazyProfileSections') ? LazySkillBar : SkillBar
+const DynamicBadgeCarousel = shouldUseLazyLoading() && isFeatureEnabled('lazyProfileSections') ? LazyBadgeCarousel : BadgeCarousel  
+const DynamicExperienceTimeline = shouldUseLazyLoading() && isFeatureEnabled('lazyProfileSections') ? LazyExperienceTimeline : ExperienceTimeline
+const DynamicVideoProfile = shouldUseLazyLoading() && isFeatureEnabled('lazyProfileSections') ? LazyVideoProfile : VideoProfile
 
 const router = useRouter()
 const authStore = useAuthStore()
 const notificationsStore = useNotificationsStore()
+// R2: Добавляем profile store
+const profileStore = useProfileStore()
 
 const loading = ref(true)
 const error = ref(null)
 const userProfile = ref(null)
+
+// R2: Реактивные данные из store
+const skills = computed(() => profileStore.skills)
+const badges = computed(() => profileStore.badges)
+const experience = computed(() => profileStore.experience)
 
 const loadUserData = async () => {
   try {
@@ -140,6 +210,24 @@ const loadUserData = async () => {
     }
     
     userProfile.value = profile
+    
+    // R2: Загружаем расширенные данные профиля
+    if (isFeatureEnabled('useMockData')) {
+      debugLog('profile', 'Загружаем расширенные данные профиля для пользователя', profile.id)
+      
+      // Загружаем навыки, бейджи и опыт параллельно
+      await Promise.all([
+        profileStore.fetchSkills(profile.id),
+        profileStore.fetchBadges(profile.id), 
+        profileStore.fetchExperience(profile.id)
+      ])
+      
+      debugLog('profile', 'Расширенные данные загружены', {
+        skills: skills.value.length,
+        badges: badges.value.length,
+        experience: experience.value.length
+      })
+    }
     
     console.log('✅ Профиль загружен:', profile.full_name)
   } catch (e) {
@@ -196,15 +284,29 @@ const handleEdit = (event) => {
   }
 }
 
-const handleLogout = async () => {
-  try {
-    await authStore.logout()
-    notificationsStore.showSuccess('Выход выполнен', 'Вы успешно вышли из системы')
-    router.push('/auth')
-  } catch (error) {
-    console.error('Ошибка при выходе:', error)
-    notificationsStore.showError('Ошибка', 'Не удалось выйти из системы')
+const handleLogout = () => {
+  console.log('🚪 Выполняем выход...')
+  authStore.logout()
+  router.push('/auth/login')
+}
+
+// R2: Обработчики событий видео
+const handleVideoUploaded = (videoUrl) => {
+  if (userProfile.value) {
+    userProfile.value.video_url = videoUrl
+    notificationsStore.showSuccess('Видео загружено', 'Видео-приветствие успешно добавлено в профиль')
   }
+}
+
+const handleVideoRemoved = () => {
+  if (userProfile.value) {
+    userProfile.value.video_url = null
+    notificationsStore.showSuccess('Видео удалено', 'Видео-приветствие удалено из профиля')
+  }
+}
+
+const handleVideoError = (error) => {
+  notificationsStore.showError('Ошибка видео', error)
 }
 
 onMounted(async () => {
@@ -465,25 +567,159 @@ onMounted(async () => {
 @media (max-width: 768px) {
   .profile-page {
     padding: 1rem;
+    padding-bottom: 5rem; /* Space for bottom navigation */
   }
   
   .profile-page__container {
-    padding: 1.5rem;
+    padding: 1rem;
+  }
+  
+  .profile-page__title {
+    font-size: 1.6rem;
+    text-align: center;
+    margin-bottom: 1.5rem;
   }
   
   .profile-page__info {
     grid-template-columns: 1fr;
     text-align: center;
+    gap: 1.5rem;
   }
   
   .profile-page__avatar {
-    width: 150px;
-    height: 150px;
+    width: 120px;
+    height: 120px;
     margin: 0 auto;
+  }
+  
+  .profile-page__name {
+    font-size: 1.4rem;
+    margin-bottom: 1rem;
+  }
+  
+  .profile-page__details p {
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .profile-section {
+    padding: 1rem;
+    margin-bottom: 1rem;
+  }
+  
+  .section-title {
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+  }
+  
+  .skills-grid {
+    justify-content: center;
+    gap: 0.4rem;
+  }
+  
+  .skill-tag {
+    padding: 0.3rem 0.6rem;
+    font-size: 0.8rem;
   }
   
   .profile-page__actions {
     flex-direction: column;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+  }
+  
+  .profile-page__button {
+    width: 100%;
+    padding: 1rem 1.5rem;
+    font-size: 1rem;
+    min-height: 48px; /* Touch target */
+  }
+}
+
+@media (max-width: 480px) {
+  .profile-page {
+    padding: 0.75rem;
+  }
+  
+  .profile-page__container {
+    padding: 0.75rem;
+  }
+  
+  .profile-page__title {
+    font-size: 1.4rem;
+  }
+  
+  .profile-page__avatar {
+    width: 100px;
+    height: 100px;
+  }
+  
+  .profile-page__name {
+    font-size: 1.2rem;
+  }
+  
+  .profile-section {
+    padding: 0.75rem;
+  }
+  
+  .section-title {
+    font-size: 1.1rem;
+  }
+  
+  .profile-page__button {
+    padding: 0.875rem 1.25rem;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 1024px) {
+  .profile-page__info {
+    grid-template-columns: auto 1fr;
+    text-align: left;
+    gap: 2rem;
+  }
+  
+  .profile-page__avatar {
+    width: 160px;
+    height: 160px;
+  }
+}
+
+/* R2: Стили для интерактивных секций профиля */
+.skills-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.profile-section .profile-section {
+  margin-top: 2rem;
+}
+
+/* Анимация появления секций */
+@media (prefers-reduced-motion: no-preference) {
+  .skills-container,
+  .badge-carousel,
+  .experience-timeline {
+    animation: fadeInUp 0.6s ease-out;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Мобильная оптимизация для новых секций */
+@media (max-width: 768px) {
+  .skills-container {
+    gap: 6px;
   }
 }
 </style>
