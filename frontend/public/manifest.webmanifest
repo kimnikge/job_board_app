@@ -1,0 +1,17 @@
+{
+  "name": "Job Board Астана",
+  "short_name": "JobBoard",
+  "description": "HR платформа для общепита: вакансии, профиль, навыки, бейджи",
+  "lang": "ru",
+  "start_url": "/?source=pwa",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "theme_color": "#0a0a0a",
+  "background_color": "#0a0a0a",
+  "categories": ["business", "productivity", "social"],
+  "icons": [
+    { "src": "/favicon.ico", "sizes": "48x48", "type": "image/x-icon" }
+  ],
+  "screenshots": [],
+  "dir": "ltr"
+}

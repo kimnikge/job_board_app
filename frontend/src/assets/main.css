@@ -184,3 +184,24 @@ body {
   margin: 0 auto;
   width: 100%;
 }
+
+/* Адаптивная типографика и отступы */
+@media (max-width: 1024px) {
+  .main-content { padding: 16px; }
+}
+@media (max-width: 768px) {
+  .main-content { padding: 14px; }
+  h1 { font-size: 1.9rem; }
+  h2 { font-size: 1.5rem; }
+}
+@media (max-width: 480px) {
+  .main-content { padding: 12px; }
+  h1 { font-size: 1.6rem; }
+  h2 { font-size: 1.3rem; }
+  h3 { font-size: 1.1rem; }
+}
+
+/* Уважение prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
+}

@@ -16,7 +16,8 @@ export const FEATURE_FLAGS = {
   demoData: true, // отключим после переноса на Supabase
   videoProfile: false,
   badges: false,
-  skills: false
+  skills: false,
+  pwa: true // базовая PWA регистрация включена
 }
 
 // Бюджеты производительности

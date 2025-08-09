@@ -6,6 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Job Board - HR платформа для общепита</title>
     <meta name="description" content="Платформа поиска работы и персонала в сфере общественного питания">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <meta name="theme-color" content="#0a0a0a">
     
     <!-- Preload критических ресурсов -->
     <link rel="preload" href="/src/assets/main.css" as="style">
@@ -17,5 +19,12 @@
   <body>
     <div id="app"></div>
     <script type="module" src="/src/main.js"></script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js').catch(e => console.log('SW reg failed', e))
+        })
+      }
+    </script>
   </body>
 </html>

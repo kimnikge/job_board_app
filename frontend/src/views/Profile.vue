@@ -300,6 +300,12 @@ onMounted(async () => {
   border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
+@media (max-width: 680px) {
+  .profile-page__info { grid-template-columns: 1fr; text-align: center; }
+  .profile-page__avatar { margin: 0 auto; }
+  .profile-page__details { align-items: center; }
+}
+
 .profile-page__avatar {
   width: 180px;
   height: 180px;
