@@ -1,0 +1,81 @@
+Project job_board_app_ERD_v2 {
+  database_type: 'PostgreSQL'
+}
+
+Table user_profiles {
+  id uuid [pk]
+  auth_user_id uuid [not null]
+  full_name text [not null]
+  primary_role text [not null]
+  short_bio text
+  avatar_url text
+  video_url text
+  experience_years smallint [default:0]
+  created_at timestamptz [default: `now()`]
+  updated_at timestamptz [default: `now()`]
+}
+
+Table employers {
+  id uuid [pk]
+  name text [not null]
+  logo_url text
+  district_id smallint
+  created_at timestamptz [default: `now()`]
+}
+
+Table skills {
+  id uuid [pk]
+  user_id uuid [ref: > user_profiles.id]
+  name text [not null]
+  category text
+  base_level smallint [default:0]
+  calculated_level smallint [default:0]
+  updated_at timestamptz [default: `now()`]
+  indexes {
+    (user_id, name) [unique]
+    user_id
+  }
+}
+
+Table badges {
+  id uuid [pk]
+  user_id uuid [ref: > user_profiles.id]
+  employer_id uuid [ref: > employers.id]
+  name text [not null]
+  icon_url text
+  description text
+  source text [default: 'manual']
+  awarded_at timestamptz [default: `now()`]
+  indexes {
+    (user_id, awarded_at)
+  }
+}
+
+Table badge_skill_links {
+  badge_id uuid [ref: > badges.id]
+  skill_name text [not null]
+  delta smallint [default:0]
+  primary key (badge_id, skill_name)
+}
+
+Table work_logs {
+  id uuid [pk]
+  user_id uuid [ref: > user_profiles.id]
+  employer_id uuid [ref: > employers.id]
+  period_from date [not null]
+  period_to date [not null]
+  shifts_count smallint [default:0]
+  total_hours smallint [default:0]
+  created_at timestamptz [default: `now()`]
+  indexes {
+    (user_id, employer_id)
+    user_id
+  }
+}
+
+Ref: badges.user_id > user_profiles.id
+Ref: badges.employer_id > employers.id
+Ref: skills.user_id > user_profiles.id
+Ref: work_logs.user_id > user_profiles.id
+Ref: work_logs.employer_id > employers.id
+Ref: badge_skill_links.badge_id > badges.id

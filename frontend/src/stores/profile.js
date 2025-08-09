@@ -1,6 +1,10 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { profileService } from '../services/profile.service.js'
+import { skillsService } from '../services/skills.service.js'
+import { badgesService } from '../services/badges.service.js'
+import { experienceService } from '../services/experience.service.js'
+import { mediaService } from '../services/media.service.js'
 
 // ✨ ПРОФИЛЬ STORE - чистая версия на сервисах
 export const useProfileStore = defineStore('profile', () => {
@@ -9,6 +13,11 @@ export const useProfileStore = defineStore('profile', () => {
   const resume = ref(null)
   const loading = ref(false)
   const error = ref(null)
+  // R1 расширения
+  const skills = ref([])
+  const badges = ref([])
+  const experience = ref([])
+  const videoUrl = ref(null)
 
   // Геттеры
   const isProfileComplete = computed(() => {
@@ -159,14 +168,41 @@ export const useProfileStore = defineStore('profile', () => {
   }
 
   // Общие
+  const fetchSkills = async (userId) => {
+    const { data, error: err } = await skillsService.list(userId)
+    if (!err && data) skills.value = data
+  }
+  const fetchBadges = async (userId) => {
+    const { data, error: err } = await badgesService.list(userId)
+    if (!err && data) badges.value = data
+  }
+  const fetchExperience = async (userId) => {
+    const { data, error: err } = await experienceService.list(userId)
+    if (!err && data) experience.value = data
+  }
   const loadUserData = async (userId) => {
-    await Promise.all([fetchProfile(userId), fetchResume(userId)])
+    await Promise.all([
+      fetchProfile(userId),
+      fetchResume(userId),
+      fetchSkills(userId),
+      fetchBadges(userId),
+      fetchExperience(userId)
+    ])
+  }
+  const uploadProfileVideo = async (file, userId) => {
+    const { data, error: err } = await mediaService.uploadProfileVideo(userId, file)
+    if (!err && data) videoUrl.value = data.url
+    return { data, error: err }
   }
 
   const clearData = () => {
     profile.value = null
     resume.value = null
-    error.value = null
+  error.value = null
+  skills.value = []
+  badges.value = []
+  experience.value = []
+  videoUrl.value = null
   }
 
   return {
@@ -181,18 +217,27 @@ export const useProfileStore = defineStore('profile', () => {
     hasResume,
     isResumeComplete,
 
-    // Профиль
+  // Профиль
     fetchProfile,
     updateProfile,
     uploadAvatar,
 
-    // Резюме
+  // Резюме
     fetchResume,
     updateResume,
     deleteResume,
 
-    // Общие действия
-    loadUserData,
-    clearData
+  // R1 дополнительно
+  skills,
+  badges,
+  experience,
+  videoUrl,
+  fetchSkills,
+  fetchBadges,
+  fetchExperience,
+  uploadProfileVideo,
+  // Общие действия
+  loadUserData,
+  clearData
   }
 })
