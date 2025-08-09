@@ -3,11 +3,14 @@
   <head>
     <meta charset="UTF-8">
     <link rel="icon" href="/favicon.ico">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Job Board - HR платформа для общепита</title>
     <meta name="description" content="Платформа поиска работы и персонала в сфере общественного питания">
   <link rel="manifest" href="/manifest.webmanifest">
   <meta name="theme-color" content="#0a0a0a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="apple-touch-icon" href="/favicon.ico">
     
     <!-- Preload критических ресурсов -->
     <link rel="preload" href="/src/assets/main.css" as="style">
@@ -15,8 +18,10 @@
     
     <!-- DNS prefetch для внешних ресурсов -->
     <link rel="dns-prefetch" href="//kuyudpxqlrinkcxvorom.supabase.co">
+  <link rel="preconnect" href="https://kuyudpxqlrinkcxvorom.supabase.co" crossorigin>
   </head>
   <body>
+  <a href="#app" class="skip-link">Перейти к содержимому</a>
     <div id="app"></div>
     <script type="module" src="/src/main.js"></script>
     <script>
@@ -26,5 +31,9 @@
         })
       }
     </script>
+    <style>
+      .skip-link { position:absolute; left:-999px; top:auto; width:1px; height:1px; overflow:hidden; }
+      .skip-link:focus { position:static; width:auto; height:auto; padding:8px 14px; background:#000; color:#fff; z-index:999; }
+    </style>
   </body>
 </html>

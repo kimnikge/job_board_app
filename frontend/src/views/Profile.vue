@@ -19,6 +19,8 @@
               :src="userProfile.avatar_url || '/images/default-company.png'" 
               :alt="`Аватар ${userProfile.full_name}`" 
               class="profile-page__avatar-image"
+              loading="lazy"
+              decoding="async"
             >
           </div>
 
@@ -298,6 +300,11 @@ onMounted(async () => {
   background: rgba(255, 255, 255, 0.03);
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.05);
+}
+@media (max-width: 680px) {
+  .profile-page__info { grid-template-columns: 1fr; text-align:center; }
+  .profile-page__avatar { margin: 0 auto; }
+  .profile-page__details { align-items:center; }
 }
 
 @media (max-width: 680px) {

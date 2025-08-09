@@ -24,6 +24,7 @@
         <button 
           v-if="!isAuthenticated" 
           class="auth-button"
+          aria-label="Войти"
           @click="$router.push('/auth/login')"
         >
           <UserIcon class="w-5 h-5 mr-2" />
@@ -50,7 +51,7 @@
           </router-link>
 
           <div class="notifications-menu" v-click-outside="closeNotifications">
-            <button class="icon-button" @click="toggleNotifications">
+            <button class="icon-button" @click="toggleNotifications" aria-label="Уведомления" :aria-expanded="isNotificationsOpen.toString()">
               <BellIcon class="w-5 h-5" />
               <span v-if="unreadNotifications" class="notification-badge">
                 {{ unreadNotifications }}
@@ -107,7 +108,7 @@
           </div>
 
           <div class="profile-menu" v-click-outside="closeProfileMenu">
-            <button class="profile-button" @click="toggleProfileMenu">
+            <button class="profile-button" @click="toggleProfileMenu" aria-label="Меню профиля" :aria-expanded="isProfileMenuOpen.toString()">
               <img 
                 :src="userAvatar || '/images/default-avatar.png'" 
                 :alt="userName"
