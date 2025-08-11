@@ -11,6 +11,8 @@ export const FEATURE_FLAGS = {
   skillBars: true,
   badgeCarousel: true, 
   experienceTimeline: true,
+  // R5: Employer dashboard
+  employerDashboard: true,
   
   // Ленивая загрузка секций профиля
   lazyProfileSections: true,

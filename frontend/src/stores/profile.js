@@ -5,6 +5,9 @@ import { skillsService } from '../services/skills.service.js'
 import { badgesService } from '../services/badges.service.js'
 import { experienceService } from '../services/experience.service.js'
 import { mediaService } from '../services/media.service.js'
+// R4: Новые сервисы геймификации
+import { gamificationService } from '../services/gamification.service.js'
+import { employerService } from '../services/employer.service.js'
 // R2: Импорт mock данных и фича-флагов
 import { generateMockProfileData } from '../utils/mockProfileData.js'
 import { isFeatureEnabled, debugLog } from '../utils/featureFlags.js'
@@ -258,6 +261,87 @@ export const useProfileStore = defineStore('profile', () => {
   videoUrl.value = null
   }
 
+  // ==========================================
+  // R4: GAMIFICATION METHODS
+  // ==========================================
+
+  /**
+   * Пересчитать навыки пользователя с учетом бейджей
+   */
+  const recalcSkills = async (userId) => {
+    try {
+      loading.value = true
+      debugLog('profile', 'Пересчитываем навыки для пользователя', userId)
+      
+      const { data, error: err } = await gamificationService.recalcSkills(userId)
+      if (err) {
+        error.value = err
+        return { data: null, error: err }
+      }
+      
+      // Обновляем навыки после пересчета
+      await fetchSkills(userId)
+      
+      debugLog('profile', 'Навыки пересчитаны', data)
+      return { data, error: null }
+    } catch (err) {
+      console.error('Ошибка пересчета навыков:', err)
+      error.value = err
+      return { data: null, error: err }
+    } finally {
+      loading.value = false
+    }
+  }
+
+  /**
+   * Получить прогресс геймификации пользователя
+   */
+  const getGameProgress = async (userId) => {
+    try {
+      debugLog('profile', 'Загружаем прогресс геймификации', userId)
+      
+      const { data, error: err } = await gamificationService.getProgress(userId)
+      if (err) {
+        error.value = err
+        return { data: null, error: err }
+      }
+      
+      return { data, error: null }
+    } catch (err) {
+      console.error('Ошибка загрузки прогресса:', err)
+      error.value = err
+      return { data: null, error: err }
+    }
+  }
+
+  /**
+   * Выдать бейдж пользователю (R4 обновленная версия)
+   */
+  const awardBadge = async (badgeId, userId, reason, awarderId = null) => {
+    try {
+      loading.value = true
+      debugLog('profile', 'Выдаем бейдж пользователю', { badgeId, userId, reason })
+      
+      const { data, error: err } = await badgesService.awardBadge(badgeId, userId, reason, awarderId)
+      if (err) {
+        error.value = err
+        return { data: null, error: err }
+      }
+      
+      // Обновляем бейджи пользователя
+      await fetchBadges(userId)
+      
+      debugLog('profile', 'Бейдж выдан', data)
+      return { data, error: null }
+    } catch (err) {
+      console.error('Ошибка выдачи бейджа:', err)
+      error.value = err
+      return { data: null, error: err }
+    } finally {
+      loading.value = false
+    }
+  }
+
   return {
     // Состояние
     profile,
@@ -291,6 +375,11 @@ export const useProfileStore = defineStore('profile', () => {
   uploadProfileVideo,
   // Общие действия
   loadUserData,
-  clearData
+  clearData,
+
+  // R4: Gamification Methods
+  recalcSkills,
+  getGameProgress,
+  awardBadge
   }
 })

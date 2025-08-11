@@ -77,7 +77,21 @@ Object.entries(icons).forEach(([name, component]) => {
 app.use(router)
 app.use(pinia)
 
+// Инициализация auth store
+async function initializeApp() {
+  try {
+    const { useAuthStore } = await import('./stores/auth')
+    const authStore = useAuthStore()
+    authStore.init()
+  } catch (error) {
+    console.warn('Auth store initialization failed:', error)
+  }
+}
+
 app.mount('#app')
+
+// Инициализируем auth после монтирования
+initializeApp()
 
 // ✨ ПРОСТАЯ ИНИЦИАЛИЗАЦИЯ - БЕЗ СЛОЖНОЙ ЛОГИКИ
 console.log('🍽️ Job Board App для общепита Астаны запущен!')

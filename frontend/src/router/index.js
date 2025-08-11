@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { ROLES } from '@/constants/roles.js'
 // Удаляем импорт store из верхнего уровня - будем импортировать в navigation guards
 
 // ✨ ПРОСТОЙ РОУТЕР - СОГЛАСНО ПЛАНУ УПРОЩЕНИЯ
@@ -14,15 +15,22 @@ const JobDetail = () => import('@/views/JobDetail.vue')
 
 // Страницы профиля
 const Profile = () => import('@/views/Profile.vue')
+const PublicProfile = () => import('@/views/PublicProfile.vue')
 const Resume = () => import('@/views/Resume.vue')
 
 // Тестовая страница
 const DataTest = () => import('@/views/DataTest.vue')
+// R4: Тестовая страница геймификации
+const R4TestPage = () => import('@/views/R4TestPage.vue')
 
 // Страницы компаний
 const Companies = () => import('@/views/Companies.vue')
 const CompanyDetail = () => import('@/views/CompanyDetail.vue')
 const Dashboard = () => import('@/views/Dashboard.vue')
+// R5 Employer Dashboard pages
+const EmployerBadges = () => import('@/views/EmployerBadges.vue')
+const EmployerEmployees = () => import('@/views/EmployerEmployees.vue')
+const BadgeCatalog = () => import('@/views/BadgeCatalog.vue')
 
 // Layouts
 const MainLayout = () => import('@/layouts/MainLayout.vue')
@@ -56,7 +64,7 @@ const routes = [
     meta: { 
       title: 'Создать вакансию',
       requiresAuth: true,
-      userType: 'employer'
+      userType: ROLES.EMPLOYER
     }
   },
   
@@ -77,12 +85,24 @@ const routes = [
       requiresAuth: true
     }
   },
+  {
+    path: '/u/:id',
+    component: PublicProfile,
+    meta: { title: 'Профиль пользователя' }
+  },
 
   // Тестовая страница данных
   { 
     path: '/test-data', 
     component: DataTest,
     meta: { title: 'Тест данных' }
+  },
+
+  // R4: Тестовая страница геймификации
+  { 
+    path: '/test-r4', 
+    component: R4TestPage,
+    meta: { title: 'R4 Gamification Test' }
   },
   
   // Резюме пользователя
@@ -92,7 +112,7 @@ const routes = [
     meta: { 
       title: 'Мое резюме',
       requiresAuth: true,
-      userType: 'candidate'
+      userType: ROLES.CANDIDATE
     }
   },
   
@@ -117,7 +137,33 @@ const routes = [
     meta: { 
       title: 'Панель управления',
       requiresAuth: true,
-      userType: 'employer'
+      userType: ROLES.EMPLOYER
+    }
+  },
+  // R5: Employer dashboard sub-pages
+  {
+    path: '/employer/badges',
+    component: EmployerBadges,
+    meta: {
+      title: 'Корпоративные бейджи',
+      requiresAuth: true,
+      userType: ROLES.EMPLOYER
+    }
+  },
+  {
+    path: '/employer/employees',
+    component: EmployerEmployees,
+    meta: {
+      title: 'Сотрудники',
+      requiresAuth: true,
+      userType: ROLES.EMPLOYER
+    }
+  },
+  {
+    path: '/badges/catalog',
+    component: BadgeCatalog,
+    meta: {
+      title: 'Каталог бейджей'
     }
   },
 
@@ -154,6 +200,15 @@ const routes = [
         }
       }
     ]
+  },
+  {
+    path: '/employer/statistics',
+    component: () => import('@/views/CompanyStatistics.vue'),
+    meta: {
+      title: 'Статистика компании',
+      requiresAuth: true,
+      userType: ROLES.EMPLOYER
+    }
   }
 ]
 

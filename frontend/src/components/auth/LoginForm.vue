@@ -104,14 +104,21 @@ export default {
     async handleSubmit() {
       if (!this.validateForm()) return
 
+      console.log('Attempting login with:', this.email)
+      
       const authStore = useAuthStore()
-      const success = await authStore.login({
+      const result = await authStore.login({
         email: this.email,
         password: this.password
       })
 
-      if (success) {
+      console.log('Login result:', result)
+
+      if (result && result.success) {
+        console.log('Login successful, redirecting to home')
         this.$router.push('/')
+      } else {
+        console.error('Login failed:', result?.error)
       }
     }
   }

@@ -96,10 +96,30 @@
         </div>
 
         <!-- Бейджи и достижения -->
-        <div v-if="badges.length && isFeatureEnabled('badgeCarousel')" class="profile-section">
-          <Suspense>
-            <DynamicBadgeCarousel :badges="badges" />
-          </Suspense>
+        <div class="profile-section">
+          <template v-if="isFeatureEnabled('badgeCarousel')">
+            <template v-if="badges.length">
+              <Suspense>
+                <DynamicBadgeCarousel :badges="badges" />
+              </Suspense>
+            </template>
+            <template v-else>
+              <div class="badge-empty-state">
+                <p>🏅 Бейджи ещё не получены.</p>
+                <ul class="badge-troubleshoot">
+                  <li>Фича-флаг badgeCarousel: <strong>{{ isFeatureEnabled('badgeCarousel') ? 'ON' : 'OFF' }}</strong></li>
+                  <li>Mock режим (useMockData): <strong>{{ isFeatureEnabled('useMockData') ? 'ON' : 'OFF' }}</strong></li>
+                  <li>Количество загруженных бейджей: <strong>{{ badges.length }}</strong></li>
+                  <li><button type="button" class="profile-page__button" @click="reloadBadges">🔄 Перезагрузить бейджи</button></li>
+                </ul>
+              </div>
+            </template>
+          </template>
+          <template v-else>
+            <div class="badge-empty-state">
+              <p>Фича отображения бейджей отключена.</p>
+            </div>
+          </template>
         </div>
 
         <!-- Опыт работы -->
@@ -236,6 +256,11 @@ const loadUserData = async () => {
   } finally {
     loading.value = false
   }
+}
+
+const reloadBadges = async () => {
+  if (!userProfile.value) return
+  await profileStore.fetchBadges(userProfile.value.id)
 }
 
 const formatSalary = (amount) => {
