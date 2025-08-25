@@ -1,5 +1,6 @@
 // ✨ API АВТОРИЗАЦИИ - ЭТАП 4.1.2
 import { supabase, isDemoMode } from './supabase.js'
+import { notificationsService } from './notifications.service.js'
 
 // 🔐 Авторизация и регистрация
 export const authService = {
@@ -36,6 +37,13 @@ export const authService = {
   async register(email, password, userData) {
     try {
       if (isDemoMode) {
+        // Отправка приветственного уведомления в demo режиме
+        try {
+          await notificationsService.notifyWelcome('demo-user-new', userData)
+        } catch (notifyError) {
+          console.log('Demo notification error:', notifyError)
+        }
+
         // Demo режим
         return {
           data: {
@@ -56,6 +64,15 @@ export const authService = {
           data: userData
         }
       })
+
+      // Отправка приветственного уведомления при успешной регистрации
+      if (data?.user && !error) {
+        try {
+          await notificationsService.notifyWelcome(data.user.id, userData)
+        } catch (notifyError) {
+          console.warn('Welcome notification error:', notifyError)
+        }
+      }
 
       return { data, error }
     } catch (error) {

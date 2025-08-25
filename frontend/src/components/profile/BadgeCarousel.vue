@@ -15,7 +15,15 @@
         >
           <div class="badge-icon">{{ badge.icon_url }}</div>
           <div class="badge-info">
-            <div class="badge-name">{{ badge.name }}</div>
+            <div class="badge-name">
+              <span v-if="badge.level" :class="['badge-level', badge.level.toLowerCase()]">
+                {{ getLevelIcon(badge.level) }} {{ badge.level }}
+              </span>
+              <span v-if="badge.is_rare" class="badge-rare" title="Редкий бейдж">🌟</span>
+              <span v-if="badge.is_temporary" class="badge-temp" title="Временный бейдж">⏳</span>
+              {{ badge.name }}
+              <span v-if="badge.is_temporary && badge.valid_until" class="badge-valid-until">до {{ formatDate(badge.valid_until) }}</span>
+            </div>
             <div class="badge-employer">{{ badge.employer_name }}</div>
             <div class="badge-date">{{ formatDate(badge.awarded_at) }}</div>
             <div class="badge-source" :class="badge.source">
@@ -47,6 +55,16 @@
 </template>
 
 <script setup>
+// Иконки и цвета для уровней бейджей
+function getLevelIcon(level) {
+  switch (level) {
+    case 'Bronze': return '🥉'
+    case 'Silver': return '🥈'
+    case 'Gold': return '🥇'
+    case 'Platinum': return '💎'
+    default: return ''
+  }
+}
 import { ref, onMounted, nextTick } from 'vue'
 
 const props = defineProps({
@@ -101,6 +119,30 @@ function formatDate(dateString) {
 </script>
 
 <style scoped>
+.badge-rare {
+  color: gold;
+  margin-left: 0.2em;
+  font-size: 1.1em;
+}
+.badge-temp {
+  color: #00bfff;
+  margin-left: 0.2em;
+  font-size: 1.1em;
+}
+.badge-valid-until {
+  display: block;
+  color: #00bfff;
+  font-size: 0.85em;
+  margin-top: 0.2em;
+}
+.badge-level {
+  font-weight: 700;
+  margin-right: 0.3em;
+}
+.badge-level.bronze { color: #cd7f32; }
+.badge-level.silver { color: #bfc1c2; }
+.badge-level.gold { color: #ffd700; }
+.badge-level.platinum { color: #00bfff; }
 .badge-carousel {
   position: relative;
   background: rgba(255, 255, 255, 0.05);

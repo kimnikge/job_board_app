@@ -21,11 +21,14 @@
       <label>
         <span>Уровень</span>
         <select v-model="form.level">
-          <option>Bronze</option>
-          <option>Silver</option>
-          <option>Gold</option>
-          <option>Platinum</option>
+          <option value="Bronze">🥉 Bronze</option>
+          <option value="Silver">🥈 Silver</option>
+          <option value="Gold">🥇 Gold</option>
+          <option value="Platinum">💎 Platinum</option>
         </select>
+        <span v-if="form.level" :class="['badge-level', form.level.toLowerCase()]" style="margin-left:0.5em;">
+          {{ getLevelIcon(form.level) }} {{ form.level }}
+        </span>
       </label>
     </div>
     <div class="badge-creator__actions">
@@ -38,6 +41,16 @@
 </template>
 
 <script setup>
+// Иконки и цвета для уровней бейджей
+function getLevelIcon(level) {
+  switch (level) {
+    case 'Bronze': return '🥉'
+    case 'Silver': return '🥈'
+    case 'Gold': return '🥇'
+    case 'Platinum': return '💎'
+    default: return ''
+  }
+}
 import { ref } from 'vue'
 import { employerService } from '@/services/employer.service.js'
 import { useAuthStore } from '@/stores/auth'
@@ -84,6 +97,14 @@ async function handleSubmit() {
 </script>
 
 <style scoped>
+.badge-level {
+  font-weight: 700;
+  margin-right: 0.3em;
+}
+.badge-level.bronze { color: #cd7f32; }
+.badge-level.silver { color: #bfc1c2; }
+.badge-level.gold { color: #ffd700; }
+.badge-level.platinum { color: #00bfff; }
 .badge-creator { background:rgba(255,255,255,0.05); padding:1rem 1.25rem; border:1px solid rgba(255,255,255,0.12); border-radius:12px; display:flex; flex-direction:column; gap:1rem; }
 .badge-creator__title { margin:0; font-size:1.05rem; font-weight:600; color:#fff; }
 .badge-creator__grid { display:grid; gap:.75rem; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); }

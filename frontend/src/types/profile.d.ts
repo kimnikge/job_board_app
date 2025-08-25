@@ -23,6 +23,11 @@ export interface Badge {
   source: 'auto' | 'manual'
   awarded_at: string
   employer_name?: string
+  level?: 'Bronze' | 'Silver' | 'Gold' | 'Platinum'
+  is_rare?: boolean
+  is_temporary?: boolean
+  valid_until?: string | null
+  team_id?: string // для командных бейджей
 }
 
 export interface WorkLog {

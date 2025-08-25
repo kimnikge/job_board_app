@@ -6,7 +6,12 @@
         <label>
           <span>Бейдж</span>
           <select v-model="form.badgeId" required>
-            <option v-for="b in badges" :key="b.id" :value="b.id">{{ b.name }} ({{ b.level }})</option>
+            <option v-for="b in badges" :key="b.id" :value="b.id">
+              <span :class="['badge-level', b.level && b.level.toLowerCase()]">{{ getLevelIcon(b.level) }}</span>
+              <span v-if="b.is_rare" class="badge-rare">🌟</span>
+              <span v-if="b.is_temporary" class="badge-temp">⏳</span>
+              {{ b.name }} ({{ b.level }})
+            </option>
           </select>
         </label>
         <label>
@@ -25,6 +30,16 @@
   <Snackbar :message="snackbar.message" :type="snackbar.type" @close="snackbar.message = ''" />
 </template>
 <script setup>
+// Иконки и цвета для уровней бейджей
+function getLevelIcon(level) {
+  switch (level) {
+    case 'Bronze': return '🥉'
+    case 'Silver': return '🥈'
+    case 'Gold': return '🥇'
+    case 'Platinum': return '💎'
+    default: return ''
+  }
+}
 import { ref, watch } from 'vue'
 import { employerService } from '@/services/employer.service.js'
 import { useAuthStore } from '@/stores/auth'
@@ -89,6 +104,14 @@ function close() {
 }
 </script>
 <style scoped>
+.badge-level {
+  font-weight: 700;
+  margin-right: 0.3em;
+}
+.badge-level.bronze { color: #cd7f32; }
+.badge-level.silver { color: #bfc1c2; }
+.badge-level.gold { color: #ffd700; }
+.badge-level.platinum { color: #00bfff; }
 .modal-bg { position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.45); display:flex; align-items:center; justify-content:center; z-index:1000; }
 .modal { background:#1d2331; padding:2rem 2.5rem; border-radius:16px; box-shadow:0 8px 32px #0008; min-width:320px; max-width:90vw; }
 h3 { margin:0 0 1rem; color:#fff; font-size:1.1rem; font-weight:600; }

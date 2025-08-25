@@ -6,6 +6,28 @@ export const profileService = {
   // Получить профиль пользователя
   async getProfile(userId) {
     try {
+      // Специальная обработка для тестового пользователя
+      if (userId === 'test-user') {
+        return {
+          data: {
+            id: 'test-user',
+            user_id: 'test-user',
+            full_name: 'Test User',
+            phone: '+7 777 123 45 67',
+            avatar_url: null,
+            telegram_chat_id: '763612632', // Ваш реальный chat_id для тестирования
+            specialization_id: 1,
+            district_id: 1,
+            experience_years: 1,
+            about: 'Тестовый пользователь для проверки уведомлений',
+            created_at: new Date().toISOString(),
+            specializations: { name: 'Тестер', icon: '🧪' },
+            city_districts: { name: 'Тестовый район' }
+          },
+          error: null
+        }
+      }
+
       if (isDemoMode) {
         return {
           data: {
@@ -14,6 +36,7 @@ export const profileService = {
             full_name: 'Demo User',
             phone: '+7 777 123 45 67',
             avatar_url: null,
+            telegram_chat_id: '763612632', // Добавляем telegram_chat_id для тестирования
             specialization_id: 1,
             district_id: 1,
             experience_years: 3,

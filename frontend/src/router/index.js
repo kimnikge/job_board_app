@@ -22,6 +22,8 @@ const Resume = () => import('@/views/Resume.vue')
 const DataTest = () => import('@/views/DataTest.vue')
 // R4: Тестовая страница геймификации
 const R4TestPage = () => import('@/views/R4TestPage.vue')
+// Демо страница уведомлений
+const NotificationsDemo = () => import('@/views/NotificationsDemo.vue')
 
 // Страницы компаний
 const Companies = () => import('@/views/Companies.vue')
@@ -48,6 +50,20 @@ const routes = [
     path: '/', 
     component: Jobs,
     meta: { title: 'Вакансии общепита - Астана' }
+  },
+  
+  // Список всех вакансий (дублируем главную)
+  { 
+    path: '/jobs', 
+    component: Jobs,
+    meta: { title: 'Все вакансии' }
+  },
+  
+  // Резюме (пока перенаправляем на профиль)
+  { 
+    path: '/resumes', 
+    redirect: '/profile',
+    meta: { title: 'Резюме' }
   },
   
   // Срочные вакансии
@@ -103,6 +119,13 @@ const routes = [
     path: '/test-r4', 
     component: R4TestPage,
     meta: { title: 'R4 Gamification Test' }
+  },
+
+  // Демо страница push-уведомлений
+  { 
+    path: '/notifications-demo', 
+    component: NotificationsDemo,
+    meta: { title: 'Push-уведомления Demo' }
   },
   
   // Резюме пользователя

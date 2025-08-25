@@ -279,6 +279,14 @@ const getPriorityClass = (priority) => {
   background: var(--glass-bg);
   backdrop-filter: var(--glass-blur);
   overflow: hidden;
+  /* Улучшаем адаптивность */
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  word-wrap: break-word;
+  /* Принудительно убираем горизонтальный скролл */
+  overflow-x: hidden;
 }
 
 .urgent-job-card.highlighted {
@@ -363,6 +371,12 @@ const getPriorityClass = (priority) => {
   font-weight: 700;
   color: var(--color-text-primary);
   margin-bottom: 16px;
+  /* Улучшаем переносы для заголовка */
+  word-wrap: break-word;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  line-height: 1.3;
+  max-width: 100%;
 }
 
 /* Информация о заведении */
@@ -460,6 +474,13 @@ const getPriorityClass = (priority) => {
   line-height: 1.5;
   margin-bottom: 16px;
   border: 1px solid var(--glass-border);
+  /* Исправляем переносы текста */
+  word-wrap: break-word;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  white-space: pre-wrap;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 /* Теги */
@@ -678,53 +699,88 @@ const getPriorityClass = (priority) => {
 /* Responsive Design согласно плану разработки */
 @media (max-width: 480px) {
   .urgent-job-card {
-    padding: 16px;
+    padding: 12px;
     margin: 8px 0;
+    border-radius: 16px;
+    /* Убираем ограничения ширины */
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
   }
 
   .card-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 8px;
+    margin-bottom: 12px;
   }
 
   .specialization-tag {
-    padding: 6px 10px;
-    font-size: 0.75rem;
+    padding: 4px 8px;
+    font-size: 0.7rem;
   }
 
   .priority-indicator {
-    padding: 4px 8px;
-    font-size: 0.7rem;
+    padding: 3px 6px;
+    font-size: 0.65rem;
   }
 
   .job-title {
     font-size: 1rem;
     line-height: 1.3;
-    margin: 12px 0;
+    margin: 10px 0;
+    /* Добавляем перенос слов */
+    word-wrap: break-word;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
   }
 
   .venue-info {
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
-    text-align: center;
-    gap: 8px;
+    gap: 10px;
+    margin-bottom: 12px;
   }
 
   .venue-logo {
-    width: 40px;
-    height: 40px;
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+  }
+
+  .venue-details {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .venue-name {
+    font-size: 0.85rem;
+    word-wrap: break-word;
+  }
+
+  .venue-type {
+    font-size: 0.75rem;
   }
 
   .job-details {
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
     align-items: flex-start;
+    margin-bottom: 12px;
   }
 
   .detail-item {
-    gap: 8px;
-    font-size: 0.85rem;
+    gap: 6px;
+    font-size: 0.8rem;
+    width: 100%;
+    /* Обеспечиваем перенос */
+    word-wrap: break-word;
+  }
+
+  .detail-icon {
+    flex-shrink: 0;
+    font-size: 0.9rem;
   }
 
   .salary-item {
@@ -796,8 +852,32 @@ const getPriorityClass = (priority) => {
   }
 
   .tag {
-    padding: 4px 8px;
+    padding: 3px 8px;
     font-size: 0.7rem;
+  }
+
+  /* ВАЖНО: Стили для описания работы на мобильных */
+  .job-description {
+    padding: 8px;
+    font-size: 0.8rem;
+    line-height: 1.4;
+    margin-bottom: 12px;
+    /* Принудительные переносы */
+    word-wrap: break-word !important;
+    word-break: break-word !important;
+    overflow-wrap: break-word !important;
+    white-space: pre-wrap !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    /* Убираем ограничения высоты */
+    max-height: none !important;
+    overflow: visible !important;
+    /* Улучшаем перенос */
+    hyphens: auto;
+    -webkit-hyphens: auto;
+    -moz-hyphens: auto;
+    -ms-hyphens: auto;
   }
 }
 
@@ -843,6 +923,10 @@ const getPriorityClass = (priority) => {
   .job-description {
     padding: 10px;
     font-size: 0.85rem;
+    /* Дополнительные правила для мобильных */
+    line-height: 1.4;
+    word-spacing: normal;
+    letter-spacing: 0;
   }
 
   .job-tags {
@@ -882,10 +966,16 @@ const getPriorityClass = (priority) => {
 @media (max-width: 480px) {
   .urgent-job-card {
     padding: 12px;
+    border-radius: 16px;
+    /* Исправляем проблемы с шириной на маленьких экранах */
+    min-width: 0;
+    overflow-wrap: break-word;
   }
 
   .job-title {
     font-size: 1rem;
+    line-height: 1.2;
+    margin-bottom: 12px;
   }
 
   .venue-name {
@@ -894,10 +984,26 @@ const getPriorityClass = (priority) => {
 
   .detail-item {
     font-size: 0.85rem;
+    word-break: break-all;
   }
 
   .salary-amount {
     font-size: 1rem;
+  }
+
+  .job-description {
+    padding: 8px;
+    font-size: 0.8rem;
+    line-height: 1.3;
+    margin-bottom: 12px;
+    /* Дополнительно улучшаем для маленьких экранов */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    line-clamp: 4;
+    -webkit-box-orient: vertical;
+    max-height: 4.8em; /* примерно 4 строки */
   }
 
   .ready-btn {
@@ -908,6 +1014,55 @@ const getPriorityClass = (priority) => {
   .action-buttons .action-btn {
     padding: 8px 12px;
     font-size: 0.8rem;
+  }
+
+  /* Улучшаем отображение бейджа срочности */
+  .urgent-badge {
+    padding: 4px 8px;
+    font-size: 0.7rem;
+    border-radius: 0 16px 0 16px;
+  }
+
+  .urgent-text {
+    font-size: 0.65rem;
+  }
+}
+
+/* Дополнительные стили для очень маленьких экранов */
+@media (max-width: 360px) {
+  .urgent-job-card {
+    padding: 8px;
+    margin-bottom: 12px;
+  }
+
+  .job-title {
+    font-size: 0.95rem;
+    line-height: 1.2;
+  }
+
+  .job-description {
+    padding: 6px;
+    font-size: 0.75rem;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    max-height: 3.6em;
+  }
+
+  .detail-item {
+    font-size: 0.8rem;
+  }
+
+  .venue-info {
+    gap: 6px;
+  }
+
+  .venue-logo {
+    width: 30px;
+    height: 30px;
+  }
+
+  .venue-name {
+    font-size: 0.85rem;
   }
 }
 
@@ -928,6 +1083,62 @@ const getPriorityClass = (priority) => {
 
   .detail-item {
     min-width: calc(50% - 6px);
+  }
+}
+
+/* Дополнительные стили для iPhone Pro Max и больших мобильных экранов */
+@media (max-width: 430px) {
+  .urgent-job-card {
+    padding: 10px;
+    margin: 6px 0;
+    border-radius: 12px;
+  }
+
+  .job-title {
+    font-size: 0.95rem;
+    line-height: 1.25;
+    margin: 8px 0;
+  }
+
+  .job-description {
+    padding: 6px;
+    font-size: 0.75rem;
+    line-height: 1.3;
+    margin-bottom: 10px;
+    border-radius: 8px;
+  }
+
+  .urgent-badge {
+    padding: 4px 8px;
+    font-size: 0.7rem;
+    border-radius: 0 12px 0 12px;
+  }
+
+  .venue-info {
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .venue-logo {
+    width: 32px;
+    height: 32px;
+  }
+
+  .venue-name {
+    font-size: 0.8rem;
+  }
+
+  .venue-type {
+    font-size: 0.7rem;
+  }
+
+  .detail-item {
+    font-size: 0.75rem;
+    gap: 4px;
+  }
+
+  .detail-icon {
+    font-size: 0.8rem;
   }
 }
 </style>

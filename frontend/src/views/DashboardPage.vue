@@ -39,6 +39,11 @@
       </div>
 
       <div class="dashboard-page__sections">
+        <!-- Push-уведомления панель -->
+        <section class="dashboard-page__section">
+          <NotificationPanel />
+        </section>
+
         <section class="dashboard-page__section">
           <h2 class="dashboard-page__section-title">Последние вакансии</h2>
           <div class="dashboard-page__jobs">
@@ -83,6 +88,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
+import NotificationPanel from '@/components/NotificationPanel.vue'
 
 const authStore = useAuthStore()
 const user = ref({

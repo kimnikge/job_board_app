@@ -1,5 +1,6 @@
 // 🏅 badges.service.js — R4 Extended Badge Service
 import { supabase, isDemoMode } from './supabase.js'
+import { notificationsService } from './notifications.service.js'
 
 export const badgesService = {
   /**
@@ -121,6 +122,12 @@ export const badgesService = {
   async awardBadge(badgeId, userId, reason, awarderId = null) {
     try {
       if (isDemoMode) {
+        // Отправка уведомления в demo режиме
+        try {
+          await sendTelegramNotification('763612632', 'Вы получили бейдж: Первые шаги!')
+        } catch (notifyError) {
+          console.log('Demo notification error:', notifyError)
+        }
         const mockAward = {
           id: Date.now(),
           badge_id: badgeId,
@@ -139,6 +146,22 @@ export const badgesService = {
         p_reason: reason,
         p_awarded_by: awarderId
       })
+
+      // Отправка уведомления при успешной выдаче бейджа
+      if (data && !error) {
+        try {
+          // Получаем информацию о бейдже для уведомления
+          const badgeInfo = {
+            name: data.badge?.name || 'Новый бейдж',
+            description: data.badge?.description || 'Поздравляем с достижением!',
+            icon_url: data.badge?.icon_url
+          }
+          
+          await notificationsService.notifyBadgeAwarded(userId, badgeInfo, reason)
+        } catch (notifyError) {
+          console.warn('Notification error:', notifyError)
+        }
+      }
 
       return { data, error }
     } catch (err) {

@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MVP Test - Simple</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 20px; 
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .log { 
+            background: #f8f9fa; 
+            padding: 12px; 
+            margin: 8px 0; 
+            border-radius: 4px; 
+            border-left: 4px solid #007bff;
+            font-family: monospace;
+        }
+        .success { border-left-color: #28a745; }
+        .error { border-left-color: #dc3545; }
+        
+        button { 
+            padding: 12px 24px; 
+            background: #007bff; 
+            color: white; 
+            border: none; 
+            border-radius: 5px; 
+            cursor: pointer;
+            margin: 10px 5px 10px 0;
+            font-size: 16px;
+        }
+        button:hover { background: #0056b3; }
+        button:disabled { background: #6c757d; cursor: not-allowed; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 MVP Test - Telegram Notifications</h1>
+        <p>Простой тест отправки уведомлений через Telegram Bot API</p>
+        
+        <button id="testBtn" onclick="sendTestMessage()">Отправить тестовое уведомление</button>
+        <button onclick="clearLogs()">Очистить логи</button>
+        
+        <div id="logs"></div>
+    </div>
+
+    <script>
+        console.log('🚀 Скрипт загружен!');
+        
+        const logsDiv = document.getElementById('logs');
+        
+        function log(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = `log ${type}`;
+            div.innerHTML = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logsDiv.appendChild(div);
+            console.log(message);
+        }
+        
+        function clearLogs() {
+            logsDiv.innerHTML = '';
+        }
+        
+        async function sendTestMessage() {
+            const testBtn = document.getElementById('testBtn');
+            testBtn.disabled = true;
+            testBtn.textContent = 'Отправляем...';
+            
+            try {
+                log('🚀 Начинаем тест Telegram уведомлений...', 'info');
+                
+                const response = await fetch('https://kuyudpxqlrinkcxvorom.supabase.co/functions/v1/send-telegram-message', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt1eXVkcHhxbHJpbmtjeHZvcm9tIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0ODk2ODE5OSwiZXhwIjoyMDY0NTQ0MTk5fQ.yJIhTRV-TqzFDy0sQTgcfCa7Xw7b8IHZMO2-s3OtS3g'
+                    },
+                    body: JSON.stringify({
+                        chat_id: '763612632',
+                        text: '🎉 Тест из браузера - MVP уведомления работают!'
+                    })
+                });
+                
+                if (response.ok) {
+                    const result = await response.text();
+                    log('✅ Уведомление отправлено успешно!', 'success');
+                    log(`📱 Проверьте Telegram`, 'success');
+                    log(`Ответ сервера: ${result}`, 'info');
+                } else {
+                    throw new Error(`HTTP ${response.status}: ${await response.text()}`);
+                }
+                
+            } catch (error) {
+                log(`❌ ОШИБКА: ${error.message}`, 'error');
+                console.error('Детали ошибки:', error);
+            } finally {
+                testBtn.disabled = false;
+                testBtn.textContent = 'Отправить тестовое уведомление';
+            }
+        }
+        
+        // Проверка при загрузке
+        window.addEventListener('load', () => {
+            log('✅ Страница загружена успешно!', 'success');
+            log('🔗 Готов к тестированию Telegram уведомлений', 'info');
+        });
+    </script>
+</body>
+</html>

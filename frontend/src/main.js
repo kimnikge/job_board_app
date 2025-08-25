@@ -5,6 +5,9 @@ import router from './router'
 import './assets/main.css'
 import './assets/styles/common.css'
 
+// Импортируем директиву click-outside
+import { clickOutside } from './directives/clickOutside.js'
+
 // Импортируем только необходимые иконки
 import {
   Search,
@@ -73,6 +76,9 @@ const icons = {
 Object.entries(icons).forEach(([name, component]) => {
   app.component(`${name}Icon`, component)
 })
+
+// Регистрируем директиву click-outside
+app.directive('click-outside', clickOutside)
 
 app.use(router)
 app.use(pinia)

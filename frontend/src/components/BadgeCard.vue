@@ -58,13 +58,35 @@
       class="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-full opacity-0 group-hover:opacity-100 bg-gray-800 text-white text-sm rounded px-3 py-2 whitespace-nowrap z-10 shadow-lg transition-opacity duration-300 ease-in-out"
       :style="{ minWidth: size === 'large' ? '140px' : '100px' }"
     >
-      <strong>{{ badge.name }}</strong><br />
+      <strong>
+        <span v-if="badge.level" :class="['badge-level', badge.level.toLowerCase()]">
+          {{ getLevelIcon(badge.level) }} {{ badge.level }}
+        </span>
+        <span v-if="badge.is_rare" class="badge-rare" title="Редкий бейдж">🌟</span>
+        <span v-if="badge.is_temporary" class="badge-temp" title="Временный бейдж">⏳</span>
+        {{ badge.name }}
+      </strong><br />
       {{ badge.description }}
+      <span v-if="badge.is_temporary && badge.valid_until" class="badge-valid-until">до {{ formatDate(badge.valid_until) }}</span>
     </div>
   </div>
 </template>
 
 <script setup>
+function formatDate(date) {
+  if (!date) return ''
+  return new Date(date).toLocaleDateString('ru-RU', { day:'2-digit', month:'short', year:'2-digit' })
+}
+// Иконки и цвета для уровней бейджей
+function getLevelIcon(level) {
+  switch (level) {
+    case 'Bronze': return '🥉'
+    case 'Silver': return '🥈'
+    case 'Gold': return '🥇'
+    case 'Platinum': return '💎'
+    default: return ''
+  }
+}
 import { computed } from 'vue';
 
 const props = defineProps({
@@ -87,3 +109,22 @@ const size = computed(() => props.size);
 const showTooltip = computed(() => props.showTooltip);
 const badge = computed(() => props.badge);
 </script>
+
+<style scoped>
+.badge-rare {
+  color: gold;
+  margin-left: 0.2em;
+  font-size: 1.1em;
+}
+.badge-temp {
+  color: #00bfff;
+  margin-left: 0.2em;
+  font-size: 1.1em;
+}
+.badge-valid-until {
+  display: block;
+  color: #00bfff;
+  font-size: 0.85em;
+  margin-top: 0.2em;
+}
+</style>

@@ -1,4 +1,4 @@
-import { supabase } from '../lib/supabase.js'
+import { supabase, isAuthenticated, isDemoMode } from './supabase.js'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { ref, Ref } from 'vue'
 
@@ -21,6 +21,17 @@ export class NotificationService {
     this.supabase = supabase
     this.notifications = ref([])
     this.telegramApiUrl = import.meta.env.VITE_TELEGRAM_BOT_API_URL || ''
+    this.initializeRealtimeListeners()
+  }
+
+  private async initializeRealtimeListeners() {
+    // Проверяем аутентификацию перед созданием подписок
+    const userAuthenticated = await isAuthenticated()
+    if (!userAuthenticated || isDemoMode) {
+      console.log('🔇 Skipping realtime subscriptions - user not authenticated or demo mode')
+      return
+    }
+    
     this.setupRealtimeListeners()
   }
 

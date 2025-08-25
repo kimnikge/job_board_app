@@ -1,12 +1,16 @@
 // ✨ API КОМПАНИЙ - ЭТАП 4.1.5
-import { supabase, isDemoMode } from './supabase.js'
+import { supabase, isDemoMode, isAuthenticated, handleAuthError } from './supabase.js'
 
 // 🏢 Все операции с компаниями и заведениями
 export const companiesService = {
   // Получить все компании
   async getAllCompanies(filters = {}) {
     try {
-      if (isDemoMode) {
+      // Проверяем, есть ли текущий пользователь
+      const userAuthenticated = await isAuthenticated()
+      
+      if (isDemoMode || !userAuthenticated) {
+        // Demo режим или неаутентифицированный пользователь - возвращаем демо-данные
         return {
           data: [
             {

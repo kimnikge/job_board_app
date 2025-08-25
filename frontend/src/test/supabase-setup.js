@@ -1,5 +1,5 @@
 import { beforeAll, afterAll, afterEach, vi } from 'vitest'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '@/services/supabase'
 
 // Мок для Supabase
 vi.mock('@/lib/supabase', () => ({

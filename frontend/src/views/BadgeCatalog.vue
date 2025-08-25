@@ -12,7 +12,13 @@
       <div v-for="b in filtered" :key="b.id" class="catalog-card">
         <div class="icon">{{ b.icon_url || '🏅' }}</div>
         <div class="info">
-          <h3>{{ b.name }}</h3>
+          <h3>
+            <span v-if="b.level" :class="['badge-level', b.level.toLowerCase()]">{{ getLevelIcon(b.level) }}</span>
+            <span v-if="b.is_rare" class="badge-rare" title="Редкий бейдж">🌟</span>
+            <span v-if="b.is_temporary" class="badge-temp" title="Временный бейдж">⏳</span>
+            {{ b.name }}
+            <span v-if="b.is_temporary && b.valid_until" class="badge-valid-until">до {{ formatDate(b.valid_until) }}</span>
+          </h3>
           <p class="desc">{{ b.description }}</p>
           <div class="tags">
             <span class="pill" :class="b.level.toLowerCase()">{{ b.level }}</span>
@@ -25,6 +31,20 @@
   </div>
 </template>
 <script setup>
+function formatDate(date) {
+  if (!date) return ''
+  return new Date(date).toLocaleDateString('ru-RU', { day:'2-digit', month:'short', year:'2-digit' })
+}
+// Иконки и цвета для уровней бейджей
+function getLevelIcon(level) {
+  switch (level) {
+    case 'Bronze': return '🥉'
+    case 'Silver': return '🥈'
+    case 'Gold': return '🥇'
+    case 'Platinum': return '💎'
+    default: return ''
+  }
+}
 import { ref, computed, onMounted } from 'vue'
 import { employerService } from '@/services/employer.service.js'
 import { useAuthStore } from '@/stores/auth'
@@ -55,6 +75,30 @@ const filtered = computed(() => {
 onMounted(load)
 </script>
 <style scoped>
+.badge-rare {
+  color: gold;
+  margin-left: 0.2em;
+  font-size: 1.1em;
+}
+.badge-temp {
+  color: #00bfff;
+  margin-left: 0.2em;
+  font-size: 1.1em;
+}
+.badge-valid-until {
+  display: block;
+  color: #00bfff;
+  font-size: 0.85em;
+  margin-top: 0.2em;
+}
+.badge-level {
+  font-weight: 700;
+  margin-right: 0.3em;
+}
+.badge-level.bronze { color: #cd7f32; }
+.badge-level.silver { color: #bfc1c2; }
+.badge-level.gold { color: #ffd700; }
+.badge-level.platinum { color: #00bfff; }
 .catalog-page { padding:1.5rem; min-height:100vh; background:linear-gradient(135deg,#101622,#182233); }
 .page-title { color:#fff; margin:0 0 1rem; font-size:1.6rem; font-weight:600; }
 .toolbar { display:flex; gap:.75rem; margin-bottom:1rem; }

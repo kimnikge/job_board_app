@@ -1,12 +1,17 @@
 // ✨ API ВАКАНСИЙ - ЭТАП 4.1.3
-import { supabase, isDemoMode, DEFAULT_SELECT } from './supabase.js'
+import { supabase, isDemoMode, DEFAULT_SELECT, isAuthenticated, handleAuthError } from './supabase.js'
+import { notificationsService } from './notifications.service.js'
 
 // 💼 Все операции с вакансиями (обычные + срочные)
 export const jobsService = {
   // Получить все вакансии
   async getAllJobs(filters = {}) {
     try {
-      if (isDemoMode) {
+      // Проверяем, есть ли текущий пользователь
+      const userAuthenticated = await isAuthenticated()
+      
+      if (isDemoMode || !userAuthenticated) {
+        // Demo режим или неаутентифицированный пользователь - возвращаем демо-данные
         return {
           data: [
             {
@@ -72,6 +77,12 @@ export const jobsService = {
       return { data, error }
     } catch (error) {
       console.error('Get jobs error:', error)
+      
+      // Если это ошибка аутентификации, возвращаем демо-данные
+      if (handleAuthError(error)) {
+        return this.getAllJobs(filters) // Рекурсивно вызываем с демо-данными
+      }
+      
       return { data: null, error }
     }
   },
@@ -133,6 +144,18 @@ export const jobsService = {
   async createJob(jobData) {
     try {
       if (isDemoMode) {
+        // Отправка уведомления в demo режиме через новую службу
+        try {
+          await notificationsService.notifyNewJob({
+            title: jobData.title || 'Новая вакансия',
+            location: jobData.location,
+            salary_from: jobData.salary_from,
+            salary_to: jobData.salary_to,
+            company_name: jobData.company_name
+          })
+        } catch (notifyError) {
+          console.log('Demo notification error:', notifyError)
+        }
         return {
           data: {
             id: Date.now(),
@@ -149,6 +172,34 @@ export const jobsService = {
         .insert([jobData])
         .select()
         .single()
+
+      // Отправка уведомления при успешном создании вакансии
+      if (data && !error) {
+        try {
+          if (data.is_urgent) {
+            // Срочная вакансия - особое уведомление
+            await notificationsService.notifyUrgentJob({
+              title: data.title,
+              location: data.location,
+              salary_from: data.salary_from,
+              salary_to: data.salary_to,
+              company_name: data.company_name,
+              needed_date: data.needed_date
+            })
+          } else {
+            // Обычная вакансия
+            await notificationsService.notifyNewJob({
+              title: data.title,
+              location: data.location,
+              salary_from: data.salary_from,
+              salary_to: data.salary_to,
+              company_name: data.company_name
+            })
+          }
+        } catch (notifyError) {
+          console.warn('Notification error:', notifyError)
+        }
+      }
 
       return { data, error }
     } catch (error) {
