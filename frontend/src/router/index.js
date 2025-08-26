@@ -6,7 +6,8 @@ import { ROLES } from '@/constants/roles.js'
 // Все страницы в views/ - один файл = одна страница
 
 // Главная страница (из modules/home перенесена в views/)
-const Jobs = () => import('@/views/Jobs.vue') // Главная с вакансиями
+const HomeView = () => import('@/views/HomeView.vue') // Главная PWA страница
+const Jobs = () => import('@/views/Jobs.vue') // Список вакансий
 
 // Страницы вакансий  
 const UrgentJobs = () => import('@/views/UrgentJobs.vue')
@@ -45,14 +46,14 @@ const ResetPassword = () => import('@/components/auth/ResetPassword.vue')
 
 // ✨ ПРОСТЫЕ МАРШРУТЫ - СОГЛАСНО ПЛАНУ
 const routes = [
-  // Главная страница (список всех вакансий)
+  // Главная страница (PWA интерфейс)
   { 
     path: '/', 
-    component: Jobs,
-    meta: { title: 'Вакансии общепита - Астана' }
+    component: HomeView,
+    meta: { title: 'Job Board - Работа мечты' }
   },
   
-  // Список всех вакансий (дублируем главную)
+  // Список всех вакансий
   { 
     path: '/jobs', 
     component: Jobs,

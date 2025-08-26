@@ -1,1268 +1,372 @@
 <template>
-  <header class="app-header glass-header">
-    <div class="header-content">
-      <router-link to="/" class="logo">
-        <span class="logo-icon">🍽️</span>
-        <span class="logo-text">Job Board Астана</span>
-        <span class="logo-subtitle">Общепит</span>
-      </router-link>
-
-      <!-- Desktop Navigation -->
-      <nav class="nav-menu desktop-nav">
-        <router-link 
-          v-for="item in menuItems" 
-          :key="item.path"
-          :to="item.path"
-          class="nav-link"
-          :class="{ active: isCurrentRoute(item.path) }"
-        >
-          <span v-if="item.icon" class="nav-icon">{{ item.icon }}</span>
-          {{ item.label }}
-        </router-link>
-      </nav>
-
-      <!-- Mobile Menu Button -->
+  <!-- Верхний заголовок -->
+  <header class="header">
+    <router-link to="/" class="logo">Job Board</router-link>
+    
+    <div class="search-container">
+      <input 
+        v-model="searchQuery"
+        type="text" 
+        placeholder="Поиск вакансий..." 
+        class="search-input"
+        @focus="onSearchFocus"
+      />
       <button 
-        class="mobile-menu-button"
-        @click="toggleMobileMenu"
-        aria-label="Открыть меню"
-        :aria-expanded="isMobileMenuOpen.toString()"
+        v-if="searchQuery" 
+        @click="clearSearch" 
+        class="search-clear"
       >
-        <span class="hamburger-line" :class="{ 'active': isMobileMenuOpen }"></span>
-        <span class="hamburger-line" :class="{ 'active': isMobileMenuOpen }"></span>
-        <span class="hamburger-line" :class="{ 'active': isMobileMenuOpen }"></span>
+        <XIcon class="w-4 h-4" />
       </button>
-
-      <div class="header-actions">
-        <button 
-          v-if="!isAuthenticated" 
-          class="auth-button"
-          aria-label="Войти"
-          @click="$router.push('/auth/login')"
-        >
-          <UserIcon class="w-5 h-5 mr-2" />
-          Войти
-        </button>
-
-        <template v-else>
-          <!-- Демонстрация анимаций (только в dev режиме) -->
-          <router-link 
-            v-if="isDev" 
-            to="/demo/animations" 
-            class="demo-button"
-            title="Демонстрация анимаций"
-          >
-            <span class="demo-icon">🎨</span>
-            <span>DEMO</span>
-          </router-link>
-
-          <!-- Кнопка срочных вакансий -->
-          <router-link to="/urgent" class="urgent-button">
-            <span class="urgent-icon">🚨</span>
-            <span>СРОЧНО</span>
-            <span v-if="urgentJobsCount" class="urgent-badge">{{ urgentJobsCount }}</span>
-          </router-link>
-
-          <div class="notifications-menu" v-click-outside="closeNotifications">
-            <button class="icon-button" @click="toggleNotifications" aria-label="Уведомления" :aria-expanded="isNotificationsOpen.toString()">
-              <BellIcon class="w-5 h-5" />
-              <span v-if="unreadNotifications" class="notification-badge">
-                {{ unreadNotifications }}
-              </span>
-            </button>
-
-            <!-- Дропдаун уведомлений -->
-            <div 
-              v-if="isNotificationsOpen"
-              class="notifications-dropdown glass-card"
-            >
-              <div class="notifications-header">
-                <h3>🔔 Уведомления</h3>
-                <button 
-                  v-if="notifications.length" 
-                  @click="markAllAsRead"
-                  class="mark-all-read"
-                >
-                  Прочитать все
-                </button>
-              </div>
-
-              <div class="notifications-list">
-                <div 
-                  v-for="notification in notifications" 
-                  :key="notification.id"
-                  :class="['notification-item', { 'unread': !notification.read }]"
-                  @click="openNotification(notification)"
-                >
-                  <div class="notification-icon">
-                    <span v-if="notification.type === 'urgent'">🚨</span>
-                    <span v-else-if="notification.type === 'response'">✨</span>
-                    <span v-else-if="notification.type === 'catering'">👨‍🍳</span>
-                    <span v-else>📨</span>
-                  </div>
-                  <div class="notification-content">
-                    <p class="notification-message">{{ notification.message }}</p>
-                    <span class="notification-time">{{ formatTime(notification.created_at) }}</span>
-                  </div>
-                </div>
-
-                <div v-if="!notifications.length" class="notifications-empty">
-                  <BellIcon class="w-8 h-8 text-gray-400 mb-2" />
-                  <p>Новых уведомлений нет</p>
-                </div>
-              </div>
-
-              <div v-if="notifications.length" class="notifications-footer">
-                <router-link to="/notifications" class="view-all">
-                  Показать все
-                </router-link>
-              </div>
-            </div>
-          </div>
-
-          <div class="profile-menu" v-click-outside="closeProfileMenu">
-            <button class="profile-button" @click="toggleProfileMenu" aria-label="Меню профиля" :aria-expanded="isProfileMenuOpen.toString()">
-              <img 
-                :src="userAvatar || '/images/default-avatar.png'" 
-                :alt="userName"
-                class="avatar"
-              />
-              <span class="user-name">{{ userName }}</span>
-              <ChevronDownIcon 
-                class="w-4 h-4 transition-transform"
-                :class="{ 'rotate-180': isProfileMenuOpen }"
-              />
-            </button>
-
-            <div 
-              v-if="isProfileMenuOpen"
-              class="profile-dropdown glass"
-            >
-              <router-link 
-                v-for="item in profileMenuItems" 
-                :key="item.path"
-                :to="item.path"
-                class="dropdown-item"
-              >
-                <component :is="item.icon" class="w-4 h-4 mr-2" />
-                {{ item.label }}
-              </router-link>
-
-              <button class="dropdown-item text-red-400" @click="handleLogout">
-                <LogOutIcon class="w-4 h-4 mr-2" />
-                Выйти
-              </button>
-            </div>
-          </div>
-        </template>
-      </div>
     </div>
 
-    <!-- Mobile Navigation Menu -->
-    <div 
-      class="mobile-nav-overlay"
-      :class="{ 'active': isMobileMenuOpen }"
-      @click="closeMobileMenu"
-    ></div>
-    
-    <nav 
-      class="mobile-nav"
-      :class="{ 'active': isMobileMenuOpen }"
-    >
-      <div class="mobile-nav-header">
-        <h3>Меню</h3>
-        <button 
-          class="close-mobile-menu"
-          @click="closeMobileMenu"
-          aria-label="Закрыть меню"
-        >
-          ✕
-        </button>
-      </div>
-
-      <div class="mobile-nav-content">
-        <!-- Quick Actions for Mobile -->
-        <div class="mobile-quick-actions">
-          <router-link to="/urgent" class="mobile-urgent-btn" @click="closeMobileMenu">
-            <span class="urgent-icon">🚨</span>
-            <div>
-              <span>СРОЧНО</span>
-              <small v-if="urgentJobsCount">{{ urgentJobsCount }} вакансий</small>
-            </div>
-          </router-link>
-
-          <button 
-            v-if="isAuthenticated"
-            class="mobile-notifications-btn"
-            @click="toggleMobileNotifications"
-          >
-            <span class="bell-icon">🔔</span>
-            <div>
-              <span>Уведомления</span>
-              <small v-if="unreadNotifications">{{ unreadNotifications }} новых</small>
-            </div>
-          </button>
-        </div>
-
-        <!-- Main Navigation -->
-        <div class="mobile-nav-items">
-          <router-link 
-            v-for="item in menuItems" 
-            :key="item.path"
-            :to="item.path"
-            class="mobile-nav-link"
-            :class="{ active: isCurrentRoute(item.path) }"
-            @click="closeMobileMenu"
-          >
-            <span class="nav-icon">{{ item.icon }}</span>
-            <span>{{ item.label }}</span>
-          </router-link>
-        </div>
-
-        <!-- Profile Section for Mobile -->
-        <div v-if="isAuthenticated" class="mobile-profile-section">
-          <div class="mobile-profile-header">
-            <img 
-              :src="userAvatar || '/images/default-avatar.png'" 
-              :alt="userName"
-              class="mobile-avatar"
-            />
-            <div>
-              <span class="mobile-user-name">{{ userName }}</span>
-              <small class="mobile-user-role">{{ userRole }}</small>
-            </div>
-          </div>
-
-          <div class="mobile-profile-actions">
-            <router-link 
-              v-for="item in profileMenuItems" 
-              :key="item.path"
-              :to="item.path"
-              class="mobile-profile-link"
-              @click="closeMobileMenu"
-            >
-              <component :is="item.icon" class="w-5 h-5" />
-              <span>{{ item.label }}</span>
-            </router-link>
-
-            <button class="mobile-logout-btn" @click="handleMobileLogout">
-              <LogOutIcon class="w-5 h-5" />
-              <span>Выйти</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- Auth Section for Mobile -->
-        <div v-else class="mobile-auth-section">
-          <router-link 
-            to="/auth/login" 
-            class="mobile-auth-btn"
-            @click="closeMobileMenu"
-          >
-            <UserIcon class="w-5 h-5" />
-            <span>Войти</span>
-          </router-link>
-        </div>
-      </div>
-    </nav>
+    <div class="actions">
+      <button 
+        v-if="isAuthenticated"
+        @click="openNotifications" 
+        class="action-btn"
+      >
+        <BellIcon class="w-5 h-5" />
+        <span v-if="unreadCount" class="badge">{{ unreadCount }}</span>
+      </button>
+      
+      <button 
+        v-if="isAuthenticated"
+        @click="openProfile" 
+        class="action-btn"
+      >
+        <img 
+          v-if="userAvatar" 
+          :src="userAvatar" 
+          :alt="userName"
+          class="avatar"
+        />
+        <UserIcon v-else class="w-5 h-5" />
+      </button>
+      
+      <router-link 
+        v-else
+        to="/auth/login" 
+        class="action-btn"
+      >
+        <UserIcon class="w-5 h-5" />
+      </router-link>
+    </div>
   </header>
+
+  <!-- Нижняя навигация -->
+  <nav class="bottom-nav">
+    <router-link 
+      v-for="item in tabItems" 
+      :key="item.path"
+      :to="item.path" 
+      class="tab-item"
+      :class="{ active: $route.path === item.path }"
+    >
+      <component :is="item.icon" class="tab-icon w-6 h-6" />
+      <span class="tab-label">{{ item.label }}</span>
+      <span v-if="item.badge" class="tab-badge">{{ item.badge }}</span>
+    </router-link>
+  </nav>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { 
-  UserIcon, BellIcon, ChevronDownIcon, LogOutIcon,
-  UserCircleIcon, SettingsIcon, BriefcaseIcon
+  BellIcon, 
+  UserIcon, 
+  SearchIcon, 
+  XIcon,
+  BriefcaseIcon,
+  AlertCircleIcon,
+  BuildingIcon,
+  HeartIcon
 } from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/auth.js'
-import { notificationService } from '@/services/notificationService'
 
-const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
 
-// Определение dev режима
-const isDev = computed(() => import.meta.env.DEV)
+// Состояние поиска
+const searchQuery = ref('')
 
+// Данные пользователя
 const isAuthenticated = computed(() => authStore.isAuthenticated)
 const userName = computed(() => authStore.user?.full_name || 'Пользователь')
 const userAvatar = computed(() => authStore.user?.avatar)
-const userRole = computed(() => authStore.user?.primary_role || 'Пользователь')
+const unreadCount = computed(() => authStore.unreadNotifications || 0)
 
-// Mobile menu state
-const isMobileMenuOpen = ref(false)
-
-// Уведомления
-const isNotificationsOpen = ref(false)
-const notifications = ref([])
-const unreadNotifications = computed(() => 
-  notifications.value.filter(n => !n.read).length
-)
-
-// Профиль
-const isProfileMenuOpen = ref(false)
-
-const menuItems = [
-  { path: '/jobs', label: 'Вакансии', icon: '💼' },
-  { path: '/resumes', label: 'Резюме', icon: '📄' },
-  { path: '/companies', label: 'Заведения', icon: '🏪' },
-  { path: '/urgent', label: 'СРОЧНО', icon: '🚨' }
-]
-
-// Добавляем переменную для подсчета срочных вакансий
-const urgentJobsCount = ref(0)
-
-// Функция для загрузки количества срочных вакансий
-const loadUrgentJobsCount = async () => {
-  try {
-    // TODO: Заменить на реальный API вызов
-    // const { data } = await urgentJobsService.getActiveCount()
-    // urgentJobsCount.value = data?.count || 0
-    urgentJobsCount.value = 3 // Заглушка
-  } catch (error) {
-    console.error('Ошибка загрузки счетчика срочных вакансий:', error)
+// Табы нижней навигации
+const tabItems = ref([
+  { 
+    path: '/jobs', 
+    label: 'Вакансии', 
+    icon: BriefcaseIcon 
+  },
+  { 
+    path: '/urgent', 
+    label: 'Срочные', 
+    icon: AlertCircleIcon,
+    badge: 3 // Счетчик срочных вакансий
+  },
+  { 
+    path: '/companies', 
+    label: 'Места', 
+    icon: BuildingIcon 
+  },
+  { 
+    path: '/profile', 
+    label: 'Профиль', 
+    icon: UserIcon 
   }
+])
+
+// Методы
+const onSearchFocus = () => {
+  // При фокусе на поиск можно перейти на отдельную страницу поиска
+  router.push('/search')
 }
 
-const profileMenuItems = [
-  { path: '/profile', label: 'Профиль', icon: UserCircleIcon },
-  { path: '/profile/applications', label: 'Мои отклики', icon: BriefcaseIcon },
-  { path: '/profile/settings', label: 'Настройки', icon: SettingsIcon }
-]
-
-const isCurrentRoute = (path) => {
-  return route.path === path
+const clearSearch = () => {
+  searchQuery.value = ''
 }
 
-// Методы для профиля
-const toggleProfileMenu = () => {
-  isProfileMenuOpen.value = !isProfileMenuOpen.value
-  if (isNotificationsOpen.value) isNotificationsOpen.value = false
-}
-
-const closeProfileMenu = () => {
-  isProfileMenuOpen.value = false
-}
-
-// Методы для уведомлений
-const toggleNotifications = () => {
-  isNotificationsOpen.value = !isNotificationsOpen.value
-  if (isProfileMenuOpen.value) isProfileMenuOpen.value = false
-}
-
-const closeNotifications = () => {
-  isNotificationsOpen.value = false
-}
-
-const openNotification = (notification) => {
-  if (notification.type === 'urgent' || notification.type === 'response') {
-    router.push(`/jobs/${notification.job_id}`)
-  }
-  markAsRead(notification.id)
-  closeNotifications()
-}
-
-const markAsRead = (id) => {
-  const notification = notifications.value.find(n => n.id === id)
-  if (notification) {
-    notification.read = true
-    notificationService.markAsRead(id)
-  }
-}
-
-const markAllAsRead = () => {
-  notifications.value.forEach(n => n.read = true)
-  notificationService.markAllAsRead()
-}
-
-const formatTime = (timestamp) => {
-  const date = new Date(timestamp)
-  const now = new Date()
-  const diff = now - date
-  
-  if (diff < 60000) return 'только что'
-  if (diff < 3600000) return `${Math.floor(diff / 60000)} мин назад`
-  if (diff < 86400000) return `${Math.floor(diff / 3600000)} ч назад`
-  return date.toLocaleDateString()
-}
-
-// Загрузка уведомлений при монтировании
-onMounted(() => {
-  if (isAuthenticated.value) {
-    notifications.value = notificationService.getNotifications()
-  }
-})
-
-const handleLogout = async () => {
-  await authStore.logout()
-  closeProfileMenu()
-}
-
-// Mobile menu methods
-const toggleMobileMenu = () => {
-  isMobileMenuOpen.value = !isMobileMenuOpen.value
-  // Закрываем другие меню при открытии мобильного
-  if (isMobileMenuOpen.value) {
-    isNotificationsOpen.value = false
-    isProfileMenuOpen.value = false
-  }
-}
-
-const closeMobileMenu = () => {
-  isMobileMenuOpen.value = false
-}
-
-const handleMobileLogout = async () => {
-  await authStore.logout()
-  closeMobileMenu()
-}
-
-const toggleMobileNotifications = () => {
-  // В мобильной версии переходим на страницу уведомлений
+const openNotifications = () => {
   router.push('/notifications')
-  closeMobileMenu()
+}
+
+const openProfile = () => {
+  router.push('/profile')
 }
 </script>
 
 <style scoped>
-.app-header {
+/* Основной контейнер заголовка */
+.header {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  z-index: 50;
-  height: 80px;
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
-  border-bottom: 1px solid var(--glass-border);
-  transition: all 0.3s ease;
-}
-
-.glass-header {
-  background: rgba(0, 0, 0, 0.1);
-  backdrop-filter: blur(20px);
-}
-
-.app-header.scrolled {
-  background: rgba(0, 0, 0, 0.8);
-  height: 70px;
-}
-
-.header-content {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 0 24px;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-/* Логотип для общепита */
-.logo {
-  display: flex;
-  align-items: center;
-  text-decoration: none;
-  color: var(--color-text-primary);
-  gap: 12px;
-}
-
-.logo-icon {
-  font-size: 2rem;
-  animation: pulse 3s ease-in-out infinite;
-}
-
-.logo-text {
-  font-size: 1.8rem;
-  font-weight: 900;
-  background: linear-gradient(45deg, #fff, #f0f0f0);
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.logo-subtitle {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--color-primary);
-  padding: 2px 8px;
-  background: rgba(102, 126, 234, 0.2);
-  border-radius: 12px;
-}
-
-@keyframes pulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.1); }
-}
-
-.nav-menu {
-  display: flex;
-  gap: 32px;
-}
-
-/* Desktop navigation - hidden on mobile */
-.desktop-nav {
-  display: flex;
-}
-
-/* Mobile menu button - hidden on desktop */
-.mobile-menu-button {
-  display: none;
-  flex-direction: column;
-  justify-content: space-around;
-  width: 30px;
-  height: 30px;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-  z-index: 1001;
-}
-
-.hamburger-line {
-  width: 25px;
-  height: 3px;
-  background: var(--color-text-primary);
-  transition: all 0.3s ease;
-  transform-origin: center;
-}
-
-.hamburger-line.active:nth-child(1) {
-  transform: rotate(45deg) translate(6px, 6px);
-}
-
-.hamburger-line.active:nth-child(2) {
-  opacity: 0;
-}
-
-.hamburger-line.active:nth-child(3) {
-  transform: rotate(-45deg) translate(6px, -6px);
-}
-
-.nav-link {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: var(--color-text-secondary);
-  text-decoration: none;
-  font-weight: 600;
-  transition: all 0.3s ease;
-  position: relative;
-  padding: 8px 16px;
-  border-radius: 12px;
-}
-
-.nav-icon {
-  font-size: 1.2rem;
-}
-
-.nav-link:hover {
-  color: var(--color-text-primary);
-  background: var(--glass-bg);
-  transform: translateY(-2px);
-}
-
-.nav-link.active {
-  color: var(--color-text-primary);
-  background: var(--glass-bg-hover);
-  border: 1px solid var(--color-primary);
-}
-
-.nav-link.active::after {
-  content: '';
-  position: absolute;
-  bottom: -2px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 20px;
-  height: 3px;
-  background: var(--gradient-header);
-  border-radius: 2px;
-}
-
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-}
-
-/* Кнопка срочных вакансий */
-.urgent-button {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: var(--color-urgent-bg);
-  color: white;
-  padding: 10px 18px;
-  border-radius: 25px;
-  text-decoration: none;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
-  box-shadow: var(--shadow-md);
-}
-
-.urgent-button::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-  transition: left 0.5s;
-}
-
-.urgent-button:hover::before {
-  left: 100%;
-}
-
-.urgent-button:hover {
-  transform: translateY(-3px);
-  box-shadow: var(--shadow-xl);
-}
-
-.urgent-icon {
-  font-size: 1.1rem;
-  animation: flash 2s infinite;
-}
-
-.urgent-badge {
+  z-index: 1000;
   background: white;
-  color: var(--color-danger);
-  font-size: 0.8rem;
-  font-weight: 900;
-  padding: 2px 6px;
-  border-radius: 50%;
-  min-width: 20px;
-  text-align: center;
-}
-
-@keyframes flash {
-  0%, 50% { opacity: 1; }
-  51%, 100% { opacity: 0.7; }
-}
-
-/* Кнопка демонстрации анимаций */
-.demo-button {
+  border-bottom: 1px solid #e5e5e5;
+  height: 60px;
   display: flex;
   align-items: center;
-  gap: 6px;
-  background: var(--gradient-primary);
-  color: white;
-  padding: 8px 14px;
+  padding: 0 16px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Лого */
+.logo {
+  color: #1976d2;
+  font-size: 18px;
+  font-weight: bold;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+/* Поиск */
+.search-container {
+  flex: 1;
+  max-width: 250px;
+  margin: 0 16px;
+  position: relative;
+}
+
+.search-input {
+  width: 100%;
+  padding: 8px 35px 8px 12px;
+  border: 1px solid #ddd;
   border-radius: 20px;
-  text-decoration: none;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
-  box-shadow: var(--shadow-sm);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  margin-right: 10px;
+  background: #f5f5f5;
+  font-size: 14px;
+  outline: none;
+  transition: all 0.2s;
 }
 
-.demo-button:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-lg);
-  background: var(--gradient-warning);
-  text-decoration: none;
+.search-input:focus {
+  background: white;
+  border-color: #1976d2;
+  box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.1);
 }
 
-.demo-icon {
-  font-size: 1rem;
-  animation: rainbow 3s infinite ease-in-out;
-}
-
-@keyframes rainbow {
-  0%, 100% { filter: hue-rotate(0deg); }
-  16.66% { filter: hue-rotate(60deg); }
-  33.33% { filter: hue-rotate(120deg); }
-  50% { filter: hue-rotate(180deg); }
-  66.66% { filter: hue-rotate(240deg); }
-  83.33% { filter: hue-rotate(300deg); }
-}
-
-.auth-button {
-  display: flex;
-  align-items: center;
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  color: var(--color-text-primary);
-  padding: 10px 18px;
-  border-radius: 12px;
-  font-weight: 600;
-  transition: all 0.3s ease;
-  backdrop-filter: var(--glass-blur);
-}
-
-.auth-button:hover {
-  background: var(--glass-bg-hover);
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-sm);
-}
-
-.icon-button {
-  position: relative;
-  width: 44px;
-  height: 44px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  border-radius: 12px;
-  color: var(--color-text-primary);
-  transition: all 0.3s ease;
-  backdrop-filter: var(--glass-blur);
-}
-
-.icon-button:hover {
-  background: rgba(255, 255, 255, 0.2);
-  transform: translateY(-2px);
-}
-
-.notification-badge {
+.search-clear {
   position: absolute;
-  top: -6px;
-  right: -6px;
-  background: #ff4b4b;
-  color: white;
-  font-size: 0.75rem;
-  min-width: 18px;
-  height: 18px;
-  border-radius: 9px;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  padding: 4px;
+  border-radius: 50%;
+  color: #666;
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid #1a1a1a;
 }
 
-.profile-menu {
-  position: relative;
-}
-
-.profile-button {
+/* Кнопки действий */
+.actions {
   display: flex;
   align-items: center;
   gap: 8px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: white;
-  padding: 6px 12px;
-  border-radius: 12px;
-  transition: all 0.3s;
+  flex-shrink: 0;
 }
 
-.profile-button:hover {
-  background: rgba(255, 255, 255, 0.2);
+.action-btn {
+  position: relative;
+  background: none;
+  border: none;
+  padding: 8px;
+  border-radius: 50%;
+  color: #666;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+.action-btn:hover {
+  background: #f0f0f0;
+}
+
+.badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  background: #ff4444;
+  color: white;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 10px;
+  min-width: 16px;
+  text-align: center;
+  line-height: 1;
 }
 
 .avatar {
   width: 28px;
   height: 28px;
-  border-radius: 8px;
+  border-radius: 50%;
   object-fit: cover;
 }
 
-.user-name {
-  font-weight: 500;
-  max-width: 120px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.profile-dropdown {
-  position: absolute;
-  top: calc(100% + 10px);
+/* Нижняя навигация */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
   right: 0;
-  min-width: 200px;
-  border-radius: 16px;
-  padding: 8px;
-  animation: scaleIn 0.2s ease-out;
-  transform-origin: top right;
-}
-
-.dropdown-item {
+  z-index: 1000;
+  background: white;
+  border-top: 1px solid #e5e5e5;
   display: flex;
-  align-items: center;
-  padding: 10px 16px;
-  color: white;
-  text-decoration: none;
-  border-radius: 8px;
-  transition: all 0.2s;
-  cursor: pointer;
+  padding: 8px 0 calc(8px + env(safe-area-inset-bottom));
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
 }
 
-.dropdown-item:hover {
-  background: rgba(255, 255, 255, 0.1);
-}
-
-/* Стили для уведомлений */
-.notifications-menu {
-  position: relative;
-}
-
-.notifications-dropdown {
-  position: absolute;
-  top: calc(100% + 10px);
-  right: 0;
-  width: 320px;
-  max-height: 400px;
-  border-radius: 16px;
-  padding: 0;
-  animation: scaleIn 0.2s ease-out;
-  transform-origin: top right;
-  overflow: hidden;
-}
-
-.notifications-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16px 20px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.notifications-header h3 {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: white;
-  margin: 0;
-}
-
-.mark-all-read {
-  font-size: 0.9rem;
-  color: #64b5f6;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 4px 8px;
-  border-radius: 6px;
-  transition: background 0.2s;
-}
-
-.mark-all-read:hover {
-  background: rgba(100, 181, 246, 0.1);
-}
-
-.notifications-list {
-  max-height: 280px;
-  overflow-y: auto;
-}
-
-.notification-item {
-  display: flex;
-  align-items: flex-start;
-  padding: 12px 20px;
-  cursor: pointer;
-  transition: background 0.2s;
-  border-left: 3px solid transparent;
-}
-
-.notification-item:hover {
-  background: rgba(255, 255, 255, 0.05);
-}
-
-.notification-item.unread {
-  background: rgba(100, 181, 246, 0.1);
-  border-left-color: #64b5f6;
-}
-
-.notification-icon {
-  font-size: 1.2rem;
-  margin-right: 12px;
-  margin-top: 2px;
-}
-
-.notification-content {
+.tab-item {
   flex: 1;
-}
-
-.notification-message {
-  color: white;
-  font-size: 0.9rem;
-  line-height: 1.4;
-  margin: 0 0 4px 0;
-}
-
-.notification-time {
-  color: rgba(255, 255, 255, 0.6);
-  font-size: 0.8rem;
-}
-
-.notifications-empty {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 40px 20px;
-  color: rgba(255, 255, 255, 0.6);
-  text-align: center;
-}
-
-.notifications-footer {
-  padding: 12px 20px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.view-all {
-  display: block;
-  text-align: center;
-  color: #64b5f6;
+  padding: 8px 4px;
   text-decoration: none;
-  font-size: 0.9rem;
-  padding: 8px;
-  border-radius: 8px;
-  transition: background 0.2s;
+  color: #666;
+  font-size: 11px;
+  font-weight: 500;
+  position: relative;
+  transition: color 0.2s;
 }
 
-.view-all:hover {
-  background: rgba(100, 181, 246, 0.1);
+.tab-item.active {
+  color: #1976d2;
 }
 
-@media (max-width: 768px) {
-  .header-content {
-    padding: 0 12px;
-    min-height: 60px;
-  }
+.tab-icon {
+  margin-bottom: 4px;
+}
 
-  /* Hide desktop navigation */
-  .desktop-nav {
-    display: none;
-  }
+.tab-label {
+  font-size: 10px;
+}
 
-  /* Show mobile menu button */
-  .mobile-menu-button {
-    display: flex;
-  }
+.tab-badge {
+  position: absolute;
+  top: 2px;
+  right: 8px;
+  background: #ff4444;
+  color: white;
+  font-size: 8px;
+  padding: 1px 4px;
+  border-radius: 6px;
+  min-width: 12px;
+  text-align: center;
+}
 
-  .logo-text {
-    display: none;
+/* Адаптация для безопасных зон */
+@supports (padding-top: env(safe-area-inset-top)) {
+  .header {
+    padding-top: env(safe-area-inset-top);
+    height: calc(60px + env(safe-area-inset-top));
   }
+}
 
-  .logo-subtitle {
-    display: none;
-  }
-
-  .header-actions {
-    gap: 8px;
-  }
-
-  /* Hide desktop urgent button on mobile */
-  .urgent-button {
-    display: none;
-  }
-
-  /* Hide demo button on mobile */
-  .demo-button {
-    display: none;
+/* Состояния для темной темы */
+@media (prefers-color-scheme: dark) {
+  .header {
+    background: #1a1a1a;
+    border-bottom-color: #333;
   }
   
-  /* Adjust notifications dropdown */
-  .notifications-dropdown {
-    width: calc(100vw - 24px);
-    max-width: 320px;
-    right: 0;
-    left: auto;
+  .logo {
+    color: #64b5f6;
   }
-
-  /* Adjust profile dropdown */
-  .profile-dropdown {
-    right: 0;
-    left: auto;
-    width: 200px;
+  
+  .search-input {
+    background: #2a2a2a;
+    border-color: #444;
+    color: white;
   }
-
-  /* Smaller icons and text on mobile */
-  .icon-button {
-    padding: 8px;
-    min-height: 40px;
-    min-width: 40px;
+  
+  .search-input:focus {
+    background: #333;
+    border-color: #64b5f6;
   }
-
-  .profile-button {
-    padding: 6px 12px;
-    font-size: 0.9rem;
+  
+  .action-btn {
+    color: #ccc;
   }
-
-  .avatar {
-    width: 32px;
-    height: 32px;
+  
+  .action-btn:hover {
+    background: #333;
   }
-
-  .user-name {
-    display: none; /* Hide username on very small screens */
+  
+  .bottom-nav {
+    background: #1a1a1a;
+    border-top-color: #333;
   }
-}
-
-@media (max-width: 480px) {
-  .header-content {
-    padding: 0 8px;
+  
+  .tab-item {
+    color: #ccc;
   }
-
-  .logo-icon {
-    font-size: 1.5rem;
-  }
-
-  .logo-text {
-    font-size: 1.2rem;
-  }
-
-  .header-actions {
-    gap: 4px;
-  }
-
-  .notifications-dropdown {
-    width: calc(100vw - 16px);
-    right: 8px;
-    left: 8px;
-  }
-
-  .mobile-nav {
-    width: calc(100vw - 40px);
-    max-width: 280px;
+  
+  .tab-item.active {
+    color: #64b5f6;
   }
 }
 
-/* Mobile Navigation Styles */
-.mobile-nav-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 998;
-  opacity: 0;
-  visibility: hidden;
-  transition: all 0.3s ease;
+/* Анимации */
+.tab-item {
+  transition: all 0.2s ease;
 }
 
-.mobile-nav-overlay.active {
-  opacity: 1;
-  visibility: visible;
-}
-
-.mobile-nav {
-  position: fixed;
-  top: 0;
-  right: -100%;
-  width: 300px;
-  height: 100%;
-  background: var(--glass-bg);
-  backdrop-filter: blur(20px);
-  border-left: 1px solid var(--glass-border);
-  z-index: 999;
-  transition: right 0.3s ease;
-  overflow-y: auto;
-}
-
-.mobile-nav.active {
-  right: 0;
-}
-
-.mobile-nav-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20px;
-  border-bottom: 1px solid var(--glass-border);
-}
-
-.mobile-nav-header h3 {
-  color: var(--color-text-primary);
-  font-size: 1.2rem;
-  font-weight: 700;
-}
-
-.close-mobile-menu {
-  background: none;
-  border: none;
-  color: var(--color-text-primary);
-  font-size: 1.5rem;
-  cursor: pointer;
-  padding: 8px;
-  border-radius: 50%;
-  transition: background 0.2s;
-}
-
-.close-mobile-menu:hover {
-  background: var(--glass-bg-hover);
-}
-
-.mobile-nav-content {
-  padding: 20px;
-}
-
-/* Mobile Quick Actions */
-.mobile-quick-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-bottom: 24px;
-}
-
-.mobile-urgent-btn,
-.mobile-notifications-btn {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 16px;
-  background: var(--glass-bg-hover);
-  border: 1px solid var(--glass-border);
-  border-radius: 12px;
-  text-decoration: none;
-  color: var(--color-text-primary);
-  transition: all 0.2s;
-  cursor: pointer;
-}
-
-.mobile-urgent-btn {
-  background: var(--color-urgent-bg);
-  color: white;
-}
-
-.mobile-urgent-btn:hover,
-.mobile-notifications-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
-}
-
-.urgent-icon,
-.bell-icon {
-  font-size: 1.2rem;
-}
-
-/* Mobile Navigation Items */
-.mobile-nav-items {
-  margin-bottom: 24px;
-}
-
-.mobile-nav-link {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 16px;
-  color: var(--color-text-secondary);
-  text-decoration: none;
-  border-radius: 12px;
-  transition: all 0.2s;
-  margin-bottom: 8px;
-}
-
-.mobile-nav-link:hover {
-  background: var(--glass-bg-hover);
-  color: var(--color-text-primary);
-}
-
-.mobile-nav-link.active {
-  background: var(--glass-bg-hover);
-  color: var(--color-text-primary);
-  border: 1px solid var(--color-primary);
-}
-
-.mobile-nav-link .nav-icon {
-  font-size: 1.2rem;
-}
-
-/* Mobile Profile Section */
-.mobile-profile-section {
-  border-top: 1px solid var(--glass-border);
-  padding-top: 20px;
-}
-
-.mobile-profile-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
-}
-
-.mobile-avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  object-fit: cover;
-}
-
-.mobile-user-name {
-  font-weight: 600;
-  color: var(--color-text-primary);
-  display: block;
-}
-
-.mobile-user-role {
-  color: var(--color-text-muted);
-  font-size: 0.85rem;
-}
-
-.mobile-profile-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.mobile-profile-link,
-.mobile-logout-btn {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px;
-  color: var(--color-text-secondary);
-  text-decoration: none;
-  border-radius: 8px;
-  transition: all 0.2s;
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 1rem;
-}
-
-.mobile-profile-link:hover,
-.mobile-logout-btn:hover {
-  background: var(--glass-bg-hover);
-  color: var(--color-text-primary);
-}
-
-.mobile-logout-btn {
-  color: var(--color-danger);
-}
-
-.mobile-logout-btn:hover {
-  background: rgba(239, 68, 68, 0.1);
-}
-
-/* Mobile Auth Section */
-.mobile-auth-section {
-  border-top: 1px solid var(--glass-border);
-  padding-top: 20px;
-}
-
-.mobile-auth-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  width: 100%;
-  padding: 16px;
-  background: var(--gradient-header);
-  color: white;
-  text-decoration: none;
-  border-radius: 12px;
-  font-weight: 600;
-  transition: all 0.2s;
-}
-
-.mobile-auth-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-lg);
+.tab-item:active {
+  transform: scale(0.95);
 }
 </style>

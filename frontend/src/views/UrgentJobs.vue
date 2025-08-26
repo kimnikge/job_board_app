@@ -1,31 +1,38 @@
 <template>
   <div class="urgent-jobs-page">
-    <div class="page-container">
-      <header class="urgent-header">
-        <h1>⚡ Срочные вакансии</h1>
-        <p>Требуются сотрудники срочно в заведения Астаны!</p>
-      </header>
-      
-      <div class="loading" v-if="isLoading">
-        Загружаю срочные вакансии...
+    <div class="page-header">
+      <h1>⚡ Срочные вакансии</h1>
+      <p>Найди работу на сегодня!</p>
+    </div>
+    
+    <div class="page-content">
+      <div class="loading-state" v-if="isLoading">
+        <div class="loading-spinner"></div>
+        <p>Загружаем срочные вакансии...</p>
       </div>
       
-      <div class="error" v-else-if="error">
-        Ошибка загрузки: {{ error }}
+      <div class="error-state" v-else-if="error">
+        <div class="error-icon">⚠️</div>
+        <h3>Упс! Что-то пошло не так</h3>
+        <p>{{ error }}</p>
+        <button @click="loadUrgentJobs" class="retry-btn">Попробовать снова</button>
       </div>
       
-      <div class="urgent-jobs-list" v-else>
+      <div class="jobs-list" v-else>
         <UrgentJobCard 
           v-for="job in urgentJobs" 
           :key="job.id" 
           :job="job"
           @ready-click="handleReadyClick"
           @share="handleShare"
+          class="job-item"
         />
         
-        <div v-if="urgentJobs.length === 0" class="no-jobs">
-          <h3>🎯 Срочных вакансий сейчас нет</h3>
-          <p>Проверьте позже или создайте свою срочную вакансию</p>
+        <div v-if="urgentJobs.length === 0" class="empty-state">
+          <div class="empty-icon">🎯</div>
+          <h3>Пока нет срочных вакансий</h3>
+          <p>Заходи позже или создай свою вакансию</p>
+          <router-link to="/jobs" class="explore-btn">Посмотреть все вакансии</router-link>
         </div>
       </div>
     </div>
@@ -166,77 +173,117 @@ onMounted(() => {
 <style scoped>
 .urgent-jobs-page {
   min-height: 100vh;
-  padding: 2rem;
-  background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+  background: #f8f9fa;
+  padding-top: 60px; /* Отступ для фиксированного заголовка */
+  padding-bottom: 80px; /* Отступ для нижней навигации */
 }
 
-.page-container {
-  max-width: 1200px;
+.page-header {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ff8e8e 100%);
+  padding: 24px 16px;
+  color: white;
+  text-align: center;
+}
+
+.page-header h1 {
+  font-size: 24px;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+}
+
+.page-header p {
+  font-size: 14px;
+  margin: 0;
+  opacity: 0.9;
+}
+
+.page-content {
+  padding: 16px;
+  max-width: 400px;
   margin: 0 auto;
 }
 
-.urgent-header {
+/* Состояние загрузки */
+.loading-state {
   text-align: center;
-  margin-bottom: 3rem;
-  color: white;
+  padding: 40px 20px;
 }
 
-.urgent-header h1 {
-  font-size: 3rem;
-  margin-bottom: 1rem;
-  background: linear-gradient(45deg, #ff6b6b, #feca57);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #e3e3e3;
+  border-top: 3px solid #ff6b6b;
+  border-radius: 50%;
+  margin: 0 auto 16px auto;
+  animation: spin 1s linear infinite;
 }
 
-.urgent-header p {
-  font-size: 1.2rem;
-  opacity: 0.8;
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
-.loading, .error {
+.loading-state p {
+  color: #666;
+  font-size: 14px;
+}
+
+/* Состояние ошибки */
+.error-state {
   text-align: center;
-  padding: 3rem;
+  padding: 40px 20px;
+  background: white;
+  border-radius: 16px;
+  margin: 16px 0;
+}
+
+.error-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.error-state h3 {
+  color: #333;
+  font-size: 18px;
+  margin: 0 0 8px 0;
+}
+
+.error-state p {
+  color: #666;
+  font-size: 14px;
+  margin: 0 0 20px 0;
+}
+
+.retry-btn {
+  background: #ff6b6b;
   color: white;
-  font-size: 1.2rem;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
 }
 
-.error {
-  color: #ff6b6b;
+.retry-btn:hover {
+  background: #ff5252;
+  transform: translateY(-1px);
 }
 
-.urgent-jobs-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
-  gap: 2rem;
-  margin-top: 2rem;
+/* Список вакансий */
+.jobs-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
-.no-jobs {
-  grid-column: 1 / -1;
-  text-align: center;
-  padding: 4rem 2rem;
-  color: white;
+.job-item {
+  animation: slideInUp 0.4s ease-out;
 }
 
-.no-jobs h3 {
-  font-size: 2rem;
-  margin-bottom: 1rem;
-  opacity: 0.8;
-}
-
-.no-jobs p {
-  font-size: 1.1rem;
-  opacity: 0.6;
-}
-
-/* Анимации появления */
-.urgent-job-card {
-  animation: slideUpFade 0.6s ease-out;
-}
-
-@keyframes slideUpFade {
+@keyframes slideInUp {
   from {
     opacity: 0;
     transform: translateY(20px);
@@ -247,81 +294,102 @@ onMounted(() => {
   }
 }
 
-/* Responsive Design согласно плану разработки */
+/* Пустое состояние */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  background: white;
+  border-radius: 16px;
+  margin: 16px 0;
+}
+
+.empty-icon {
+  font-size: 64px;
+  margin-bottom: 20px;
+}
+
+.empty-state h3 {
+  color: #333;
+  font-size: 20px;
+  margin: 0 0 8px 0;
+  font-weight: 600;
+}
+
+.empty-state p {
+  color: #666;
+  font-size: 14px;
+  margin: 0 0 24px 0;
+}
+
+.explore-btn {
+  display: inline-block;
+  background: #1976d2;
+  color: white;
+  text-decoration: none;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.explore-btn:hover {
+  background: #1565c0;
+  transform: translateY(-1px);
+}
+
+/* Мобильная адаптация */
 @media (max-width: 480px) {
-  .urgent-jobs-page {
-    padding: 0.5rem;
+  .page-content {
+    padding: 12px;
   }
 
-  .page-container {
-    padding: 1rem;
-  }
-  
-  .urgent-header {
-    text-align: center;
-    margin-bottom: 1.5rem;
+  .page-header {
+    padding: 20px 16px;
   }
 
-  .urgent-header h1 {
-    font-size: 1.8rem;
-    line-height: 1.2;
-    margin-bottom: 0.5rem;
+  .page-header h1 {
+    font-size: 20px;
   }
 
-  .urgent-header p {
-    font-size: 0.9rem;
-    line-height: 1.4;
-  }
-  
-  .urgent-jobs-list {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-    margin-top: 1rem;
+  .loading-state,
+  .error-state,
+  .empty-state {
+    margin: 12px 0;
+    padding: 32px 16px;
   }
 
-  .no-jobs {
-    padding: 2rem 1rem;
+  .empty-icon {
+    font-size: 48px;
   }
 
-  .no-jobs h3 {
-    font-size: 1.5rem;
+  .empty-state h3 {
+    font-size: 18px;
   }
 
-  .no-jobs p {
-    font-size: 1rem;
-  }
-
-  .loading, .error {
-    text-align: center;
-    padding: 2rem 1rem;
-    font-size: 1rem;
+  .jobs-list {
+    gap: 8px;
   }
 }
 
-@media (max-width: 768px) {
-  .urgent-jobs-page {
-    padding: 1rem;
+/* Очень маленькие экраны */
+@media (max-width: 320px) {
+  .page-content {
+    padding: 8px;
   }
-  
-  .urgent-header h1 {
-    font-size: 2rem;
-  }
-  
-  .urgent-jobs-list {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
-  }
-}
 
-@media (max-width: 1024px) {
-  .urgent-jobs-list {
-    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  .page-header {
+    padding: 16px 12px;
   }
-}
 
-@media (max-width: 1200px) {
-  .urgent-jobs-list {
-    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+  .page-header h1 {
+    font-size: 18px;
+  }
+
+  .empty-state,
+  .error-state,
+  .loading-state {
+    padding: 24px 12px;
   }
 }
 </style>
