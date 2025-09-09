@@ -7,7 +7,7 @@ import { ROLES } from '@/constants/roles.js'
 
 // Главная страница (из modules/home перенесена в views/)
 const HomeView = () => import('@/views/HomeView.vue') // Главная PWA страница
-const Jobs = () => import('@/views/Jobs.vue') // Список вакансий
+const JobsMainPage = () => import('@/views/JobsMainPage.vue') // Список вакансий
 
 // Страницы вакансий  
 const UrgentJobs = () => import('@/views/UrgentJobs.vue')
@@ -25,56 +25,93 @@ const DataTest = () => import('@/views/DataTest.vue')
 const R4TestPage = () => import('@/views/R4TestPage.vue')
 // Демо страница уведомлений
 const NotificationsDemo = () => import('@/views/NotificationsDemo.vue')
+// Тестирование интеграций
+const IntegrationTest = () => import('@/views/IntegrationTest.vue')
+// Тестирование фильтров
+const FiltersTest = () => import('@/views/FiltersTest.vue')
 
 // Страницы компаний
 const Companies = () => import('@/views/Companies.vue')
 const CompanyDetail = () => import('@/views/CompanyDetail.vue')
-const Dashboard = () => import('@/views/Dashboard.vue')
+const DashboardPage = () => import('@/views/DashboardPage.vue')
 // R5 Employer Dashboard pages
 const EmployerBadges = () => import('@/views/EmployerBadges.vue')
 const EmployerEmployees = () => import('@/views/EmployerEmployees.vue')
 const BadgeCatalog = () => import('@/views/BadgeCatalog.vue')
 
+// Admin pages
+const AdminMonetization = () => import('@/views/AdminMonetization.vue')
+
 // Layouts
 const MainLayout = () => import('@/layouts/MainLayout.vue')
-const AuthLayout = () => import('@/layouts/AuthLayout.vue')
 
-// Auth компоненты (перенесены в новую структуру)
-const LoginForm = () => import('@/components/auth/LoginForm.vue')
-const RegisterForm = () => import('@/components/auth/RegisterForm.vue')
-const ResetPassword = () => import('@/components/auth/ResetPassword.vue')
+// Auth страница (Telegram Login только)
+const AuthPage = () => import('@/views/AuthPage.vue')
+const AuthCallback = () => import('@/views/AuthCallback.vue')
 
-// ✨ ПРОСТЫЕ МАРШРУТЫ - СОГЛАСНО ПЛАНУ
+// ✨ ПРОСТЫЕ МАРШРУТЫ - СОГЛАСНО ТЗ: ВСЕ СТРАНИЦЫ ТРЕБУЮТ АВТОРИЗАЦИИ
 const routes = [
-  // Главная страница (PWA интерфейс)
+  // Страница авторизации (единственная НЕ защищенная)
+  { 
+    path: '/auth', 
+    component: AuthPage,
+    meta: { 
+      title: 'Вход через Telegram',
+      guest: true // Только для неавторизованных
+    }
+  },
+  
+  // Callback страница для Telegram авторизации
+  { 
+    path: '/auth/callback', 
+    component: AuthCallback,
+    meta: { 
+      title: 'Завершение авторизации',
+      guest: true // Доступна без авторизации для завершения входа
+    }
+  },
+  
+  // Главная страница (PWA интерфейс) - ТРЕБУЕТ АВТОРИЗАЦИИ
   { 
     path: '/', 
     component: HomeView,
-    meta: { title: 'Job Board - Работа мечты' }
+    meta: { 
+      title: 'ShiftworkKZ - Работа мечты',
+      requiresAuth: true
+    }
   },
   
-  // Список всех вакансий
+  // Список всех вакансий - ТРЕБУЕТ АВТОРИЗАЦИИ
   { 
     path: '/jobs', 
-    component: Jobs,
-    meta: { title: 'Все вакансии' }
+    component: JobsMainPage,
+    meta: { 
+      title: 'Все вакансии',
+      requiresAuth: true
+    }
   },
   
-  // Резюме (пока перенаправляем на профиль)
+  // Резюме (пока перенаправляем на профиль) - ТРЕБУЕТ АВТОРИЗАЦИИ
   { 
     path: '/resumes', 
     redirect: '/profile',
-    meta: { title: 'Резюме' }
+    meta: { 
+      title: 'Резюме',
+      requiresAuth: true
+    }
   },
   
-  // Срочные вакансии
+  // Срочные вакансии - ТРЕБУЕТ АВТОРИЗАЦИИ
   { 
     path: '/urgent', 
     component: UrgentJobs,
-    meta: { title: 'Срочные вакансии' }
+    meta: { 
+      title: 'Срочные вакансии',
+      requiresAuth: true
+    }
   },
   
-  // Создание вакансии
+  // Создание вакансии - ТРЕБУЕТ АВТОРИЗАЦИИ + РОЛЬ РАБОТОДАТЕЛЯ
   { 
     path: '/jobs/create', 
     component: JobCreate,
@@ -85,154 +122,152 @@ const routes = [
     }
   },
   
-  // Детали вакансии
+  // Детали вакансии - ТРЕБУЕТ АВТОРИЗАЦИИ
   { 
-  path: '/jobs/:id', 
-  name: 'job-details',
-  component: JobDetail,
-    meta: { title: 'Детали вакансии' }
+    path: '/jobs/:id', 
+    name: 'job-details',
+    component: JobDetail,
+    meta: { 
+      title: 'Детали вакансии',
+      requiresAuth: true
+    }
   },
   
-  // Профиль пользователя
+  // Профиль пользователя - ТРЕБУЕТ АВТОРИЗАЦИИ
   { 
     path: '/profile', 
     component: Profile,
     meta: { 
-      title: 'Мой профиль',
+      title: 'Профиль',
       requiresAuth: true
     }
   },
-  {
-    path: '/u/:id',
+  
+  // Публичный профиль - ТРЕБУЕТ АВТОРИЗАЦИИ
+  { 
+    path: '/profiles/:id', 
     component: PublicProfile,
-    meta: { title: 'Профиль пользователя' }
-  },
-
-  // Тестовая страница данных
-  { 
-    path: '/test-data', 
-    component: DataTest,
-    meta: { title: 'Тест данных' }
-  },
-
-  // R4: Тестовая страница геймификации
-  { 
-    path: '/test-r4', 
-    component: R4TestPage,
-    meta: { title: 'R4 Gamification Test' }
-  },
-
-  // Демо страница push-уведомлений
-  { 
-    path: '/notifications-demo', 
-    component: NotificationsDemo,
-    meta: { title: 'Push-уведомления Demo' }
+    meta: { 
+      title: 'Профиль пользователя',
+      requiresAuth: true
+    }
   },
   
-  // Резюме пользователя
+  // Резюме - ТРЕБУЕТ АВТОРИЗАЦИИ
   { 
     path: '/resume', 
     component: Resume,
     meta: { 
-      title: 'Мое резюме',
-      requiresAuth: true,
-      userType: ROLES.CANDIDATE
+      title: 'Моё резюме',
+      requiresAuth: true
     }
   },
   
-  // Список заведений
+  // Компании - ТРЕБУЕТ АВТОРИЗАЦИИ
   { 
     path: '/companies', 
     component: Companies,
-    meta: { title: 'Заведения Астаны' }
+    meta: { 
+      title: 'Компании',
+      requiresAuth: true
+    }
   },
   
-  // Детали заведения
+  // Детали компании - ТРЕБУЕТ АВТОРИЗАЦИИ
   { 
     path: '/companies/:id', 
     component: CompanyDetail,
-    meta: { title: 'О заведении' }
+    meta: { 
+      title: 'О компании',
+      requiresAuth: true
+    }
   },
   
-  // Дашборд работодателя
+  // Dashboard работодателя - ТРЕБУЕТ АВТОРИЗАЦИИ + РОЛЬ РАБОТОДАТЕЛЯ
   { 
     path: '/dashboard', 
-    component: Dashboard,
+    component: DashboardPage,
     meta: { 
       title: 'Панель управления',
       requiresAuth: true,
       userType: ROLES.EMPLOYER
     }
   },
-  // R5: Employer dashboard sub-pages
-  {
-    path: '/employer/badges',
+  
+  // Бейджи работодателя - ТРЕБУЕТ АВТОРИЗАЦИИ + РОЛЬ РАБОТОДАТЕЛЯ
+  { 
+    path: '/employer/badges', 
     component: EmployerBadges,
-    meta: {
-      title: 'Корпоративные бейджи',
+    meta: { 
+      title: 'Бейджи',
       requiresAuth: true,
       userType: ROLES.EMPLOYER
     }
   },
-  {
-    path: '/employer/employees',
+  
+  // Сотрудники работодателя - ТРЕБУЕТ АВТОРИЗАЦИИ + РОЛЬ РАБОТОДАТЕЛЯ
+  { 
+    path: '/employer/employees', 
     component: EmployerEmployees,
-    meta: {
+    meta: { 
       title: 'Сотрудники',
       requiresAuth: true,
       userType: ROLES.EMPLOYER
     }
   },
-  {
-    path: '/badges/catalog',
+  
+  // Каталог бейджей - ТРЕБУЕТ АВТОРИЗАЦИИ
+  { 
+    path: '/badges', 
     component: BadgeCatalog,
-    meta: {
-      title: 'Каталог бейджей'
+    meta: { 
+      title: 'Каталог бейджей',
+      requiresAuth: true
     }
   },
 
-  // Авторизация (с layout)
-  {
-    path: '/auth',
-    component: AuthLayout,
-    children: [
-      { 
-        path: 'login', 
-        name: 'login',
-        component: LoginForm,
-        meta: { 
-          title: 'Вход',
-          guest: true
-        }
-      },
-      { 
-        path: 'register', 
-        name: 'register',
-        component: RegisterForm,
-        meta: { 
-          title: 'Регистрация',
-          guest: true
-        }
-      },
-      { 
-        path: 'reset-password', 
-        name: 'reset-password',
-        component: ResetPassword,
-        meta: { 
-          title: 'Сброс пароля',
-          guest: true
-        }
-      }
-    ]
-  },
-  {
-    path: '/employer/statistics',
-    component: () => import('@/views/CompanyStatistics.vue'),
-    meta: {
-      title: 'Статистика компании',
+  // Админка монетизации - ТРЕБУЕТ АВТОРИЗАЦИИ + РОЛЬ АДМИНА
+  { 
+    path: '/admin/monetization', 
+    component: AdminMonetization,
+    meta: { 
+      title: 'Управление монетизацией',
       requiresAuth: true,
-      userType: ROLES.EMPLOYER
+      userType: ROLES.ADMIN
     }
+  },
+
+  // ТЕСТОВЫЕ СТРАНИЦЫ - ВРЕМЕННО ДОСТУПНЫ БЕЗ АВТОРИЗАЦИИ ДЛЯ РАЗРАБОТКИ
+  { 
+    path: '/test/data', 
+    component: DataTest,
+    meta: { title: 'Тест данных' }
+  },
+  { 
+    path: '/test/r4', 
+    component: R4TestPage,
+    meta: { title: 'Тест R4' }
+  },
+  { 
+    path: '/test/notifications', 
+    component: NotificationsDemo,
+    meta: { title: 'Тест уведомлений' }
+  },
+  { 
+    path: '/test/integration', 
+    component: IntegrationTest,
+    meta: { title: 'Тест интеграций' }
+  },
+  { 
+    path: '/test/filters', 
+    component: FiltersTest,
+    meta: { title: 'Тест фильтров' }
+  },
+
+  // Редирект неизвестных маршрутов на главную
+  {
+    path: '/:pathMatch(.*)*',
+    redirect: '/'
   }
 ]
 
@@ -241,12 +276,12 @@ const router = createRouter({
   routes
 })
 
-// ✨ ПРОСТОЙ ROUTER GUARD
+// ✨ ROUTER GUARD СОГЛАСНО ТЗ: ЕДИНСТВЕННЫЙ СПОСОБ ВХОДА - TELEGRAM LOGIN
 router.beforeEach(async (to, from, next) => {
   // Установка заголовка страницы
-  document.title = to.meta.title ? `${to.meta.title} | Job Board Астана` : 'Job Board Астана'
+  document.title = to.meta.title ? `${to.meta.title} | ShiftworkKZ Астана` : 'ShiftworkKZ Астана'
 
-  // Проверка авторизации (упрощенная) - только если нужна
+  // Проверка авторизации - ключевая логика согласно ТЗ
   if (to.meta.requiresAuth || to.meta.guest || to.meta.userType) {
     try {
       // Динамически импортируем store только когда нужно
@@ -256,23 +291,29 @@ router.beforeEach(async (to, from, next) => {
       const isAuthenticated = !!authStore.user
       const userType = authStore.user?.user_metadata?.user_type
 
-      // Защищенные маршруты
+      // ГЛАВНАЯ ПРОВЕРКА: Защищенные маршруты требуют авторизации
       if (to.meta.requiresAuth && !isAuthenticated) {
-        return next({ path: '/auth/login', query: { redirect: to.fullPath } })
+        console.log('Пользователь не авторизован, перенаправляем на /auth')
+        return next({ path: '/auth', query: { redirect: to.fullPath } })
       }
 
-      // Гостевые маршруты
+      // Гостевые маршруты (страница авторизации) недоступны авторизованным
       if (to.meta.guest && isAuthenticated) {
+        console.log('Пользователь уже авторизован, перенаправляем на главную')
         return next({ path: '/' })
       }
 
-      // Проверка типа пользователя
+      // Проверка типа пользователя (роли)
       if (to.meta.userType && to.meta.userType !== userType) {
+        console.log(`Нет прав доступа. Требуется: ${to.meta.userType}, у пользователя: ${userType}`)
         return next({ path: '/' })
       }
     } catch (error) {
       console.warn('Auth check failed:', error)
-      // В случае ошибки просто пропускаем
+      // В случае ошибки авторизации перенаправляем на страницу входа
+      if (to.meta.requiresAuth) {
+        return next({ path: '/auth', query: { redirect: to.fullPath } })
+      }
     }
   }
 

@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { authService } from '../services/auth.service.js'
 
-// ✨ УПРОЩЕННЫЙ AUTH STORE - СОГЛАСНО ПЛАНУ ЭТАПА 3
+// ✨ AUTH STORE СОГЛАСНО ТЗ: ЕДИНСТВЕННЫЙ СПОСОБ ВХОДА - TELEGRAM LOGIN
 export const useAuthStore = defineStore('auth', () => {
   // Состояние
   const user = ref(null)
@@ -14,12 +14,17 @@ export const useAuthStore = defineStore('auth', () => {
   const userType = computed(() => user.value?.user_metadata?.user_type || null)
   const isCandidate = computed(() => userType.value === 'candidate')
   const isEmployer = computed(() => userType.value === 'employer')
+  const isAdmin = computed(() => userType.value === 'admin')
   
   // Действия
   const fetchUser = async () => {
     try {
       const { data, error } = await authService.getCurrentUser()
-      if (error) throw error
+      
+      // Игнорируем ошибки отсутствия сессии - это нормально для неавторизованных
+      if (error && !error.message?.includes('Auth session missing')) {
+        console.error('Ошибка загрузки пользователя:', error)
+      }
       
       user.value = data?.user || null
     } catch (err) {
@@ -28,41 +33,13 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
   
-  const login = async (credentials) => {
+  // ГЛАВНАЯ ФУНКЦИЯ: Авторизация через Telegram
+  const loginWithTelegram = async (telegramData) => {
     try {
       loading.value = true
       error.value = null
       
-      const { data, error: authError } = await authService.login(
-        credentials.email,
-        credentials.password
-      )
-      
-      if (authError) throw authError
-      
-      user.value = data?.user || null
-      return { success: true }
-    } catch (err) {
-      error.value = err.message
-      return { success: false, error: err.message }
-    } finally {
-      loading.value = false
-    }
-  }
-  
-  const register = async (credentials) => {
-    try {
-      loading.value = true
-      error.value = null
-      
-      const { data, error: authError } = await authService.register(
-        credentials.email,
-        credentials.password,
-        {
-          user_type: credentials.userType,
-          full_name: credentials.fullName
-        }
-      )
+      const { data, error: authError } = await authService.loginWithTelegram(telegramData)
       
       if (authError) throw authError
       
@@ -89,24 +66,35 @@ export const useAuthStore = defineStore('auth', () => {
       loading.value = false
     }
   }
-  
-  const resetPassword = async (email) => {
+
+  // Устанавливаем сессию (для callback от Telegram)
+  const setSession = async (sessionData) => {
     try {
       loading.value = true
+      
+      // Используем authService для установки сессии
+      const { data, error } = await authService.setSession(sessionData)
+      
+      if (error) throw error
+      
+      user.value = data?.user || null
       error.value = null
-
-      const { error: resetError } = await authService.resetPassword(email)
-      if (resetError) throw resetError
       
       return { success: true }
     } catch (err) {
       error.value = err.message
+      console.error('Ошибка установки сессии:', err)
       return { success: false, error: err.message }
     } finally {
       loading.value = false
     }
   }
   
+  // Очистка ошибок
+  const clearError = () => {
+    error.value = null
+  }
+
   // Инициализация
   const init = () => {
     // Слушаем изменения авторизации через сервис
@@ -120,7 +108,7 @@ export const useAuthStore = defineStore('auth', () => {
     // Загружаем текущего пользователя
     fetchUser()
   }
-  
+
   return {
     // Состояние
     user,
@@ -132,13 +120,14 @@ export const useAuthStore = defineStore('auth', () => {
     userType,
     isCandidate,
     isEmployer,
+    isAdmin,
     
     // Действия
     fetchUser,
-    login,
-    register,
+    loginWithTelegram,
     logout,
-    resetPassword,
+    setSession,
+    clearError,
     init
   }
 })

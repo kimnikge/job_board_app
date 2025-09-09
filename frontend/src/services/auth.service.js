@@ -1,82 +1,44 @@
-// ✨ API АВТОРИЗАЦИИ - ЭТАП 4.1.2
+// ✨ API АВТОРИЗАЦИИ СОГЛАСНО ТЗ: ЕДИНСТВЕННЫЙ СПОСОБ ВХОДА - TELEGRAM LOGIN
 import { supabase, isDemoMode } from './supabase.js'
 import { notificationsService } from './notifications.service.js'
 
-// 🔐 Авторизация и регистрация
+// 🔐 Авторизация через Telegram
 export const authService = {
-  // Вход в систему
-  async login(email, password) {
+  // ГЛАВНАЯ ФУНКЦИЯ: Вход через Telegram
+  async loginWithTelegram(telegramData) {
     try {
       if (isDemoMode) {
-        // Demo режим - возвращаем фиктивного пользователя
+        // Demo режим - сохраняем пользователя в localStorage
+        const demoUser = {
+          id: `demo-user-${telegramData.id}`,
+          user_metadata: { 
+            user_type: 'candidate', 
+            full_name: telegramData.first_name + (telegramData.last_name ? ' ' + telegramData.last_name : ''),
+            telegram_id: telegramData.id,
+            telegram_username: telegramData.username,
+            telegram_photo_url: telegramData.photo_url
+          }
+        }
+        
+        // Сохраняем сессию в localStorage
+        localStorage.setItem('demo-session', JSON.stringify(demoUser))
+        
         return {
-          data: {
-            user: {
-              id: 'demo-user',
-              email: email,
-              user_metadata: { user_type: 'candidate', full_name: 'Demo User' }
-            }
-          },
+          data: { user: demoUser },
           error: null
         }
       }
 
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
+      // Вызываем Edge Function для обработки Telegram Login
+      const { data, error } = await supabase.functions.invoke('telegram-login', {
+        body: telegramData // Передаем данные напрямую
       })
 
-      return { data, error }
+      if (error) throw error
+
+      return { data, error: null }
     } catch (error) {
-      console.error('Login error:', error)
-      return { data: null, error }
-    }
-  },
-
-  // Регистрация
-  async register(email, password, userData) {
-    try {
-      if (isDemoMode) {
-        // Отправка приветственного уведомления в demo режиме
-        try {
-          await notificationsService.notifyWelcome('demo-user-new', userData)
-        } catch (notifyError) {
-          console.log('Demo notification error:', notifyError)
-        }
-
-        // Demo режим
-        return {
-          data: {
-            user: {
-              id: 'demo-user-new',
-              email: email,
-              user_metadata: userData
-            }
-          },
-          error: null
-        }
-      }
-
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: userData
-        }
-      })
-
-      // Отправка приветственного уведомления при успешной регистрации
-      if (data?.user && !error) {
-        try {
-          await notificationsService.notifyWelcome(data.user.id, userData)
-        } catch (notifyError) {
-          console.warn('Welcome notification error:', notifyError)
-        }
-      }
-
-      return { data, error }
-    } catch (error) {
-      console.error('Register error:', error)
+      console.error('Telegram login error:', error)
       return { data: null, error }
     }
   },
@@ -85,6 +47,8 @@ export const authService = {
   async logout() {
     try {
       if (isDemoMode) {
+        // В demo режиме просто удаляем сессию из localStorage
+        localStorage.removeItem('demo-session')
         return { error: null }
       }
 
@@ -100,19 +64,35 @@ export const authService = {
   async getCurrentUser() {
     try {
       if (isDemoMode) {
+        // В demo режиме тоже требуем авторизацию!
+        // Проверяем есть ли сохраненная сессия в localStorage
+        const savedSession = localStorage.getItem('demo-session')
+        if (savedSession) {
+          return {
+            data: {
+              user: JSON.parse(savedSession)
+            },
+            error: null
+          }
+        }
+        
+        // Если нет сессии - пользователь не авторизован
         return {
-          data: {
-            user: {
-              id: 'demo-user',
-              email: 'demo@example.com',
-              user_metadata: { user_type: 'candidate', full_name: 'Demo User' }
-            }
-          },
+          data: { user: null },
           error: null
         }
       }
 
       const { data, error } = await supabase.auth.getUser()
+      
+      // В production режиме AuthSessionMissingError это нормально - пользователь не авторизован
+      if (error && error.message.includes('Auth session missing')) {
+        return {
+          data: { user: null },
+          error: null
+        }
+      }
+      
       return { data, error }
     } catch (error) {
       console.error('Get user error:', error)
@@ -120,32 +100,47 @@ export const authService = {
     }
   },
 
-  // Сброс пароля
-  async resetPassword(email) {
+  // Установка сессии (для callback от Telegram)
+  async setSession(sessionData) {
     try {
       if (isDemoMode) {
-        return { error: null }
+        return {
+          data: {
+            user: {
+              id: 'demo-user',
+              user_metadata: { 
+                user_type: 'candidate', 
+                full_name: 'Demo User',
+                telegram_id: 123456789,
+                telegram_username: 'demouser'
+              }
+            }
+          },
+          error: null
+        }
       }
 
-      const { error } = await supabase.auth.resetPasswordForEmail(email)
-      return { error }
+      const { data, error } = await supabase.auth.setSession({
+        access_token: sessionData.access_token,
+        refresh_token: sessionData.refresh_token
+      })
+      
+      return { data, error }
     } catch (error) {
-      console.error('Reset password error:', error)
-      return { error }
+      console.error('Set session error:', error)
+      return { data: null, error }
     }
   },
 
   // Подписка на изменения авторизации
   onAuthStateChange(callback) {
     if (isDemoMode) {
-      // В demo режиме просто вызываем callback с demo данными
-      callback('SIGNED_IN', {
-        user: {
-          id: 'demo-user',
-          email: 'demo@example.com',
-          user_metadata: { user_type: 'candidate', full_name: 'Demo User' }
-        }
-      })
+      // В demo режиме не автоматически авторизуем, пользователь должен нажать кнопку
+      // Проверяем сохраненную сессию
+      const savedSession = localStorage.getItem('demo-session')
+      if (savedSession) {
+        callback('SIGNED_IN', { user: JSON.parse(savedSession) })
+      }
       return { data: { subscription: { unsubscribe: () => {} } } }
     }
 
@@ -153,4 +148,4 @@ export const authService = {
   }
 }
 
-console.log('✅ Auth service initialized')
+console.log('✅ Auth service initialized (Telegram Login only)')
