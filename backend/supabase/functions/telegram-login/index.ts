@@ -61,9 +61,11 @@ serve(async (req: Request) => {
         )
         .join("\n");
 
-      // Создаем secret key из bot token
+      // Создаем secret key из bot token согласно Telegram Login Widget API
       const encoder = new TextEncoder();
-      const key = await crypto.subtle.importKey(
+      
+      // Шаг 1: Создаем ключ из строки "WebAppData"
+      const webAppDataKey = await crypto.subtle.importKey(
         "raw",
         encoder.encode("WebAppData"),
         { name: "HMAC", hash: "SHA-256" },
@@ -71,26 +73,30 @@ serve(async (req: Request) => {
         ["sign"],
       );
 
-      const tokenKey = await crypto.subtle.importKey(
-        "raw",
+      // Шаг 2: Создаем secret key из bot token
+      const secretKeyBuffer = await crypto.subtle.sign(
+        "HMAC",
+        webAppDataKey,
         encoder.encode(botToken),
+      );
+
+      // Шаг 3: Импортируем secret key для финального хеширования
+      const secretKey = await crypto.subtle.importKey(
+        "raw",
+        secretKeyBuffer,
         { name: "HMAC", hash: "SHA-256" },
         false,
         ["sign"],
       );
 
-      const secretKey = await crypto.subtle.sign(
+      // Шаг 4: Вычисляем хеш данных
+      const computedHashBuffer = await crypto.subtle.sign(
         "HMAC",
-        key,
-        encoder.encode(botToken),
-      );
-      const computedHash = await crypto.subtle.sign(
-        "HMAC",
-        tokenKey,
+        secretKey,
         encoder.encode(dataCheckString),
       );
 
-      const expectedHash = Array.from(new Uint8Array(computedHash))
+      const expectedHash = Array.from(new Uint8Array(computedHashBuffer))
         .map((b) => b.toString(16).padStart(2, "0"))
         .join("");
 
