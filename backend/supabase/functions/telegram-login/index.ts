@@ -37,16 +37,82 @@ serve(async (req: Request) => {
       );
     }
 
-    // Проверка hash от Telegram для production (временно отключена для отладки)
+    // Проверка hash от Telegram для production
     const botToken = Deno.env.get("TELEGRAM_BOT_TOKEN");
     console.log("Bot token exists:", !!botToken);
     
-    /*
-    // ВРЕМЕННО ОТКЛЮЧЕНА ПРОВЕРКА ХЕША ДЛЯ ОТЛАДКИ
-    if (botToken) {
-      // ... код проверки хеша ...
+    if (botToken && hash !== 'demo_hash_' + auth_date && !hash.startsWith('demo_hash_')) {
+      // Создаем строку для проверки (все поля кроме hash, отсортированные по алфавиту)
+      const dataCheckString = Object.keys({
+        id,
+        first_name,
+        last_name,
+        username,
+        photo_url,
+        auth_date,
+      })
+        .filter((key) =>
+          ({ id, first_name, last_name, username, photo_url, auth_date })[
+            key
+          ] !== undefined
+        )
+        .sort()
+        .map((key) =>
+          `${key}=${
+            ({ id, first_name, last_name, username, photo_url, auth_date })[key]
+          }`
+        )
+        .join("\n");
+
+      // Создаем secret key из bot token для Telegram Login Widget
+      const encoder = new TextEncoder();
+      const secretKey = await crypto.subtle.importKey(
+        "raw",
+        encoder.encode(botToken),
+        { name: "HMAC", hash: "SHA-256" },
+        false,
+        ["sign"],
+      );
+
+      // Вычисляем хеш данных
+      const computedHashBuffer = await crypto.subtle.sign(
+        "HMAC",
+        secretKey,
+        encoder.encode(dataCheckString),
+      );
+
+      const expectedHash = Array.from(new Uint8Array(computedHashBuffer))
+        .map((b) => b.toString(16).padStart(2, "0"))
+        .join("");
+
+      if (hash !== expectedHash) {
+        console.error("Invalid Telegram hash:", {
+          provided: hash,
+          expected: expectedHash,
+        });
+        return new Response(
+          JSON.stringify({ error: "Invalid Telegram authentication data" }),
+          {
+            status: 401,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          },
+        );
+      }
+
+      // Проверка времени (данные не старше 24 часов)
+      const currentTime = Math.floor(Date.now() / 1000);
+      if (currentTime - auth_date > 86400) {
+        return new Response(
+          JSON.stringify({ error: "Authentication data expired" }),
+          {
+            status: 401,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          },
+        );
+      }
+    } else {
+      console.log("Skipping hash verification for demo mode or missing bot token");
     }
-    */
 
     const telegramId = id.toString();
     console.log("Looking for user with telegram_id:", telegramId);

@@ -93,74 +93,82 @@ export default {
     }
     
     const handleTelegramLogin = async () => {
-      console.log('🚀 handleTelegramLogin вызвана!')
+      console.log('🚀 Инициализация Telegram Login Widget')
       
-      // Подробная диагностика Telegram Web App
-      console.log('🔍 Диагностика Telegram:')
-      console.log('- window.Telegram существует:', !!window.Telegram)
-      console.log('- window.Telegram.WebApp существует:', !!(window.Telegram && window.Telegram.WebApp))
-      console.log('- WebApp.initData:', window.Telegram?.WebApp?.initData)
-      console.log('- WebApp.initDataUnsafe:', window.Telegram?.WebApp?.initDataUnsafe)
-      console.log('- WebApp.platform:', window.Telegram?.WebApp?.platform)
-      console.log('- User agent содержит Telegram:', navigator.userAgent.includes('Telegram'))
-      
-      // Проверяем разные способы определения Telegram Web App
-      const isTelegramWebApp = window.Telegram && window.Telegram.WebApp && (
-        window.Telegram.WebApp.initData || 
-        window.Telegram.WebApp.initDataUnsafe ||
-        window.Telegram.WebApp.platform
-      )
-      
-      if (isTelegramWebApp) {
-        console.log('📱 Обнаружен Telegram Web App')
+      // Проверяем, доступен ли Telegram Login Widget
+      if (!window.TelegramLoginWidget) {
+        console.log('⏳ Ожидание загрузки Telegram Login Widget...')
         
-        // Пытаемся получить данные пользователя разными способами
-        let telegramUser = null
-        
-        if (window.Telegram.WebApp.initDataUnsafe?.user) {
-          telegramUser = window.Telegram.WebApp.initDataUnsafe.user
-          console.log('👤 Пользователь из initDataUnsafe:', telegramUser)
-        } else {
-          console.log('📋 Нет данных пользователя, создаю демо-пользователя для тестирования')
-          // Создаем демо-пользователя для локального тестирования
-          telegramUser = {
-            id: Math.floor(Math.random() * 1000000) + 100000, // Случайный ID
-            first_name: 'Demo',
-            last_name: 'User',
-            username: 'demouser_' + Date.now(),
-            photo_url: null
-          }
-          console.log('👤 Создан демо-пользователь:', telegramUser)
-        }
-        
-        // У нас есть пользователь (реальный или демо), пытаемся авторизоваться
-        const telegramData = {
-          id: telegramUser.id,
-          first_name: telegramUser.first_name,
-          last_name: telegramUser.last_name,
-          username: telegramUser.username,
-          photo_url: telegramUser.photo_url,
-          auth_date: Math.floor(Date.now() / 1000),
-          hash: window.Telegram.WebApp.initData || 'demo_hash_' + Date.now()
-        }
-        
-        console.log('🚀 Отправляю данные на авторизацию:', telegramData)
-        
-        try {
-          const result = await authStore.loginWithTelegram(telegramData)
-          if (result.success) {
-            console.log('✅ Авторизация успешна!')
-            router.push('/') // Перенаправляем на главную после успешной авторизации
+        // Небольшая задержка для загрузки виджета
+        setTimeout(() => {
+          if (window.TelegramLoginWidget) {
+            initTelegramWidget()
           } else {
-            console.error('❌ Ошибка авторизации:', result.error)
+            console.error('❌ Telegram Login Widget не загружен')
+            // Fallback - перенаправляем на страницу авторизации
+            router.push('/auth')
           }
-        } catch (error) {
-          console.error('❌ Ошибка при авторизации:', error)
+        }, 1000)
+        return
+      }
+      
+      initTelegramWidget()
+    }
+    
+    const initTelegramWidget = () => {
+      console.log('🔧 Создание Telegram Login Widget')
+      
+      // Создаем временный контейнер для виджета
+      const container = document.createElement('div')
+      container.style.position = 'fixed'
+      container.style.top = '-9999px'
+      container.style.left = '-9999px'
+      document.body.appendChild(container)
+      
+      try {
+        window.TelegramLoginWidget.create(container, {
+          bot_id: '7555643826', // ID нашего бота
+          origin: window.location.origin,
+          embed: 1,
+          request_access: 'write',
+          return_to: `${window.location.origin}/auth/callback`
+        }, (user) => {
+          console.log('✅ Получены данные от Telegram Login Widget:', user)
+          
+          // Убираем временный контейнер
+          document.body.removeChild(container)
+          
+          // Обрабатываем авторизацию
+          handleTelegramCallback(user)
+        })
+        
+        // Программно активируем виджет
+        const iframe = container.querySelector('iframe')
+        if (iframe) {
+          iframe.style.display = 'block'
+          iframe.click()
         }
-      } else {
-        console.log('🌐 Не в Telegram Web App, перенаправляем на /auth')
-        // Если не в Telegram Web App, перенаправляем на страницу авторизации
+        
+      } catch (error) {
+        console.error('❌ Ошибка создания Telegram Widget:', error)
+        document.body.removeChild(container)
         router.push('/auth')
+      }
+    }
+    
+    const handleTelegramCallback = async (telegramUser) => {
+      console.log('🔧 Обработка callback от Telegram:', telegramUser)
+      
+      try {
+        const result = await authStore.loginWithTelegram(telegramUser)
+        if (result.success) {
+          console.log('✅ Авторизация успешна!')
+          router.push('/') // Перенаправляем на главную
+        } else {
+          console.error('❌ Ошибка авторизации:', result.error)
+        }
+      } catch (error) {
+        console.error('❌ Ошибка при авторизации:', error)
       }
     }
     
