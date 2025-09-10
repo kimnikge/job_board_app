@@ -6,21 +6,28 @@ if (globalThis.supabaseClient) {
   console.warn('⚠️ Supabase client already exists, reusing existing instance')
 }
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+// Безопасное получение переменных окружения с fallback
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || ''
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || ''
 const forceDemoEnv = (import.meta.env.VITE_USE_DEMO_MODE || import.meta.env.VITE_USE_DEMO_DATA)
   ? String(import.meta.env.VITE_USE_DEMO_MODE || import.meta.env.VITE_USE_DEMO_DATA).toLowerCase() === 'true'
   : false
 
-// Fallback для демо-режима если переменные не заданы
-const defaultUrl = 'https://demo.supabase.co'
-const defaultKey = 'demo-key'
-
-const finalUrl = supabaseUrl || defaultUrl
-const finalKey = supabaseAnonKey || defaultKey
-
 // Флаг для определения demo режима (определяем ПЕРЕД использованием)
-export const isDemoMode = forceDemoEnv || !supabaseUrl || !supabaseAnonKey
+export const isDemoMode = forceDemoEnv
+
+console.log('🔧 Supabase config:', {
+  isDemoMode,
+  forceDemoEnv,
+  hasUrl: !!supabaseUrl,
+  hasKey: !!supabaseAnonKey,
+  url: isDemoMode ? 'demo-mode' : supabaseUrl.substring(0, 30) + '...',
+  env: import.meta.env.MODE
+})
+
+// В демо-режиме используем заглушки
+const finalUrl = isDemoMode ? 'https://demo.localhost' : supabaseUrl
+const finalKey = isDemoMode ? 'demo-key-12345' : supabaseAnonKey
 
 // Создаем клиент даже с demo данными для предотвращения ошибок
 let clientConfig = {
@@ -36,24 +43,54 @@ let clientConfig = {
   }
 }
 
-// Полностью отключаем realtime для demo режима или невалидных URL
-if (isDemoMode || finalUrl === defaultUrl) {
+// Полностью отключаем realtime для demo режима
+if (isDemoMode) {
   clientConfig.realtime = {
     params: {
       eventsPerSecond: 0
     }
   }
-  // Для demo режима используем пустой URL без realtime
   console.log('🔇 Realtime disabled for demo mode')
 }
 
-export const supabase = globalThis.supabaseClient || createClient(finalUrl, finalKey, clientConfig)
+// В демо-режиме создаем заглушку без сетевых запросов
+let supabaseClient
+if (isDemoMode) {
+  console.log('🎭 Creating demo Supabase client (no network calls)')
+  
+  supabaseClient = {
+    auth: {
+      getUser: () => Promise.resolve({ data: { user: null }, error: null }),
+      signInWithPassword: () => Promise.resolve({ data: { user: null }, error: null }),
+      signOut: () => Promise.resolve({ error: null }),
+      onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } })
+    },
+    from: (table) => ({
+      select: () => Promise.resolve({ data: [], error: null }),
+      insert: () => Promise.resolve({ data: [], error: null }),
+      update: () => Promise.resolve({ data: [], error: null }),
+      delete: () => Promise.resolve({ data: [], error: null })
+    }),
+    channel: () => ({
+      on: () => ({}),
+      subscribe: () => ({})
+    })
+  }
+} else {
+  supabaseClient = globalThis.supabaseClient || createClient(finalUrl, finalKey, clientConfig)
+  // Сохраняем глобальную ссылку для предотвращения дубликатов
+  globalThis.supabaseClient = supabaseClient
+}
 
-// Сохраняем глобальную ссылку для предотвращения дубликатов
-globalThis.supabaseClient = supabase
+export const supabase = supabaseClient
 
 // Функция для проверки аутентификации
 export const isAuthenticated = async () => {
+  if (isDemoMode) {
+    console.log('🎭 Demo mode: returning false for auth check')
+    return false
+  }
+  
   try {
     const { data: { user } } = await supabase.auth.getUser()
     return !!user
@@ -65,6 +102,11 @@ export const isAuthenticated = async () => {
 
 // Обработчик ошибок для запросов
 export const handleAuthError = (error) => {
+  if (isDemoMode) {
+    console.log('🎭 Demo mode: ignoring auth error')
+    return
+  }
+  
   if (error?.message?.includes('AuthSessionMissingError') || 
       error?.status === 401 || 
       error?.message?.includes('session missing')) {

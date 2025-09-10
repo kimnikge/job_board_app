@@ -1,6 +1,6 @@
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import { Bot, webhookCallback } from 'https://deno.land/x/grammy@v1.8.3/mod.ts'
+import { serve } from 'https://deno.land/std@0.200.0/http/server.ts'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0'
+import { Bot, webhookCallback } from 'https://deno.land/x/grammy@v1.19.2/mod.ts'
 
 // Инициализация бота
 const bot = new Bot(Deno.env.get('TELEGRAM_BOT_TOKEN') || '')
@@ -172,13 +172,48 @@ const handleUpdate = webhookCallback(bot, 'std/http')
 
 // Обрабатываем входящие обновления
 serve(async (req) => {
+  console.log('Incoming request:', req.method, req.url)
+
   if (req.method === 'POST') {
     try {
-      return await handleUpdate(req)
+      // Пробуем обработать как webhook
+      const response = await handleUpdate(req)
+      return response
     } catch (err) {
-      console.error(err)
-      return new Response('Error processing update', { status: 500 })
+      console.error('Webhook processing error:', err)
+
+      // Если webhook не работает, попробуем обработать вручную
+      try {
+        const update = await req.json()
+        console.log('Received update:', JSON.stringify(update, null, 2))
+
+        if (update.message && update.message.text === '/start') {
+          // Отправляем ответ в Telegram
+          const chatId = update.message.chat.id
+          const response = await fetch(`https://api.telegram.org/bot${Deno.env.get('TELEGRAM_BOT_TOKEN')}/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              chat_id: chatId,
+              text: 'Добро пожаловать! Бот работает! 🚀'
+            })
+          })
+
+          if (response.ok) {
+            return new Response('OK', { status: 200 })
+          } else {
+            console.error('Failed to send message:', await response.text())
+            return new Response('Error sending message', { status: 500 })
+          }
+        }
+
+        return new Response('Update processed', { status: 200 })
+      } catch (manualErr) {
+        console.error('Manual processing error:', manualErr)
+        return new Response('Error processing update', { status: 500 })
+      }
     }
   }
+
   return new Response('Expected POST request', { status: 400 })
 })

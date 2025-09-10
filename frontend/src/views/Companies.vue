@@ -1,8 +1,12 @@
 <template>
-  <BasePage
-    title="🏢 Заведения общепита Астаны"
-    subtitle="Каталог кафе, ресторанов и сервисов с открытыми сменами"
-  >
+  <div class="companies-page">
+    <!-- Header -->
+    <AppHeader />
+    <PageHeader 
+      title="Заведения общепита"
+      subtitle="Каталог кафе, ресторанов и сервисов с открытыми сменами"
+    />
+    
     <!-- Действия и поиск -->
     <div class="toolbar">
       <div class="search-container">
@@ -63,14 +67,15 @@
       <h3>Ничего не найдено</h3>
       <p>Попробуйте изменить критерии поиска</p>
     </div>
-  </BasePage>
+  </div>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useNotificationsStore } from '@/stores/notifications'
-import BasePage from '@/components/ui/BasePage.vue'
+import AppHeader from '@/components/AppHeader.vue'
+import PageHeader from '@/components/PageHeader.vue'
 import BaseCard from '@/components/ui/BaseCard.vue'
 
 const router = useRouter()
@@ -109,12 +114,23 @@ function open(company){
 </script>
 
 <style scoped>
+/* === COMPANIES PAGE === */
+.companies-page {
+  min-height: 100vh;
+  background: #1e1e2e;
+  color: #ffffff;
+  padding-bottom: 80px;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
 /* ===== ТУЛБАР ===== */
 .toolbar {
   display: flex;
   flex-direction: column;
   gap: 16px;
   margin-bottom: 24px;
+  padding: 0 20px;
 }
 
 .search-container {

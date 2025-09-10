@@ -63,7 +63,7 @@ serve(async (req: Request) => {
 
       // Создаем secret key из bot token согласно Telegram Login Widget API
       const encoder = new TextEncoder();
-      
+
       // Шаг 1: Создаем ключ из строки "WebAppData"
       const webAppDataKey = await crypto.subtle.importKey(
         "raw",

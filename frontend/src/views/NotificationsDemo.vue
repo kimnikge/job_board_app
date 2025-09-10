@@ -3,7 +3,7 @@
     <div class="container mx-auto px-4 py-8">
       <div class="max-w-6xl mx-auto">
         <h1 class="text-3xl font-bold text-white mb-8 text-center">
-          📱 Демо Push-уведомлений Job Board
+          📱 Демо Push-уведомлений ShiftworkKZ
         </h1>
         
         <div class="demo-grid">
@@ -156,6 +156,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useNotifications } from '@/composables/useNotifications.js'
+import { useSubscription } from '@/composables/useSubscription.js'
 import { authService } from '@/services/auth.service.js'
 import { jobsService } from '@/services/jobs.service.js'
 import { badgesService } from '@/services/badges.service.js'
@@ -169,6 +170,8 @@ const {
   notifyBadgeAwarded,
   notifyWelcome
 } = useNotifications()
+
+const { canPerformAction, logUsage } = useSubscription()
 
 // Состояние
 const stats = ref({
@@ -194,11 +197,11 @@ const simulateRegistration = async () => {
     // Имитируем регистрацию через authService
     const userData = {
       full_name: 'Новый Пользователь',
-      email: 'newuser@jobboard.kz',
+      email: 'newuser@shiftworkkz.com',
       user_type: 'candidate'
     }
 
-    await authService.register('newuser@jobboard.kz', 'password123', userData)
+    await authService.register('newuser@shiftworkkz.com', 'password123', userData)
     
     addNotificationToHistory({
       type: 'welcome',
@@ -216,6 +219,13 @@ const simulateJobCreation = async () => {
   const startTime = Date.now()
   
   try {
+    // Проверяем лимиты подписки
+    const canCreate = await canPerformAction('create_job')
+    if (!canCreate) {
+      console.log('Достигнут лимит создания обычных вакансий')
+      return
+    }
+
     const jobData = {
       title: 'Бариста в кофейню',
       company_name: 'Coffee Dreams',
@@ -227,6 +237,9 @@ const simulateJobCreation = async () => {
     }
 
     await jobsService.createJob(jobData)
+    
+    // Логируем использование
+    await logUsage('create_job', `Демо: Создана вакансия ${jobData.title}`)
     
     addNotificationToHistory({
       type: 'job',
@@ -244,6 +257,13 @@ const simulateUrgentJob = async () => {
   const startTime = Date.now()
   
   try {
+    // Проверяем лимиты подписки для срочных вакансий
+    const canCreate = await canPerformAction('create_urgent_job')
+    if (!canCreate) {
+      console.log('Достигнут лимит создания срочных вакансий')
+      return
+    }
+
     const urgentJobData = {
       title: 'СРОЧНО: Повар на замену',
       company_name: 'Ресторан Арман',
@@ -256,6 +276,9 @@ const simulateUrgentJob = async () => {
     }
 
     await jobsService.createJob(urgentJobData)
+    
+    // Логируем использование
+    await logUsage('create_urgent_job', `Демо: Создана срочная вакансия ${urgentJobData.title}`)
     
     addNotificationToHistory({
       type: 'urgent',

@@ -4,7 +4,7 @@ import { profileService } from './profile.service.js'
 import { isDemoMode } from './supabase.js'
 
 /**
- * Центральная служба уведомлений для Job Board App
+ * Центральная служба уведомлений для ShiftworkKZ App
  * Интегрирует все типы уведомлений в единой системе
  */
 export const notificationsService = {
@@ -66,7 +66,7 @@ export const notificationsService = {
 💰 ${this.formatSalary(jobData.salary_from, jobData.salary_to)}
 🏢 ${jobData.company_name || 'Компания'}
 
-Подробности в приложении Job Board!`
+Подробности в приложении ShiftworkKZ!`
 
       // Если targetUsers не указаны, отправляем тестовому пользователю
       if (targetUsers.length === 0) {
@@ -122,7 +122,7 @@ export const notificationsService = {
 ${badgeData.icon_url || '🏅'} ${badgeData.description || 'Отличная работа!'}
 ${reason ? `\nПричина: ${reason}` : ''}
 
-Просмотреть в профиле Job Board!`
+Просмотреть в профиле ShiftworkKZ!`
 
       await this.notifyUser(userId, message, 'badge')
       return true
@@ -137,7 +137,7 @@ ${reason ? `\nПричина: ${reason}` : ''}
    */
   async notifyWelcome(userId, userData) {
     try {
-      const message = `Добро пожаловать в Job Board, ${userData.full_name || 'новый пользователь'}!
+      const message = `Добро пожаловать в ShiftworkKZ, ${userData.full_name || 'новый пользователь'}!
 
 Теперь вы можете:
 📋 Просматривать вакансии в общепите
@@ -188,7 +188,7 @@ ${reason ? `\nПричина: ${reason}` : ''}
       const notificationText = `Новое сообщение от ${fromUser}:
 "${message.length > 100 ? message.substring(0, 100) + '...' : message}"
 
-Ответить в Job Board!`
+Ответить в ShiftworkKZ!`
 
       await this.notifyUser(userId, notificationText, 'info')
       return true
@@ -259,6 +259,69 @@ ${reason ? `\nПричина: ${reason}` : ''}
     } catch (error) {
       console.error('Error sending location notifications:', error)
       return false
+    }
+  },
+
+  /**
+   * Интеграция с браузерными push-уведомлениями
+   */
+  async sendBrowserNotification(title, body, options = {}) {
+    try {
+      // Проверяем поддержку
+      if (!('Notification' in window)) {
+        console.warn('Browser notifications not supported')
+        return false
+      }
+
+      // Проверяем разрешение
+      if (Notification.permission !== 'granted') {
+        console.warn('Notification permission not granted')
+        return false
+      }
+
+      // Отправляем уведомление
+      const notification = new Notification(title, {
+        body,
+        icon: options.icon || '/favicon.ico',
+        badge: options.badge || '/favicon.ico',
+        tag: options.tag || 'shiftwork-notification',
+        requireInteraction: options.requireInteraction || false,
+        ...options
+      })
+
+      // Автоматически закрыть через 5 секунд если не указано иное
+      if (!options.requireInteraction) {
+        setTimeout(() => notification.close(), 5000)
+      }
+
+      return true
+    } catch (error) {
+      console.error('Error sending browser notification:', error)
+      return false
+    }
+  },
+
+  /**
+   * Отправить комбинированное уведомление (Telegram + Browser)
+   */
+  async sendCombinedNotification(userId, title, body, options = {}) {
+    try {
+      const results = await Promise.allSettled([
+        this.notifyUser(userId, `${title}\n${body}`, options.type || 'info'),
+        this.sendBrowserNotification(title, body, options)
+      ])
+
+      const telegramSuccess = results[0].status === 'fulfilled' && results[0].value
+      const browserSuccess = results[1].status === 'fulfilled' && results[1].value
+
+      return {
+        telegram: telegramSuccess,
+        browser: browserSuccess,
+        success: telegramSuccess || browserSuccess
+      }
+    } catch (error) {
+      console.error('Error sending combined notification:', error)
+      return { telegram: false, browser: false, success: false }
     }
   }
 }

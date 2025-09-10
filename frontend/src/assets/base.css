@@ -1,244 +1,272 @@
-/* НОВАЯ ЦВЕТОВАЯ ПАЛИТРА ДЛЯ ОБЩЕПИТА АСТАНЫ */
+/* ShiftworkKZ Design System - Telegram-style Dark Theme */
+
+/* CSS Custom Properties - Единая цветовая схема */
 :root {
-  /* Основная палитра из first.md */
-  --color-bg: #0a0a0a;                /* Темный фон */
-  --color-primary: #667eea;           /* Основной синий */
-  --color-secondary: #764ba2;         /* Фиолетовый */
-  --color-accent: #f093fb;            /* Розовый акцент */
-  --color-danger: #f5576c;            /* Красный для срочных */
-  --color-success: #4CAF50;           /* Зеленый для готовности */
-  --color-warning: #ff9800;           /* Оранжевый для предупреждений */
-  --color-info: #2196F3;              /* Синий для информации */
+  /* === ОСНОВНЫЕ ЦВЕТА === */
+  --bg-page: #1e1e2e;           /* Фон страницы */
+  --bg-card: #3a3d5c;          /* Фон карточек */
+  --bg-header: #2a2d47;        /* Фон хедера/навигации */
+  --border-color: #3a3d5c;     /* Границы */
   
-  /* Градиенты */
-  --gradient-main: linear-gradient(45deg, #667eea, #764ba2, #f093fb, #f5576c);
-  --gradient-cards: rgba(255, 255, 255, 0.1);
-  --gradient-header: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  --gradient-urgent: linear-gradient(45deg, #f5576c, #ff6b8a);
-  --gradient-ready: linear-gradient(45deg, #4CAF50, #66BB6A);
+  /* === ЦВЕТА ТЕКСТА === */
+  --text-primary: #ffffff;      /* Основной текст */
+  --text-secondary: #9ca3af;   /* Второстепенный текст */
+  --text-heading: #ffffff;     /* Заголовки */
   
-  /* Стеклянные эффекты */
-  --glass-bg: rgba(255, 255, 255, 0.1);
-  --glass-bg-hover: rgba(255, 255, 255, 0.15);
-  --glass-border: rgba(255, 255, 255, 0.2);
-  --glass-blur: blur(20px);
+  /* === АКЦЕНТНЫЕ ЦВЕТА === */
+  --accent-primary: #4f88ff;   /* Основной акцент (синий Telegram) */
+  --accent-hover: #3d75e6;     /* Hover акцент */
+  --color-error: #ff6b6b;      /* Ошибка/срочность */
+  --color-success: #10b981;    /* Успех */
+  --color-warning: #f59e0b;    /* Предупреждение */
   
-  /* Текст и фон */
-  --color-text-primary: #ffffff;
-  --color-text-secondary: rgba(255, 255, 255, 0.8);
-  --color-text-muted: rgba(255, 255, 255, 0.6);
-  --color-background: var(--color-bg);
-  --color-background-soft: rgba(16, 16, 16, 0.9);
-  --color-background-mute: rgba(32, 32, 32, 0.8);
+  /* === ФОНЫ ЭЛЕМЕНТОВ === */
+  --bg-transparent: rgba(255, 255, 255, 0.1);
+  --bg-transparent-hover: rgba(255, 255, 255, 0.15);
+  --bg-card-hover: #404363;
   
-  /* Границы и разделители */
-  --color-border: rgba(255, 255, 255, 0.1);
-  --color-border-hover: rgba(255, 255, 255, 0.3);
-  --color-divider: rgba(255, 255, 255, 0.1);
+  /* === РАЗМЕРЫ === */
+  --max-width: 400px;          /* Максимальная ширина контейнера */
+  --header-height: 66px;       /* Высота хедера */
+  --nav-height: 80px;          /* Высота навигации */
+  --touch-min: 44px;           /* Минимальный размер touch-элементов */
   
-  /* Тени */
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.15);
-  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.25);
-  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.35);
-  --shadow-xl: 0 25px 50px rgba(0, 0, 0, 0.45);
+  /* === ОТСТУПЫ === */
+  --padding-page: 20px;        /* Основные отступы страницы */
+  --padding-card: 16px;        /* Отступы карточек */
+  --gap-small: 8px;            /* Маленькие отступы */
+  --gap-medium: 12px;          /* Средние отступы */
+  --gap-large: 30px;           /* Большие отступы */
   
-  /* Переменные совместимости */
-  --color-heading: var(--color-text-primary);
-  --color-text: var(--color-text-secondary);
-  --section-gap: 160px;
+  /* === СКРУГЛЕНИЯ === */
+  --radius-small: 8px;
+  --radius-medium: 12px;
+  --radius-large: 16px;
+  --radius-circle: 50%;
   
-  /* Специфичные для общепита */
-  --color-catering-kitchen: #ff6b35;   /* Кухня */
-  --color-catering-service: #4ecdc4;   /* Обслуживание */
-  --color-catering-management: #45b7d1; /* Управление */
-  --color-catering-support: #96ceb4;   /* Поддержка */
+  /* === ТЕНИ === */
+  --shadow-light: 0 2px 8px rgba(0, 0, 0, 0.1);
+  --shadow-medium: 0 4px 16px rgba(0, 0, 0, 0.15);
+  --shadow-heavy: 0 8px 32px rgba(0, 0, 0, 0.2);
   
-  /* Валюта и зарплаты */
-  --color-salary-kzt: #ffd700;        /* Золотой для тенге */
-  --color-salary-high: var(--color-success);
-  --color-salary-medium: var(--color-warning);
-  --color-salary-low: var(--color-text-muted);
+  /* === ТИПОГРАФИКА === */
+  --font-h1: 2rem;             /* 32px */
+  --font-h2: 1.2rem;           /* 19.2px */
+  --font-base: 1rem;           /* 16px */
+  --font-large: 1.3rem;        /* 20.8px */
+  --font-small: 0.85rem;       /* 13.6px */
+  --font-tiny: 0.75rem;        /* 12px */
+  --font-nav: 0.7rem;          /* 11.2px */
+  
+  --weight-normal: 400;
+  --weight-medium: 600;
+  --weight-bold: 700;
 }
 
-/* Удаляем светлую тему - оставляем только темную */
-/* @media (prefers-color-scheme: dark) удален - используем только темную тему */
-
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
+/* === БАЗОВЫЕ СТИЛИ === */
+* {
   margin: 0;
-  font-weight: normal;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body {
+  background-color: var(--bg-page);
+  color: var(--text-primary);
   min-height: 100vh;
-  color: var(--color-text);
-  background: var(--color-background);
-  transition: color 0.5s, background-color 0.5s;
-  line-height: 1.6;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
-  font-size: 15px;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
 }
 
-/* Анимированный фон */
-.bg-animation {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: -1;
-  background: var(--gradient-main);
-  background-size: 400% 400%;
-  animation: gradientShift 15s ease infinite;
-}
-
-/* Универсальные адаптивные утилиты */
-.responsive-container {
-  width: 100%;
-  max-width: 1200px;
+/* === ОСНОВНОЙ КОНТЕЙНЕР ПРИЛОЖЕНИЯ === */
+#app {
+  max-width: var(--max-width);
   margin: 0 auto;
-  padding: 0 20px;
+  min-height: 100vh;
+  position: relative;
+  background-color: var(--bg-page);
 }
 
-.responsive-grid {
-  display: grid;
-  gap: 20px;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-}
-
-.responsive-flex {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-}
-
-.mobile-stack {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-/* Адаптивные отступы */
-.mobile-p-sm { padding: 12px; }
-.mobile-p-md { padding: 16px; }
-.mobile-p-lg { padding: 20px; }
-
-.mobile-m-sm { margin: 12px; }
-.mobile-m-md { margin: 16px; }
-.mobile-m-lg { margin: 20px; }
-
-/* Адаптивная типографика */
-.responsive-title {
-  font-size: clamp(1.5rem, 4vw, 2.5rem);
+/* === ТИПОГРАФИКА === */
+h1 {
+  font-size: var(--font-h1);
+  font-weight: var(--weight-bold);
+  color: var(--text-heading);
+  margin-bottom: var(--gap-large);
   line-height: 1.2;
-  font-weight: 700;
 }
 
-.responsive-subtitle {
-  font-size: clamp(1rem, 2.5vw, 1.4rem);
+h2 {
+  font-size: var(--font-h2);
+  font-weight: var(--weight-medium);
+  color: var(--text-heading);
+  margin-bottom: 15px;
   line-height: 1.3;
 }
 
-.responsive-text {
-  font-size: clamp(0.9rem, 2vw, 1rem);
+p {
+  font-size: var(--font-base);
   line-height: 1.5;
+  margin-bottom: var(--gap-small);
 }
 
-/* Touch-friendly кнопки */
-.touch-target {
-  min-height: 48px;
-  min-width: 48px;
-  padding: 12px 16px;
-  touch-action: manipulation;
+/* === СТАНДАРТНЫЕ КЛАССЫ === */
+.container {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0 var(--padding-page);
 }
 
-/* Медиа-запросы для адаптивности */
-@media (max-width: 1200px) {
-  .responsive-container { padding: 0 16px; }
-  .responsive-grid { gap: 16px; }
+.page-content {
+  padding: var(--padding-page);
+  padding-bottom: calc(var(--nav-height) + var(--padding-page));
+  min-height: calc(100vh - var(--header-height));
 }
 
-@media (max-width: 768px) {
-  .responsive-container { 
-    padding: 0 12px; 
-  }
-  
-  .responsive-grid { 
+/* === КАРТОЧКИ === */
+.card {
+  background: var(--bg-card);
+  border-radius: var(--radius-medium);
+  padding: var(--padding-card);
+  transition: all 0.3s ease;
+  border: 1px solid var(--border-color);
+}
+
+.card:hover {
+  background: var(--bg-card-hover);
+  transform: translateY(-2px);
+}
+
+.card-large {
+  border-radius: var(--radius-large);
+}
+
+/* === КНОПКИ === */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--gap-small);
+  padding: 10px 16px;
+  border: none;
+  border-radius: var(--radius-medium);
+  font-weight: var(--weight-medium);
+  font-size: var(--font-base);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  min-height: var(--touch-min);
+  justify-content: center;
+}
+
+.btn-primary {
+  background: var(--accent-primary);
+  color: var(--text-primary);
+}
+
+.btn-primary:hover {
+  background: var(--accent-hover);
+  transform: translateY(-2px);
+}
+
+.btn-secondary {
+  background: var(--bg-transparent);
+  color: var(--text-primary);
+}
+
+.btn-secondary:hover {
+  background: var(--bg-transparent-hover);
+}
+
+.btn-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-circle);
+  background: var(--bg-transparent);
+  border: none;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+}
+
+.btn-icon:hover {
+  background: var(--bg-transparent-hover);
+}
+
+/* === СЕТКИ === */
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--gap-medium);
+}
+
+.grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--gap-medium);
+}
+
+@media (max-width: 350px) {
+  .grid-2,
+  .grid-4 {
     grid-template-columns: 1fr;
-    gap: 12px;
-  }
-  
-  .responsive-flex {
-    flex-direction: column;
-    gap: 12px;
-  }
-  
-  .mobile-hide { display: none !important; }
-  .desktop-hide { display: block !important; }
-  
-  /* Скрыть overflow на мобильных */
-  body { overflow-x: hidden; }
-  
-  /* Адаптивные карточки */
-  .card, .job-card, .company-card {
-    margin-bottom: 12px;
-    padding: 12px !important;
   }
 }
 
-@media (max-width: 480px) {
-  .responsive-container { padding: 0 8px; }
-  .responsive-grid { gap: 8px; }
-  .responsive-flex { gap: 8px; }
+/* === УТИЛИТЫ === */
+.text-primary { color: var(--text-primary); }
+.text-secondary { color: var(--text-secondary); }
+.text-accent { color: var(--accent-primary); }
+.text-error { color: var(--color-error); }
+.text-success { color: var(--color-success); }
+.text-warning { color: var(--color-warning); }
+
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.items-center { align-items: center; }
+.justify-center { justify-content: center; }
+.justify-between { justify-content: space-between; }
+.gap { gap: var(--gap-medium); }
+.gap-sm { gap: var(--gap-small); }
+
+.mb { margin-bottom: var(--gap-medium); }
+.mb-lg { margin-bottom: var(--gap-large); }
+
+/* === АНИМАЦИИ === */
+@media (prefers-reduced-motion: no-preference) {
+  .animate-hover:hover {
+    transform: translateY(-2px);
+  }
   
-  .mobile-p-sm { padding: 8px; }
-  .mobile-p-md { padding: 12px; }
-  .mobile-p-lg { padding: 16px; }
-  
-  /* Еще меньше отступов на маленьких экранах */
-  .card, .job-card, .company-card {
-    padding: 8px !important;
+  .animate-scale:hover {
+    transform: scale(1.05);
   }
 }
 
-/* Показать/скрыть элементы на разных экранах */
-@media (min-width: 769px) {
-  .mobile-only { display: none !important; }
-  .desktop-hide { display: none !important; }
+/* === СКРОЛЛБАР === */
+::-webkit-scrollbar {
+  width: 4px;
 }
 
-@media (max-width: 768px) {
-  .desktop-only { display: none !important; }
+::-webkit-scrollbar-track {
+  background: var(--bg-page);
 }
 
-.bg-animation::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: 
-    radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
-    radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
-    radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.3) 0%, transparent 50%);
-  animation: float 20s ease-in-out infinite;
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 2px;
 }
 
-@keyframes gradientShift {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
-@keyframes float {
-  0%, 100% { transform: translateY(0px) rotate(0deg); }
-  33% { transform: translateY(-30px) rotate(0.5deg); }
-  66% { transform: translateY(15px) rotate(-0.5deg); }
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-primary);
 }

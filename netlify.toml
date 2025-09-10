@@ -5,10 +5,13 @@
 
 [build.environment]
   NODE_VERSION = "18"
-  # Demo переменные для Netlify deploy
-  VITE_SUPABASE_URL = "https://demo.supabase.co"
-  VITE_SUPABASE_ANON_KEY = "demo-key"
+  # Production переменные окружения
+  VITE_SUPABASE_URL = "https://kuyudpxqlrinkcxvorom.supabase.co"
+  VITE_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt1eXVkcHhxbHJpbmtjeHZvcm9tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzY4NTYyNDAsImV4cCI6MjA1MjQzMjI0MH0.Xr0gLu29YWtfFe9MK4cLUfbHYcQhxV_W1IiT8mB3TWA"
+  VITE_USE_DEMO_MODE = "false"
   VITE_DEV_MODE = "false"
+  VITE_TELEGRAM_BOT_USERNAME = "Hrc_staff_adm_bot"
+  VITE_PRODUCTION_URL = "https://horecapp.netlify.app"
 
 [[redirects]]
   from = "/*"

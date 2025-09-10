@@ -30,10 +30,12 @@ export const authService = {
       }
 
       // Вызываем Edge Function для обработки Telegram Login
+      console.log('🔧 Calling Edge Function telegram-login with data:', telegramData)
       const { data, error } = await supabase.functions.invoke('telegram-login', {
         body: telegramData // Передаем данные напрямую
       })
 
+      console.log('🔧 Edge Function response:', { data, error })
       if (error) throw error
 
       return { data, error: null }

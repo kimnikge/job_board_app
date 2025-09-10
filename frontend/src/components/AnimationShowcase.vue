@@ -151,7 +151,7 @@
         <div class="mobile-demo">
           <div class="mobile-mockup glass-card">
             <div class="mobile-header">
-              <span class="mobile-title">🍽️ JobBoard Астана</span>
+              <span class="mobile-title">🍽️ ShiftworkKZ Астана</span>
               <span class="mobile-status">🟢 Online</span>
             </div>
             

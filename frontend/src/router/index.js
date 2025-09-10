@@ -49,6 +49,19 @@ const MainLayout = () => import('@/layouts/MainLayout.vue')
 const AuthPage = () => import('@/views/AuthPage.vue')
 const AuthCallback = () => import('@/views/AuthCallback.vue')
 
+// Страница ошибок
+const ErrorPage = () => import('@/views/ErrorPage.vue')
+
+// ✨ КРИТИЧЕСКИЕ СТРАНИЦЫ - РАЗДЕЛЫ 7/8/9
+const Onboarding = () => import('@/views/Onboarding.vue')
+const CompanyRegister = () => import('@/views/CompanyRegister.vue')
+const WorkerRegister = () => import('@/views/WorkerRegister.vue')
+const Search = () => import('@/views/Search.vue')
+const SearchResults = () => import('@/views/SearchResults.vue')
+const Settings = () => import('@/views/Settings.vue')
+const NotificationSettings = () => import('@/views/NotificationSettings.vue')
+const PrivacySettings = () => import('@/views/PrivacySettings.vue')
+
 // ✨ ПРОСТЫЕ МАРШРУТЫ - СОГЛАСНО ТЗ: ВСЕ СТРАНИЦЫ ТРЕБУЮТ АВТОРИЗАЦИИ
 const routes = [
   // Страница авторизации (единственная НЕ защищенная)
@@ -226,6 +239,93 @@ const routes = [
     }
   },
 
+  // ✨ КРИТИЧЕСКИЕ СТРАНИЦЫ - РАЗДЕЛЫ 7/8/9
+
+  // === РАЗДЕЛ 7: РЕГИСТРАЦИЯ И ОНБОРДИНГ ===
+  // Первичная настройка профиля после Telegram входа
+  { 
+    path: '/onboarding', 
+    component: Onboarding,
+    meta: { 
+      title: 'Добро пожаловать',
+      requiresAuth: true
+    }
+  },
+  
+  // Регистрация компании (работодателя)
+  { 
+    path: '/company/register', 
+    component: CompanyRegister,
+    meta: { 
+      title: 'Регистрация компании',
+      requiresAuth: true,
+      userType: ROLES.EMPLOYER
+    }
+  },
+  
+  // Дополнительная регистрация соискателя
+  { 
+    path: '/worker/register', 
+    component: WorkerRegister,
+    meta: { 
+      title: 'Дополнительная регистрация',
+      requiresAuth: true,
+      userType: ROLES.CANDIDATE
+    }
+  },
+
+  // === РАЗДЕЛ 8: ПОИСК И ФИЛЬТРАЦИЯ ===
+  // Глобальная страница поиска вакансий
+  { 
+    path: '/search', 
+    component: Search,
+    meta: { 
+      title: 'Поиск вакансий',
+      requiresAuth: true
+    }
+  },
+  
+  // Результаты поиска с фильтрами
+  { 
+    path: '/search/results', 
+    component: SearchResults,
+    meta: { 
+      title: 'Результаты поиска',
+      requiresAuth: true
+    }
+  },
+
+  // === РАЗДЕЛ 9: НАСТРОЙКИ ===
+  // Общие настройки приложения
+  { 
+    path: '/settings', 
+    component: Settings,
+    meta: { 
+      title: 'Настройки',
+      requiresAuth: true
+    }
+  },
+  
+  // Настройки уведомлений
+  { 
+    path: '/settings/notifications', 
+    component: NotificationSettings,
+    meta: { 
+      title: 'Настройки уведомлений',
+      requiresAuth: true
+    }
+  },
+  
+  // Настройки приватности
+  { 
+    path: '/settings/privacy', 
+    component: PrivacySettings,
+    meta: { 
+      title: 'Настройки приватности',
+      requiresAuth: true
+    }
+  },
+
   // Админка монетизации - ТРЕБУЕТ АВТОРИЗАЦИИ + РОЛЬ АДМИНА
   { 
     path: '/admin/monetization', 
@@ -262,6 +362,13 @@ const routes = [
     path: '/test/filters', 
     component: FiltersTest,
     meta: { title: 'Тест фильтров' }
+  },
+
+  // Страница ошибок
+  { 
+    path: '/error', 
+    component: ErrorPage,
+    meta: { title: 'Произошла ошибка' }
   },
 
   // Редирект неизвестных маршрутов на главную
@@ -309,15 +416,29 @@ router.beforeEach(async (to, from, next) => {
         return next({ path: '/' })
       }
     } catch (error) {
-      console.warn('Auth check failed:', error)
-      // В случае ошибки авторизации перенаправляем на страницу входа
-      if (to.meta.requiresAuth) {
-        return next({ path: '/auth', query: { redirect: to.fullPath } })
+      console.error('Auth check failed:', error)
+      // В случае критической ошибки авторизации перенаправляем на страницу ошибки
+      if (to.path !== '/error' && to.meta.requiresAuth) {
+        return next({ path: '/error', query: { error: 'auth_failed' } })
+      }
+      // Для не защищенных маршрутов просто логируем ошибку
+      if (!to.meta.requiresAuth) {
+        console.warn('Non-critical auth error, continuing navigation')
       }
     }
   }
 
   next()
+})
+
+// Глобальная обработка ошибок роутера
+router.onError((error) => {
+  console.error('🚨 Router error:', error)
+  
+  // В продакшене перенаправляем на страницу ошибки
+  if (import.meta.env.PROD) {
+    router.push({ path: '/error', query: { error: 'router_error' } })
+  }
 })
 
 export default router

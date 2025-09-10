@@ -2,7 +2,7 @@
   <div class="admin-layout">
     <header class="admin-header">
       <slot name="header">
-        <h1 class="logo">Job Board — Админ</h1>
+        <h1 class="logo">ShiftworkKZ — Админ</h1>
       </slot>
     </header>
     <main class="admin-main">
@@ -10,7 +10,7 @@
     </main>
     <footer class="admin-footer">
       <slot name="footer">
-        <div>© {{ new Date().getFullYear() }} Job Board</div>
+        <div>© {{ new Date().getFullYear() }} ShiftworkKZ</div>
       </slot>
     </footer>
   </div>

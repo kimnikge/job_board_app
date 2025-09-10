@@ -34,14 +34,13 @@
               </div>
 
               <div class="form-group">
-                <label for="location" class="form-label">Район*</label>
-                <select id="location" v-model="form.location" class="form-select" required>
-                  <option value="">Выберите район</option>
-                  <option value="Есильский район">Есильский район</option>
-                  <option value="Алматинский район">Алматинский район</option>
-                  <option value="Сарыаркинский район">Сарыаркинский район</option>
-                  <option value="Байконурский район">Байконурский район</option>
-                </select>
+                <label for="location" class="form-label">Город*</label>
+                <CitySelector 
+                  v-model="form.selectedCity"
+                  @city-selected="onCitySelected"
+                  placeholder="Выберите город"
+                  required
+                />
               </div>
             </div>
 
@@ -176,16 +175,20 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { jobsService } from '@/services/jobs.service.js'
 import { useNotifications } from '@/composables/useNotifications.js'
+import { useSubscription } from '@/composables/useSubscription.js'
 import NotificationPanel from '@/components/NotificationPanel.vue'
+import CitySelector from '@/components/CitySelector.vue'
 
 const router = useRouter()
 const { notifyNewJob, notifyUser } = useNotifications()
+const { canPerformAction, logUsage } = useSubscription()
 
 // Форма
 const form = ref({
   title: '',
   company_name: '',
-  location: '',
+  selectedCity: null,
+  location: '', // сохраняем для обратной совместимости
   description: '',
   salary_from: null,
   salary_to: null,
@@ -207,9 +210,16 @@ const today = computed(() => {
 const isFormValid = computed(() => {
   return form.value.title.trim() && 
          form.value.company_name.trim() && 
-         form.value.location && 
+         (form.value.selectedCity || form.value.location) && 
          form.value.description.trim()
 })
+
+// Обработчик выбора города
+const onCitySelected = (city) => {
+  form.value.selectedCity = city
+  // Обновляем location для обратной совместимости
+  form.value.location = city ? `${city.name}, ${city.region}` : ''
+}
 
 // Методы
 const handleSubmit = async () => {
@@ -219,6 +229,18 @@ const handleSubmit = async () => {
   submitStatus.value = null
 
   try {
+    // Проверяем лимиты подписки перед созданием
+    const actionType = form.value.is_urgent ? 'create_urgent_job' : 'create_job'
+    const canCreate = await canPerformAction(actionType)
+    
+    if (!canCreate) {
+      submitStatus.value = {
+        type: 'error',
+        message: '❌ Достигнут лимит создания вакансий по вашему тарифу. Обновите подписку для продолжения.'
+      }
+      return
+    }
+
     // Подготовка данных
     const jobData = {
       ...form.value,
@@ -234,6 +256,9 @@ const handleSubmit = async () => {
     if (error) {
       throw new Error(error.message || 'Ошибка при создании вакансии')
     }
+
+    // Логируем использование подписки после успешного создания
+    await logUsage(actionType, `Создана вакансия: ${form.value.title}`)
 
     // Успех
     submitStatus.value = {
@@ -266,6 +291,7 @@ const resetForm = () => {
   form.value = {
     title: '',
     company_name: '',
+    selectedCity: null,
     location: '',
     description: '',
     salary_from: null,
@@ -281,10 +307,14 @@ const resetForm = () => {
 // Демо данные при загрузке
 onMounted(() => {
   // Заполнение демо данными для быстрого тестирования
+  // Выбираем Астану как демо город
+  const demoCity = { id: 1, name: 'Астана', region: 'город Астана', regionCode: '01', isPopular: true }
+  
   form.value = {
     title: 'Повар итальянской кухни',
     company_name: 'Ristorante Bella Vista',
-    location: 'Есильский район',
+    selectedCity: demoCity,
+    location: `${demoCity.name}, ${demoCity.region}`,
     description: 'Требуется опытный повар итальянской кухни. Знание классических рецептов, работа с пастой, пиццей. Дружный коллектив, стабильная зарплата.',
     salary_from: 350000,
     salary_to: 500000,

@@ -54,10 +54,12 @@ function getLevelIcon(level) {
 import { ref } from 'vue'
 import { employerService } from '@/services/employer.service.js'
 import { useAuthStore } from '@/stores/auth'
+import { useSubscription } from '@/composables/useSubscription.js'
 import Snackbar from '@/components/Snackbar.vue'
 
 const emit = defineEmits(['created'])
 const auth = useAuthStore()
+const { canPerformAction, logUsage } = useSubscription()
 const snackbar = ref({ message: '', type: 'info' })
 
 const form = ref({
@@ -72,17 +74,30 @@ const error = ref(null)
 const success = ref(false)
 
 async function handleSubmit() {
+  loading.value = true
   error.value = null
   success.value = false
-  loading.value = true
+  
   try {
-    const companyId = auth.user?.user_metadata?.company_id || null
+    // Проверяем лимиты подписки для создания бейджей
+    const canCreate = await canPerformAction('create_badge')
+    if (!canCreate) {
+      throw new Error('Достигнут лимит создания корпоративных бейджей по вашему тарифу')
+    }
+
+    const companyId = auth.user?.user_metadata?.company_id
     if (!companyId) throw new Error('company_id отсутствует в user_metadata')
+    
     const { data, error: err } = await employerService.createCompanyBadge(companyId, form.value)
     if (err) throw err
+    
+    // Логируем использование после успешного создания
+    await logUsage('create_badge', `Создан корпоративный бейдж: ${form.value.name}`)
+    
     success.value = true
     emit('created', data)
     snackbar.value = { message: 'Бейдж создан', type: 'success' }
+    
     // Сброс
     form.value.name = ''
     form.value.description = ''

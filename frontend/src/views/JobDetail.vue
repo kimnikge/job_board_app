@@ -150,11 +150,13 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useJobsStore } from '@/stores/jobs'
+import { useSubscription } from '@/composables/useSubscription.js'
 import { getJobById } from '@/data'
 
 const route = useRoute()
 const router = useRouter()
 const jobsStore = useJobsStore()
+const { canPerformAction, logUsage } = useSubscription()
 
 const job = ref(null)
 const isLoading = ref(true)
@@ -345,6 +347,16 @@ const applyToJob = async () => {
   try {
     isApplying.value = true
     
+    // Проверяем лимиты подписки для откликов
+    const actionType = job.value.is_urgent ? 'apply_urgent_job' : 'apply_job'
+    const canApply = await canPerformAction(actionType)
+    
+    if (!canApply) {
+      console.log('Достигнут лимит откликов по вашему тарифу')
+      alert('Достигнут лимит откликов по вашему тарифу. Обновите подписку для продолжения.')
+      return
+    }
+    
     // Для срочных вакансий показываем контакты сразу
     if (job.value.is_urgent) {
       showContacts.value = true
@@ -353,6 +365,9 @@ const applyToJob = async () => {
       // Для обычных вакансий отправляем заявку
       console.log('Заявка отправлена на вакансию:', job.value.id)
     }
+    
+    // Логируем использование после успешного отклика
+    await logUsage(actionType, `Отклик на вакансию: ${job.value.title}`)
     
   } catch (err) {
     console.error('Ошибка отклика:', err)

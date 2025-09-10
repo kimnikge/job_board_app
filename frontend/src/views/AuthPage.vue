@@ -83,6 +83,12 @@ const error = computed(() => authStore.error)
 // Проверяем demo режим
 const isDemoMode = import.meta.env.VITE_USE_DEMO_MODE === 'true'
 
+console.log('🔧 AuthPage mounted with:', {
+  isDemoMode,
+  VITE_USE_DEMO_MODE: import.meta.env.VITE_USE_DEMO_MODE,
+  TELEGRAM_BOT_USERNAME: import.meta.env.VITE_TELEGRAM_BOT_USERNAME
+})
+
 // Конфигурация Telegram Widget
 const TELEGRAM_BOT_USERNAME = import.meta.env.VITE_TELEGRAM_BOT_USERNAME || 'ShiftworkKZBot' // Замените на ваш бот
 const WIDGET_CONFIG = {

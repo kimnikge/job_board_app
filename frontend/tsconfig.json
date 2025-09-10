@@ -22,21 +22,40 @@
     "noFallthroughCasesInSwitch": true,
 
     /* Vue specific */
-    "types": ["vite/client"],
+    "types": ["vite/client", "node"],
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"]
-    }
+    },
+    
+    /* Additional Vue/TypeScript settings */
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "useDefineForClassFields": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "verbatimModuleSyntax": false
   },
   "include": [
     "src/**/*.ts",
     "src/**/*.d.ts", 
     "src/**/*.tsx",
     "src/**/*.vue",
-    "src/**/*.js"
+    "src/**/*.js",
+    "src/**/*.jsx",
+    "src/env.d.ts"
   ],
   "exclude": [
     "node_modules",
-    "dist"
+    "dist",
+    "public",
+    "**/*.test.*",
+    "**/*.spec.*"
+  ],
+  "references": [
+    {
+      "path": "./tsconfig.node.json"
+    }
   ]
 }

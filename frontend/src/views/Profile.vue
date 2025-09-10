@@ -1,8 +1,12 @@
 <template>
-  <BasePage
-    title="🧑‍💼 Мой профиль"
-    subtitle="Управление личными данными и настройками"
-  >
+  <div class="profile-page">
+    <!-- Header -->
+    <AppHeader />
+    <PageHeader 
+      title="Мой профиль"
+      subtitle="Управление личными данными и настройками"
+    />
+    
     <div v-if="loading" class="loading-state">
       <div class="loading-spinner">⏳</div>
       <p>Загрузка профиля...</p>
@@ -68,10 +72,14 @@
             <span class="info-value">{{ userProfile.experience_years }} лет</span>
           </div>
           
-          <div class="info-item" v-if="userProfile.city_districts">
+          <div class="info-item">
             <span class="info-icon">📍</span>
-            <span class="info-label">Район:</span>
-            <span class="info-value">{{ userProfile.city_districts.name }}</span>
+            <span class="info-label">Город:</span>
+            <CitySelector 
+              v-model="userProfile.selectedCity"
+              @city-selected="updateCity"
+              placeholder="Выберите город"
+            />
           </div>
           
           <div class="info-item" v-if="userProfile.salary_expectation">
@@ -130,6 +138,20 @@
         </div>
       </BaseCard>
 
+      <!-- Push-уведомления -->
+      <BaseCard title="🔔 Настройки уведомлений" elevated>
+        <PushNotificationsSettings />
+      </BaseCard>
+
+      <!-- Подписка и тарифы -->
+      <BaseCard 
+        v-if="userProfile.user_type === 'employer'" 
+        title="💳 Подписка и тарифы" 
+        elevated
+      >
+        <SubscriptionSettings />
+      </BaseCard>
+
       <!-- Действия -->
       <BaseCard title="⚙️ Действия" elevated>
         <div class="actions-grid">
@@ -155,28 +177,52 @@
         </div>
       </BaseCard>
     </template>
-  </BasePage>
+  </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { useProfileStore } from '@/stores/profile'
 import { useNotificationsStore } from '@/stores/notifications'
 import { getCurrentUserProfile } from '@/data/index.js'
-import BasePage from '@/components/ui/BasePage.vue'
+import AppHeader from '@/components/AppHeader.vue'
+import PageHeader from '@/components/PageHeader.vue'
 import BaseCard from '@/components/ui/BaseCard.vue'
+import PushNotificationsSettings from '@/components/PushNotificationsSettings.vue'
+import CitySelector from '@/components/CitySelector.vue'
+import SubscriptionSettings from '@/components/SubscriptionSettings.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const profileStore = useProfileStore()
 const notificationsStore = useNotificationsStore()
 
 const userProfile = ref(null)
 const loading = ref(true)
 const error = ref('')
+const selectedDistrict = ref('')
 
-const handleEdit = () => {
-  notificationsStore.showInfo('Редактирование профиля будет доступно в следующей версии')
+// Список районов Астаны
+const districts = ref([
+  { id: 1, name: 'Есиль' },
+  { id: 2, name: 'Алматы' },
+  { id: 3, name: 'Сарыарка' },
+  { id: 4, name: 'Байконыр' },
+  { id: 5, name: 'Центральный' }
+])
+
+const updateDistrict = async () => {
+  try {
+    await profileStore.updateProfile({
+      ...userProfile.value,
+      preferred_district_id: selectedDistrict.value
+    })
+    notificationsStore.showSuccess('Район успешно обновлен')
+  } catch (error) {
+    notificationsStore.showError('Ошибка при обновлении района', error.message)
+  }
 }
 
 const handleLogout = async () => {
@@ -210,6 +256,14 @@ const toggleUrgentMode = () => {
   }
 }
 
+const updateCity = (city) => {
+  if (userProfile.value) {
+    userProfile.value.selectedCity = city
+    userProfile.value.city = city ? `${city.name}, ${city.region}` : ''
+    notificationsStore.showSuccess('Город обновлен')
+  }
+}
+
 onMounted(async () => {
   try {
     loading.value = true
@@ -220,6 +274,7 @@ onMounted(async () => {
     }
     
     userProfile.value = profile
+    selectedDistrict.value = profile.preferred_district_id || ''
   } catch (e) {
     error.value = 'Ошибка загрузки профиля: ' + e.message
   } finally {
@@ -229,6 +284,18 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+/* === PROFILE PAGE === */
+.profile-page {
+  min-height: 100vh;
+  background: #1e1e2e;
+  color: #ffffff;
+  padding-bottom: 80px;
+  max-width: 400px;
+  margin: 0 auto;
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
 .loading-state,
 .error-state {
   display: flex;
@@ -424,17 +491,22 @@ onMounted(async () => {
   box-shadow: var(--shadow-md);
 }
 
+.district-select {
+  margin-left: 8px;
+  padding: 4px 8px;
+  border: 1px solid var(--glass-border);
+  border-radius: 4px;
+  background: var(--glass-bg);
+  color: var(--color-text-primary);
+  font-size: 0.9rem;
+}
+
+.district-select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
 @media (max-width: 768px) {
-  .profile-content {
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-  }
-  
-  .profile-details {
-    width: 100%;
-  }
-  
   .info-item {
     flex-direction: column;
     text-align: center;
@@ -462,6 +534,21 @@ onMounted(async () => {
   
   .contact-item {
     justify-content: center;
+  }
+  
+  .district-select {
+    margin-left: 8px;
+    padding: 4px 8px;
+    border: 1px solid var(--glass-border);
+    border-radius: 4px;
+    background: var(--glass-bg);
+    color: var(--color-text-primary);
+    font-size: 0.9rem;
+  }
+
+  .district-select:focus {
+    outline: none;
+    border-color: var(--color-primary);
   }
 }
 </style>

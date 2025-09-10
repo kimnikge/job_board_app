@@ -1,6 +1,7 @@
 // ✨ API ВАКАНСИЙ - ЭТАП 4.1.3
 import { supabase, isDemoMode, DEFAULT_SELECT, isAuthenticated, handleAuthError } from './supabase.js'
 import { notificationsService } from './notifications.service.js'
+import { monetizationService } from './monetization.service.js'
 
 // 💼 Все операции с вакансиями (обычные + срочные)
 export const jobsService = {
@@ -164,6 +165,21 @@ export const jobsService = {
             status: 'active'
           },
           error: null
+        }
+      }
+
+      // Проверяем, может ли компания опубликовать вакансию
+      const companyId = jobData.company_id
+      const jobType = jobData.is_urgent ? 'urgent' : 'regular'
+      
+      const canPost = await monetizationService.canCompanyPostJob(companyId, jobType)
+      if (!canPost) {
+        return {
+          data: null,
+          error: {
+            message: 'Превышен лимит вакансий для вашего тарифного плана. Обратитесь к администратору.',
+            code: 'QUOTA_EXCEEDED'
+          }
         }
       }
 

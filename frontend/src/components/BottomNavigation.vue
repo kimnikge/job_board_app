@@ -1,198 +1,132 @@
 <template>
-  <nav class="bottom-navigation" v-if="isMobile">
+  <nav class="bottom-navigation">
     <router-link 
       v-for="item in navigationItems" 
       :key="item.path"
       :to="item.path"
       class="nav-item"
-      :class="{ active: isCurrentRoute(item.path) }"
+      :class="{ 'nav-item-active': isCurrentRoute(item.path) }"
     >
       <span class="nav-icon">{{ item.icon }}</span>
-      <span class="nav-label">{{ item.label }}</span>
-      <span 
-        v-if="item.badge" 
-        class="nav-badge"
-      >
-        {{ item.badge }}
-      </span>
+      <span class="nav-text">{{ item.label }}</span>
     </router-link>
   </nav>
 </template>
 
-<script setup>
-import { computed, ref, onMounted, onUnmounted } from 'vue'
+<script>
 import { useRoute } from 'vue-router'
 
-const route = useRoute()
-
-// Реактивное определение мобильного устройства
-const windowWidth = ref(typeof window !== 'undefined' ? window.innerWidth : 1024)
-
-const updateWidth = () => {
-  windowWidth.value = window.innerWidth
-}
-
-onMounted(() => {
-  window.addEventListener('resize', updateWidth)
-})
-
-onUnmounted(() => {
-  window.removeEventListener('resize', updateWidth)
-})
-
-const isMobile = computed(() => windowWidth.value <= 768)
-
-const navigationItems = [
-  { path: '/', label: 'Главная', icon: '🏠' },
-  { path: '/urgent', label: 'Срочно', icon: '🚨', badge: 3 },
-  { path: '/companies', label: 'Заведения', icon: '🏪' },
-  { path: '/profile', label: 'Профиль', icon: '👤' }
-]
-
-const isCurrentRoute = (path) => {
-  if (path === '/') {
-    return route.path === '/' || route.path === '/jobs'
+export default {
+  name: 'BottomNavigation',
+  setup() {
+    const route = useRoute()
+    
+    const navigationItems = [
+      { path: '/', icon: '🏠', label: 'Главная' },
+      { path: '/urgent', icon: '🔥', label: 'Срочные' },
+      { path: '/companies', icon: '🏪', label: 'Заведения' },
+      { path: '/profile', icon: '👤', label: 'Кабинет' }
+    ]
+    
+    const isCurrentRoute = (path) => {
+      if (path === '/') {
+        return route.path === '/'
+      }
+      return route.path.startsWith(path)
+    }
+    
+    return {
+      navigationItems,
+      isCurrentRoute
+    }
   }
-  return route.path.startsWith(path)
 }
 </script>
 
 <style scoped>
+/* === BOTTOM NAVIGATION === */
 .bottom-navigation {
   position: fixed;
   bottom: 0;
-  left: 0;
-  right: 0;
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
-  border-top: 1px solid var(--glass-border);
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: var(--max-width);
+  height: var(--nav-height);
+  padding: 12px 0;
+  background: var(--bg-header);
+  border-top: 1px solid var(--border-color);
+  z-index: 1000;
+  
+  /* Флекс-контейнер */
   display: flex;
   justify-content: space-around;
   align-items: center;
-  padding: 8px 12px 20px;
-  z-index: 1000;
-  box-shadow: var(--shadow-lg);
 }
 
-/* iOS Safari bottom padding */
-.bottom-navigation {
-  padding-bottom: calc(20px + env(safe-area-inset-bottom));
-}
-
+/* === ЭЛЕМЕНТ НАВИГАЦИИ === */
 .nav-item {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 8px 12px;
-  border-radius: 12px;
+  gap: 4px;
+  padding: var(--gap-small) var(--gap-medium);
+  color: var(--text-secondary);
   text-decoration: none;
-  color: var(--color-text-secondary);
-  transition: all 0.2s ease;
-  position: relative;
-  min-width: 60px;
-  min-height: 48px; /* Touch target */
+  transition: all 0.3s ease;
+  border-radius: var(--radius-small);
+  min-height: var(--touch-min);
+  min-width: var(--touch-min);
+  justify-content: center;
 }
 
-.nav-item:hover,
-.nav-item.active {
-  color: var(--color-text-primary);
-  background: var(--glass-bg-hover);
-  transform: translateY(-2px);
-}
-
-.nav-item.active {
-  background: var(--glass-bg-hover);
-  border: 1px solid var(--color-primary);
-}
-
+/* === ИКОНКИ И ТЕКСТ === */
 .nav-icon {
   font-size: 1.2rem;
-  margin-bottom: 4px;
-  display: block;
+  transition: transform 0.3s ease;
 }
 
-.nav-label {
-  font-size: 0.75rem;
-  font-weight: 500;
-  text-align: center;
-  white-space: nowrap;
+.nav-text {
+  font-size: var(--font-nav);
+  font-weight: var(--weight-normal);
+  transition: color 0.3s ease;
 }
 
-.nav-badge {
-  position: absolute;
-  top: 4px;
-  right: 8px;
-  background: var(--color-danger);
-  color: white;
-  font-size: 0.7rem;
-  font-weight: 700;
-  padding: 2px 6px;
-  border-radius: 10px;
-  min-width: 18px;
-  height: 18px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  line-height: 1;
+/* === АКТИВНОЕ СОСТОЯНИЕ === */
+.nav-item-active {
+  color: var(--accent-primary);
+  transform: scale(1.1);
 }
 
-/* Анимация для активного состояния */
-.nav-item.active .nav-icon {
-  animation: bounce 0.3s ease;
+.nav-item-active .nav-icon {
+  transform: scale(1.1);
 }
 
-@keyframes bounce {
-  0%, 20%, 60%, 100% {
-    transform: translateY(0);
-  }
-  40% {
-    transform: translateY(-4px);
-  }
-  80% {
-    transform: translateY(-2px);
-  }
+/* === HOVER ЭФФЕКТЫ === */
+.nav-item:hover {
+  color: var(--accent-primary);
+  background: var(--bg-transparent);
 }
 
-/* Скрыть на desktop */
-@media (min-width: 769px) {
-  .bottom-navigation {
-    display: none;
-  }
-}
-
-/* Адаптивность для очень маленьких экранов */
-@media (max-width: 480px) {
-  .bottom-navigation {
-    padding: 6px 8px 18px;
+/* === АНИМАЦИИ === */
+@media (prefers-reduced-motion: no-preference) {
+  .nav-item:active {
+    transform: scale(0.95);
   }
   
-  .nav-item {
-    padding: 6px 8px;
-    min-width: 50px;
+  .nav-item-active:active {
+    transform: scale(1.05);
+  }
+}
+
+/* === АДАПТИВНОСТЬ === */
+@media (max-width: 350px) {
+  .nav-text {
+    font-size: 0.6rem;
   }
   
   .nav-icon {
     font-size: 1.1rem;
-  }
-  
-  .nav-label {
-    font-size: 0.7rem;
-  }
-}
-
-/* Для landscape ориентации на мобильных */
-@media (max-height: 500px) and (orientation: landscape) {
-  .bottom-navigation {
-    padding: 4px 12px 8px;
-  }
-  
-  .nav-label {
-    display: none;
-  }
-  
-  .nav-item {
-    padding: 8px;
   }
 }
 </style>

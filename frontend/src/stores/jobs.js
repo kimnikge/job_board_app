@@ -1,6 +1,8 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { jobsService } from '../services/jobs.service.js'
+import { useProfileStore } from './profile.js'
+import { useAuthStore } from './auth.js'
 
 // ✨ ЕДИНЫЙ JOBS STORE - СОГЛАСНО ПЛАНУ ЭТАПА 3
 // Объединяет обычные и срочные вакансии в одном месте
@@ -22,6 +24,14 @@ export const useJobsStore = defineStore('jobs', () => {
   // Вычисляемые значения
   const filteredJobs = computed(() => {
     let result = jobs.value
+
+    // Фильтр по городу из профиля пользователя
+    const profileStore = useProfileStore()
+    const authStore = useAuthStore()
+    
+    if (authStore.isAuthenticated && profileStore.profile?.preferred_district_id) {
+      result = result.filter(job => job.district_id === profileStore.profile.preferred_district_id)
+    }
 
     if (filters.value.search) {
       const searchLower = filters.value.search.toLowerCase()
@@ -73,7 +83,16 @@ export const useJobsStore = defineStore('jobs', () => {
     loading.value = true
     error.value = null
     try {
-      const response = await jobsService.getAllJobs()
+      // Получаем фильтр по городу из профиля
+      const profileStore = useProfileStore()
+      const authStore = useAuthStore()
+      
+      const filters = {}
+      if (authStore.isAuthenticated && profileStore.profile?.preferred_district_id) {
+        filters.district_id = profileStore.profile.preferred_district_id
+      }
+      
+      const response = await jobsService.getAllJobs(filters)
       jobs.value = response.data || []
     } catch (err) {
       error.value = err.message
@@ -87,7 +106,16 @@ export const useJobsStore = defineStore('jobs', () => {
     loading.value = true
     error.value = null
     try {
-      const response = await jobsService.getUrgentJobs()
+      // Получаем фильтр по городу из профиля
+      const profileStore = useProfileStore()
+      const authStore = useAuthStore()
+      
+      const filters = { is_urgent: true }
+      if (authStore.isAuthenticated && profileStore.profile?.preferred_district_id) {
+        filters.district_id = profileStore.profile.preferred_district_id
+      }
+      
+      const response = await jobsService.getAllJobs(filters)
       urgentJobs.value = response.data || []
     } catch (err) {
       error.value = err.message

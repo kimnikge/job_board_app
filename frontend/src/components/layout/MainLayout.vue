@@ -1,7 +1,7 @@
 <template>
   <div class="app-container">
     <header class="header">
-      <div class="logo">Job Board</div>
+      <div class="logo">ShiftworkKZ</div>
       <div class="header-actions">
         <button class="header-btn" @click="toggleTheme">
           <SunIcon v-if="theme === 'dark'" class="w-5 h-5" />

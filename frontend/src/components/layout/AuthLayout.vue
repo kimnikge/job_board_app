@@ -3,7 +3,7 @@
     <AppHeader />
     <header class="auth-header">
       <slot name="header">
-        <h1 class="logo">Job Board — Вход</h1>
+        <h1 class="logo">ShiftworkKZ — Вход</h1>
       </slot>
     </header>
     <main class="auth-main">
@@ -11,7 +11,7 @@
     </main>
     <footer class="auth-footer">
       <slot name="footer">
-        <div>© {{ new Date().getFullYear() }} Job Board</div>
+        <div>© {{ new Date().getFullYear() }} ShiftworkKZ</div>
       </slot>
     </footer>
   </div>

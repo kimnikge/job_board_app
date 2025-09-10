@@ -1,71 +1,24 @@
 <!DOCTYPE html>
 <html lang="ru">
-  <head>
-    <meta charset="UTF-8">
-    <link rel="icon" href="/favicon.ico">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Job Board - HR платформа для общепита</title>
-    <meta name="description" content="Платформа поиска работы и персонала в сфере общественного питания">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" href="/favicon.ico">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ShiftworkKZ - Работа мечты</title>
+  <meta name="description" content="Платформа поиска работы и персонала в сфере общественного питания">
+  
+  <!-- PWA Settings -->
   <link rel="manifest" href="/manifest.webmanifest">
   <meta name="theme-color" content="#0a0a0a">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="apple-touch-icon" href="/favicon.ico">
-    
-  <!-- Удалён preload исходных Vite ресурсов: Safari кешировал CSS как style до трансформации и ломал import -->
-    
-    <!-- DNS prefetch для внешних ресурсов -->
-    <link rel="dns-prefetch" href="//kuyudpxqlrinkcxvorom.supabase.co">
-  <link rel="preconnect" href="https://kuyudpxqlrinkcxvorom.supabase.co" crossorigin>
-  </head>
-  <body>
-  <a href="#app" class="skip-link">Перейти к содержимому</a>
-    <div id="app"></div>
-    <!-- DEV SAFEGUARD: если пользователь открыл http://localhost без порта и получает сырой исходник без трансформации Vite,
-         выполняем редирект на порт dev-сервера (3000). Это устраняет ошибку Safari 'text/css is not a valid JavaScript MIME type'. -->
-    <script>
-      (function() {
-        const expectedPort = '3000';
-        const isNoPort = !location.port || location.port === '80';
-        const isLocal = ['localhost','127.0.0.1','::1'].includes(location.hostname);
-        if (isLocal && isNoPort) {
-          // Проверяем чтобы не зациклиться (добавим маркер в hash)
-            if (!location.hash.includes('#__vite_port')) {
-              location.href = location.protocol + '//' + location.hostname + ':' + expectedPort + location.pathname + location.search + '#__vite_port';
-            }
-        }
-      })();
-    </script>
-    <script type="module" src="/src/main.js"></script>
-    <script type="module">
-      // PROD-ONLY SW REGISTRATION
-      // Причина: в dev (localhost) service worker кэшировал index.html и CSS до трансформации Vite,
-      // что приводило к ошибке Safari: "text/css is not a valid JavaScript MIME type" и падению HMR.
-      // Условие ниже предотвращает регистрацию SW на localhost / 127.* / ::1.
-      const isLocal = [
-        'localhost',
-        '127.0.0.1',
-        '::1'
-      ].includes(location.hostname)
-      if (!isLocal && 'serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js')
-            .catch(e => console.log('[SW] registration failed', e))
-        })
-      } else {
-        // Попытка отрегистрации старого SW, если он ранее был установлен в dev
-        if ('serviceWorker' in navigator) {
-          navigator.serviceWorker.getRegistrations?.().then(regs => {
-            regs.forEach(r => r.unregister())
-          })
-          // Очистка кэшей чтобы устранить устаревшие ответы
-          caches?.keys?.().then(keys => keys.forEach(k => caches.delete(k)))
-        }
-      }
-    </script>
-    <style>
-      .skip-link { position:absolute; left:-999px; top:auto; width:1px; height:1px; overflow:hidden; }
-      .skip-link:focus { position:static; width:auto; height:auto; padding:8px 14px; background:#000; color:#fff; z-index:999; }
-    </style>
-  </body>
+  
+  <!-- Telegram Login Widget Script -->
+  <script async src="https://telegram.org/js/telegram-widget.js?22"></script>
+</head>
+<body>
+  <div id="app"></div>
+  <script type="module" src="/src/main.js"></script>
+</body>
 </html>

@@ -2,8 +2,8 @@
 // Добавление новой роли (например ADMIN) делается здесь и используется по всему коду.
 export const ROLES = {
   CANDIDATE: 'candidate',
-  EMPLOYER: 'employer'
-  // ADMIN: 'admin' // зарезервировано для будущего R8
+  EMPLOYER: 'employer',
+  ADMIN: 'admin'
 }
 
 export function hasRole(user, role) {

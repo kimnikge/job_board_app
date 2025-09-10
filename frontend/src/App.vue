@@ -1,31 +1,43 @@
 <template>
-  <ErrorBoundary>
-    <div id="app">
-      <AnimatedBackground />
-      <AppLayout>
-        <router-view />
-      </AppLayout>
-    </div>
-  </ErrorBoundary>
+  <div id="app">
+    <!-- Header для всех страниц -->
+    <AppHeader />
+    
+    <!-- Основной контент -->
+    <main class="page-content">
+      <router-view />
+    </main>
+    
+    <!-- Нижняя навигация для всех страниц -->
+    <BottomNavigation />
+  </div>
 </template>
 
-<script setup>
-import { onMounted } from 'vue'
-import AnimatedBackground from './components/AnimatedBackground.vue'
-import ErrorBoundary from './components/ErrorBoundary.vue'
-import AppLayout from './components/layout/AppLayout.vue'
+<script>
+import AppHeader from '@/components/AppHeader.vue'
+import BottomNavigation from '@/components/BottomNavigation.vue'
 
-onMounted(() => {
-  console.log('🍽️ Job Board App для общепита Астаны запущен!')
-  console.log('🎨 Применена новая темная тема с градиентами')
-  console.log('📱 Добавлена адаптивная навигация согласно плану разработки')
-})
+export default {
+  name: 'App',
+  components: {
+    AppHeader,
+    BottomNavigation
+  }
+}
 </script>
 
 <style>
+/* === Глобальные стили приложения === */
 #app {
   position: relative;
+  background-color: var(--bg-page);
   min-height: 100vh;
-  overflow-x: hidden;
+}
+
+/* === Отступы под навигацию === */
+.page-content {
+  margin-top: var(--header-height);
+  margin-bottom: var(--nav-height);
+  min-height: calc(100vh - var(--header-height) - var(--nav-height));
 }
 </style>

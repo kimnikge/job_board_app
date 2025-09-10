@@ -131,7 +131,7 @@ const testWelcomeNotification = async () => {
 }
 
 const testCustomNotification = async () => {
-  await notifyUser('test-user', 'Это тестовое уведомление от Job Board App!', 'info')
+  await notifyUser('test-user', 'Это тестовое уведомление от ShiftworkKZ App!', 'info')
 }
 
 // Утилиты

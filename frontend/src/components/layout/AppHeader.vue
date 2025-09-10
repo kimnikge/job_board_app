@@ -1,53 +1,115 @@
 <template>
-  <header class="app-header glass-header">
-    <div class="header-content">
-      <router-link to="/" class="logo">
-        <span class="logo-icon">🍽️</span>
-        <span class="logo-text">Job Board Астана</span>
-        <span class="logo-subtitle">Общепит</span>
-      </router-link>
+  <header class="app-header">
+    <!-- Левая часть - Логотип -->
+    <div class="header-logo">
+      ShiftworkKZ
+    </div>
+    
+    <!-- Правая часть - Блок действий -->
+    <div class="header-actions">
+      <button class="btn-icon search-btn" @click="handleSearch">
+        🔍
+      </button>
+      
+      <button class="btn-icon notifications-btn" @click="handleNotifications">
+        🔔
+        <span v-if="hasNotifications" class="notification-indicator"></span>
+      </button>
+    </div>
+  </header>
+</template>
 
-      <nav class="nav-menu">
-        <router-link 
-          v-for="item in menuItems" 
-          :key="item.path"
-          :to="item.path"
-          class="nav-link"
-          :class="{ active: isCurrentRoute(item.path) }"
-        >
-          <span v-if="item.icon" class="nav-icon">{{ item.icon }}</span>
-          {{ item.label }}
-        </router-link>
-      </nav>
+<script>
+import { useNotificationsStore } from '@/stores/notifications'
+import { computed } from 'vue'
 
-      <div class="header-actions">
-        <button 
-          v-if="!isAuthenticated" 
-          class="auth-button"
-          @click="$router.push('/auth/login')"
-        >
-          <UserIcon class="w-5 h-5 mr-2" />
-          Войти
-        </button>
+export default {
+  name: 'AppHeader',
+  setup() {
+    const notificationsStore = useNotificationsStore()
+    
+    const hasNotifications = computed(() => 
+      notificationsStore.unreadCount > 0
+    )
+    
+    const handleSearch = () => {
+      // TODO: Реализовать поиск
+      console.log('Search clicked')
+    }
+    
+    const handleNotifications = () => {
+      // TODO: Открыть панель уведомлений
+      console.log('Notifications clicked')
+    }
+    
+    return {
+      hasNotifications,
+      handleSearch,
+      handleNotifications
+    }
+  }
+}
+</script>
 
-        <template v-else>
-          <!-- Демонстрация анимаций (только в dev режиме) -->
-          <router-link 
-            v-if="isDev" 
-            to="/demo/animations" 
-            class="demo-button"
-            title="Демонстрация анимаций"
-          >
-            <span class="demo-icon">🎨</span>
-            <span>DEMO</span>
-          </router-link>
+<style scoped>
+/* === HEADER СТИЛИ === */
+.app-header {
+  position: sticky;
+  top: 0;
+  height: var(--header-height);
+  padding: 15px var(--padding-page);
+  background: var(--bg-header);
+  border-bottom: 1px solid var(--border-color);
+  z-index: 999;
+  
+  /* Флекс-контейнер */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
 
-          <!-- Кнопка срочных вакансий -->
-          <router-link to="/urgent" class="urgent-button">
-            <span class="urgent-icon">🚨</span>
-            <span>СРОЧНО</span>
-            <span v-if="urgentJobsCount" class="urgent-badge">{{ urgentJobsCount }}</span>
-          </router-link>
+/* === ЛОГОТИП === */
+.header-logo {
+  font-size: 1.4rem;
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+  user-select: none;
+}
+
+/* === БЛОК ДЕЙСТВИЙ === */
+.header-actions {
+  display: flex;
+  gap: var(--gap-medium);
+  align-items: center;
+}
+
+/* === КНОПКИ ДЕЙСТВИЙ === */
+.search-btn,
+.notifications-btn {
+  width: 36px;
+  height: 36px;
+  position: relative;
+}
+
+/* === ИНДИКАТОР УВЕДОМЛЕНИЙ === */
+.notification-indicator {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 8px;
+  height: 8px;
+  background: var(--color-error);
+  border-radius: var(--radius-circle);
+  border: 1px solid var(--bg-header);
+}
+
+/* === HOVER ЭФФЕКТЫ === */
+.search-btn:hover,
+.notifications-btn:hover {
+  background: var(--bg-transparent-hover);
+  transform: none; /* Убираем translateY для header кнопок */
+}
+</style>
 
           <div class="notifications-menu" v-click-outside="closeNotifications">
             <button class="icon-button" @click="toggleNotifications">
