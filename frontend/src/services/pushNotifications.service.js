@@ -124,7 +124,7 @@ export const pushNotificationsService = {
       throw new Error('Разрешение на уведомления не получено')
     }
 
-    const notification = new Notification('ShiftworkKZ', {
+    const notification = new Notification('Shiftwork BETA', {
       body: 'Тестовое push-уведомление! 🎉',
       icon: '/favicon.ico',
       badge: '/favicon.ico',

@@ -1,7 +1,10 @@
 <template>
   <div class="home-view">
     <div class="hero-section">
-      <h1 class="hero-title">ShiftworkKZ</h1>
+      <h1 class="hero-title">
+        <span class="logo-text">Shiftwork</span>
+        <span class="beta-badge">BETA</span>
+      </h1>
       <p class="hero-subtitle">Первая в Казахстане платформа мгновенных смен</p>
       <p class="hero-tagline">🚀 <strong>Найди работу в своем городе за 5 минут</strong></p>
       
@@ -63,13 +66,35 @@ const userDisplayName = computed(() => {
 }
 
 .hero-title {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 1rem;
+  position: relative;
   font-size: 3rem;
   font-weight: 800;
+  margin-bottom: 1rem;
+}
+
+.logo-text {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  margin-bottom: 1rem;
+}
+
+.beta-badge {
+  position: absolute;
+  top: 0;
+  right: -30px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #fff;
+  background: #ef4444;
+  padding: 4px 8px;
+  border-radius: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);
 }
 
 .hero-subtitle {
@@ -163,6 +188,12 @@ const userDisplayName = computed(() => {
 @media (max-width: 768px) {
   .hero-title {
     font-size: 2rem;
+  }
+  
+  .beta-badge {
+    font-size: 0.6rem;
+    padding: 2px 4px;
+    right: -20px;
   }
   
   .features {

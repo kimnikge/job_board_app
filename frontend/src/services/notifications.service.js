@@ -4,7 +4,7 @@ import { profileService } from './profile.service.js'
 import { isDemoMode } from './supabase.js'
 
 /**
- * Центральная служба уведомлений для ShiftworkKZ App
+ * Центральная служба уведомлений для Shiftwork BETA App
  * Интегрирует все типы уведомлений в единой системе
  */
 export const notificationsService = {
@@ -66,7 +66,7 @@ export const notificationsService = {
 💰 ${this.formatSalary(jobData.salary_from, jobData.salary_to)}
 🏢 ${jobData.company_name || 'Компания'}
 
-Подробности в приложении ShiftworkKZ!`
+Подробности в приложении Shiftwork BETA!`
 
       // Если targetUsers не указаны, отправляем тестовому пользователю
       if (targetUsers.length === 0) {
@@ -122,7 +122,7 @@ export const notificationsService = {
 ${badgeData.icon_url || '🏅'} ${badgeData.description || 'Отличная работа!'}
 ${reason ? `\nПричина: ${reason}` : ''}
 
-Просмотреть в профиле ShiftworkKZ!`
+Просмотреть в профиле Shiftwork BETA!`
 
       await this.notifyUser(userId, message, 'badge')
       return true
@@ -137,7 +137,7 @@ ${reason ? `\nПричина: ${reason}` : ''}
    */
   async notifyWelcome(userId, userData) {
     try {
-      const message = `Добро пожаловать в ShiftworkKZ, ${userData.full_name || 'новый пользователь'}!
+      const message = `Добро пожаловать в Shiftwork BETA, ${userData.full_name || 'новый пользователь'}!
 
 Теперь вы можете:
 📋 Просматривать вакансии в общепите
@@ -188,7 +188,7 @@ ${reason ? `\nПричина: ${reason}` : ''}
       const notificationText = `Новое сообщение от ${fromUser}:
 "${message.length > 100 ? message.substring(0, 100) + '...' : message}"
 
-Ответить в ShiftworkKZ!`
+Ответить в Shiftwork BETA!`
 
       await this.notifyUser(userId, notificationText, 'info')
       return true

@@ -1,4 +1,4 @@
-# 🚀 ShiftworkKZ - Job Board App
+# 🚀 Shiftwork BETA - Job Board App
 
 Первая в Казахстане платформа мгновенных смен в сфере общепита и HoReCa.
 

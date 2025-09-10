@@ -2,7 +2,10 @@
   <div class="auth-page">
     <div class="auth-page__container">
       <div class="auth-page__logo">
-        <h1 class="auth-page__title">ShiftworkKZ</h1>
+        <h1 class="auth-page__title">
+          <span class="logo-text">Shiftwork</span>
+          <span class="beta-badge">BETA</span>
+        </h1>
         <p class="auth-page__subtitle">Первая в Казахстане платформа мгновенных смен</p>
       </div>
 
@@ -99,13 +102,35 @@ if (authStore.isAuthenticated) {
 }
 
 .auth-page__title {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  position: relative;
   font-size: 2.5rem;
   font-weight: 800;
+  margin-bottom: 0.5rem;
+}
+
+.logo-text {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  margin-bottom: 0.5rem;
+}
+
+.beta-badge {
+  position: absolute;
+  top: -8px;
+  right: -20px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: #fff;
+  background: #ef4444;
+  padding: 2px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);
 }
 
 .auth-page__subtitle {
@@ -266,6 +291,13 @@ if (authStore.isAuthenticated) {
   
   .auth-page__title {
     font-size: 2rem;
+  }
+  
+  .beta-badge {
+    font-size: 0.5rem;
+    padding: 1px 4px;
+    right: -15px;
+    top: -6px;
   }
 }
 </style>

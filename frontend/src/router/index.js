@@ -89,7 +89,7 @@ const routes = [
     path: '/', 
     component: HomeView,
     meta: { 
-      title: 'ShiftworkKZ - Работа мечты',
+      title: 'Shiftwork BETA - Работа мечты',
       requiresAuth: true
     }
   },
@@ -386,7 +386,7 @@ const router = createRouter({
 // ✨ ROUTER GUARD СОГЛАСНО ТЗ: ЕДИНСТВЕННЫЙ СПОСОБ ВХОДА - TELEGRAM LOGIN
 router.beforeEach(async (to, from, next) => {
   // Установка заголовка страницы
-  document.title = to.meta.title ? `${to.meta.title} | ShiftworkKZ Астана` : 'ShiftworkKZ Астана'
+  document.title = to.meta.title ? `${to.meta.title} | Shiftwork BETA` : 'Shiftwork BETA'
 
   // Проверка авторизации - ключевая логика согласно ТЗ
   if (to.meta.requiresAuth || to.meta.guest || to.meta.userType) {

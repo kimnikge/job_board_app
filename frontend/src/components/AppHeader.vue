@@ -3,7 +3,8 @@
     <!-- Левая часть - Логотип -->
     <div class="header-logo">
       <router-link to="/" class="logo-link">
-        ShiftworkKZ
+        <span class="logo-text">Shiftwork</span>
+        <span class="beta-badge">BETA</span>
       </router-link>
     </div>
     
@@ -158,13 +159,35 @@ export default {
 }
 
 .logo-link {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  position: relative;
   font-size: 1.5rem;
   font-weight: 800;
+  text-decoration: none;
+}
+
+.logo-text {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  text-decoration: none;
+}
+
+.beta-badge {
+  position: absolute;
+  top: -8px;
+  right: -20px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: #fff;
+  background: #ef4444;
+  padding: 2px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);
 }
 
 .header-actions {
@@ -260,6 +283,13 @@ export default {
   
   .logo-link {
     font-size: 1.25rem;
+  }
+  
+  .beta-badge {
+    font-size: 0.5rem;
+    padding: 1px 4px;
+    right: -15px;
+    top: -6px;
   }
   
   .login-btn {
