@@ -32,9 +32,9 @@
       
       <!-- Для неавторизованных пользователей -->
       <template v-else>
-        <router-link to="/auth" class="login-btn">
+        <button class="login-btn" @click="handleTelegramLogin">
           Войти через Telegram
-        </router-link>
+        </button>
       </template>
     </div>
   </header>
@@ -89,6 +89,39 @@ export default {
     
     const goToProfile = () => {
       router.push('/profile')
+    }
+    
+    const handleTelegramLogin = async () => {
+      // Проверяем, запущено ли приложение в Telegram Web App
+      if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe?.user) {
+        // Используем данные из Telegram Web App
+        const telegramUser = window.Telegram.WebApp.initDataUnsafe.user
+        const telegramData = {
+          id: telegramUser.id,
+          first_name: telegramUser.first_name,
+          last_name: telegramUser.last_name,
+          username: telegramUser.username,
+          photo_url: telegramUser.photo_url,
+          auth_date: Math.floor(Date.now() / 1000),
+          hash: window.Telegram.WebApp.initData // Используем подписанные данные
+        }
+        
+        console.log('🚀 Telegram Web App login:', telegramData)
+        
+        try {
+          const result = await authStore.loginWithTelegram(telegramData)
+          if (result.success) {
+            console.log('✅ Авторизация успешна!')
+          } else {
+            console.error('❌ Ошибка авторизации:', result.error)
+          }
+        } catch (error) {
+          console.error('❌ Ошибка при авторизации:', error)
+        }
+      } else {
+        // Если не в Telegram Web App, перенаправляем на страницу авторизации
+        router.push('/auth')
+      }
     }
     
     return {
