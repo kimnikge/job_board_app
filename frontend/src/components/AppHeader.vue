@@ -120,44 +120,42 @@ export default {
         if (window.Telegram.WebApp.initDataUnsafe?.user) {
           telegramUser = window.Telegram.WebApp.initDataUnsafe.user
           console.log('👤 Пользователь из initDataUnsafe:', telegramUser)
-        } else if (window.Telegram.WebApp.initData) {
-          console.log('📋 Есть initData, но нет user. InitData:', window.Telegram.WebApp.initData)
-          // Создаем демо-пользователя для тестирования
+        } else {
+          console.log('📋 Нет данных пользователя, создаю демо-пользователя для тестирования')
+          // Создаем демо-пользователя для локального тестирования
           telegramUser = {
-            id: 123456789,
-            first_name: 'Test',
+            id: Math.floor(Math.random() * 1000000) + 100000, // Случайный ID
+            first_name: 'Demo',
             last_name: 'User',
-            username: 'testuser'
+            username: 'demouser_' + Date.now(),
+            photo_url: null
           }
-          console.log('👤 Использую демо-пользователя:', telegramUser)
+          console.log('👤 Создан демо-пользователь:', telegramUser)
         }
         
-        if (telegramUser) {
-          const telegramData = {
-            id: telegramUser.id,
-            first_name: telegramUser.first_name,
-            last_name: telegramUser.last_name,
-            username: telegramUser.username,
-            photo_url: telegramUser.photo_url,
-            auth_date: Math.floor(Date.now() / 1000),
-            hash: window.Telegram.WebApp.initData || 'demo_hash_' + Date.now()
+        // У нас есть пользователь (реальный или демо), пытаемся авторизоваться
+        const telegramData = {
+          id: telegramUser.id,
+          first_name: telegramUser.first_name,
+          last_name: telegramUser.last_name,
+          username: telegramUser.username,
+          photo_url: telegramUser.photo_url,
+          auth_date: Math.floor(Date.now() / 1000),
+          hash: window.Telegram.WebApp.initData || 'demo_hash_' + Date.now()
+        }
+        
+        console.log('🚀 Отправляю данные на авторизацию:', telegramData)
+        
+        try {
+          const result = await authStore.loginWithTelegram(telegramData)
+          if (result.success) {
+            console.log('✅ Авторизация успешна!')
+            router.push('/') // Перенаправляем на главную после успешной авторизации
+          } else {
+            console.error('❌ Ошибка авторизации:', result.error)
           }
-          
-          console.log('🚀 Отправляю данные на авторизацию:', telegramData)
-          
-          try {
-            const result = await authStore.loginWithTelegram(telegramData)
-            if (result.success) {
-              console.log('✅ Авторизация успешна!')
-            } else {
-              console.error('❌ Ошибка авторизации:', result.error)
-            }
-          } catch (error) {
-            console.error('❌ Ошибка при авторизации:', error)
-          }
-        } else {
-          console.log('❌ Не удалось получить данные пользователя из Telegram')
-          router.push('/auth')
+        } catch (error) {
+          console.error('❌ Ошибка при авторизации:', error)
         }
       } else {
         console.log('🌐 Не в Telegram Web App, перенаправляем на /auth')
