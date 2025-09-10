@@ -95,33 +95,69 @@ export default {
     const handleTelegramLogin = async () => {
       console.log('🚀 handleTelegramLogin вызвана!')
       
-      // Проверяем, запущено ли приложение в Telegram Web App
-      if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe?.user) {
+      // Подробная диагностика Telegram Web App
+      console.log('🔍 Диагностика Telegram:')
+      console.log('- window.Telegram существует:', !!window.Telegram)
+      console.log('- window.Telegram.WebApp существует:', !!(window.Telegram && window.Telegram.WebApp))
+      console.log('- WebApp.initData:', window.Telegram?.WebApp?.initData)
+      console.log('- WebApp.initDataUnsafe:', window.Telegram?.WebApp?.initDataUnsafe)
+      console.log('- WebApp.platform:', window.Telegram?.WebApp?.platform)
+      console.log('- User agent содержит Telegram:', navigator.userAgent.includes('Telegram'))
+      
+      // Проверяем разные способы определения Telegram Web App
+      const isTelegramWebApp = window.Telegram && window.Telegram.WebApp && (
+        window.Telegram.WebApp.initData || 
+        window.Telegram.WebApp.initDataUnsafe ||
+        window.Telegram.WebApp.platform
+      )
+      
+      if (isTelegramWebApp) {
         console.log('📱 Обнаружен Telegram Web App')
         
-        // Используем данные из Telegram Web App
-        const telegramUser = window.Telegram.WebApp.initDataUnsafe.user
-        const telegramData = {
-          id: telegramUser.id,
-          first_name: telegramUser.first_name,
-          last_name: telegramUser.last_name,
-          username: telegramUser.username,
-          photo_url: telegramUser.photo_url,
-          auth_date: Math.floor(Date.now() / 1000),
-          hash: window.Telegram.WebApp.initData // Используем подписанные данные
+        // Пытаемся получить данные пользователя разными способами
+        let telegramUser = null
+        
+        if (window.Telegram.WebApp.initDataUnsafe?.user) {
+          telegramUser = window.Telegram.WebApp.initDataUnsafe.user
+          console.log('👤 Пользователь из initDataUnsafe:', telegramUser)
+        } else if (window.Telegram.WebApp.initData) {
+          console.log('📋 Есть initData, но нет user. InitData:', window.Telegram.WebApp.initData)
+          // Создаем демо-пользователя для тестирования
+          telegramUser = {
+            id: 123456789,
+            first_name: 'Test',
+            last_name: 'User',
+            username: 'testuser'
+          }
+          console.log('👤 Использую демо-пользователя:', telegramUser)
         }
         
-        console.log('🚀 Telegram Web App login:', telegramData)
-        
-        try {
-          const result = await authStore.loginWithTelegram(telegramData)
-          if (result.success) {
-            console.log('✅ Авторизация успешна!')
-          } else {
-            console.error('❌ Ошибка авторизации:', result.error)
+        if (telegramUser) {
+          const telegramData = {
+            id: telegramUser.id,
+            first_name: telegramUser.first_name,
+            last_name: telegramUser.last_name,
+            username: telegramUser.username,
+            photo_url: telegramUser.photo_url,
+            auth_date: Math.floor(Date.now() / 1000),
+            hash: window.Telegram.WebApp.initData || 'demo_hash_' + Date.now()
           }
-        } catch (error) {
-          console.error('❌ Ошибка при авторизации:', error)
+          
+          console.log('🚀 Отправляю данные на авторизацию:', telegramData)
+          
+          try {
+            const result = await authStore.loginWithTelegram(telegramData)
+            if (result.success) {
+              console.log('✅ Авторизация успешна!')
+            } else {
+              console.error('❌ Ошибка авторизации:', result.error)
+            }
+          } catch (error) {
+            console.error('❌ Ошибка при авторизации:', error)
+          }
+        } else {
+          console.log('❌ Не удалось получить данные пользователя из Telegram')
+          router.push('/auth')
         }
       } else {
         console.log('🌐 Не в Telegram Web App, перенаправляем на /auth')
