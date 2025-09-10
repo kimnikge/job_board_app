@@ -93,8 +93,12 @@ export default {
     }
     
     const handleTelegramLogin = async () => {
+      console.log('🚀 handleTelegramLogin вызвана!')
+      
       // Проверяем, запущено ли приложение в Telegram Web App
       if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe?.user) {
+        console.log('📱 Обнаружен Telegram Web App')
+        
         // Используем данные из Telegram Web App
         const telegramUser = window.Telegram.WebApp.initDataUnsafe.user
         const telegramData = {
@@ -120,6 +124,7 @@ export default {
           console.error('❌ Ошибка при авторизации:', error)
         }
       } else {
+        console.log('🌐 Не в Telegram Web App, перенаправляем на /auth')
         // Если не в Telegram Web App, перенаправляем на страницу авторизации
         router.push('/auth')
       }
@@ -133,7 +138,8 @@ export default {
       hasNotifications,
       handleSearch,
       handleNotifications,
-      goToProfile
+      goToProfile,
+      handleTelegramLogin
     }
   }
 }
