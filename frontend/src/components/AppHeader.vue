@@ -158,7 +158,7 @@ export default {
       
       try {
         window.TelegramLoginWidget.create(container, {
-          bot_id: '7555643826', // ID нашего бота
+          bot_id: import.meta.env.VITE_TELEGRAM_BOT_ID, // ID бота из env
           origin: 'https://horecapp.netlify.app', // Продакшн домен
           embed: 1,
           request_access: 'write',
