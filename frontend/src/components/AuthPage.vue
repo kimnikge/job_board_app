@@ -60,6 +60,7 @@
 
 <script>
 import { ref, onMounted, computed } from 'vue'
+import WebApp from '@twa-dev/sdk'
 
 export default {
   name: 'AuthPage',
@@ -75,113 +76,111 @@ export default {
 
     const debugInfo = computed(() => {
       return {
-        window_Telegram: !!window.Telegram,
-        webApp: !!window.Telegram?.WebApp,
-        initData: window.Telegram?.WebApp?.initData || 'нет',
+        sdk_available: !!WebApp,
+        initDataUnsafe: WebApp.initDataUnsafe,
         user: telegramUser.value,
-        platform: window.Telegram?.WebApp?.platform || 'неизвестно'
+        platform: WebApp.platform,
+        version: WebApp.version,
+        isExpanded: WebApp.isExpanded,
+        colorScheme: WebApp.colorScheme
       }
     })
 
-    // Проверка Telegram Web App
+    // Проверка Telegram Web App с официальным SDK
     const checkTelegramWebApp = () => {
       try {
-        console.log('🔍 Проверяем Telegram Web App')
+        console.log('🔍 Проверяем Telegram Web App через SDK')
         
-        if (typeof window === 'undefined') {
-          console.log('❌ Window не найден')
-          return false
-        }
-
-        if (!window.Telegram) {
-          console.log('❌ Telegram объект не найден')
-          return false
-        }
-
-        if (!window.Telegram.WebApp) {
-          console.log('❌ Telegram WebApp не найден')
-          return false
-        }
-
-        const webApp = window.Telegram.WebApp
-        console.log('✅ Telegram WebApp найден:', webApp)
-
-        if (!webApp.initData) {
-          console.log('⚠️ initData пустой')
-          return false
-        }
-
-        // Парсим данные пользователя
-        const urlParams = new URLSearchParams(webApp.initData)
-        const userParam = urlParams.get('user')
+        // Инициализируем WebApp
+        WebApp.ready()
         
-        if (userParam) {
-          try {
-            const parsedUser = JSON.parse(decodeURIComponent(userParam))
-            telegramUser.value = parsedUser
-            console.log('✅ Пользователь Telegram:', parsedUser)
-            return true
-          } catch (e) {
-            console.error('❌ Ошибка парсинга пользователя:', e)
-            return false
+        console.log('✅ SDK готов к работе')
+        console.log('📱 Platform:', WebApp.platform)
+        console.log('🎨 Color Scheme:', WebApp.colorScheme)
+        console.log('📊 Version:', WebApp.version)
+        
+        // Проверяем данные пользователя
+        if (WebApp.initDataUnsafe?.user) {
+          const user = WebApp.initDataUnsafe.user
+          telegramUser.value = user
+          console.log('✅ Пользователь найден через SDK:', user)
+          return true
+        }
+        
+        console.log('⚠️ Пользователь не найден в initDataUnsafe')
+        
+        // Дополнительная проверка через initData
+        if (WebApp.initData) {
+          console.log('📋 InitData доступен:', WebApp.initData.length, 'символов')
+          
+          // Парсим через URLSearchParams
+          const urlParams = new URLSearchParams(WebApp.initData)
+          const userParam = urlParams.get('user')
+          
+          if (userParam) {
+            try {
+              const parsedUser = JSON.parse(decodeURIComponent(userParam))
+              telegramUser.value = parsedUser
+              console.log('✅ Пользователь найден через initData:', parsedUser)
+              return true
+            } catch (e) {
+              console.error('❌ Ошибка парсинга пользователя:', e)
+            }
           }
         }
 
+        console.log('❌ Данные пользователя не найдены')
         return false
+        
       } catch (error) {
-        console.error('❌ Ошибка проверки Telegram:', error)
+        console.error('❌ Ошибка SDK:', error)
         return false
       }
     }
 
-    // Авторизация через Telegram
+    // Простая авторизация через Telegram SDK
     const loginWithTelegram = async () => {
       try {
         isLoading.value = true
         authError.value = null
 
-        console.log('🚀 Начинаем авторизацию через Telegram')
+        console.log('🚀 Начинаем авторизацию через SDK')
         
         if (!telegramUser.value) {
           throw new Error('Данные пользователя Telegram не найдены')
         }
 
-        // Отправляем запрос на сервер
-        const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/telegram-simple-auth`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
-          },
-          body: JSON.stringify({
-            user: telegramUser.value,
-            initData: window.Telegram.WebApp.initData
-          })
-        })
-
-        if (!response.ok) {
-          const errorText = await response.text()
-          throw new Error(`Ошибка сервера: ${response.status} ${errorText}`)
+        // Создаём пользователя из данных Telegram
+        const userData = {
+          id: telegramUser.value.id,
+          telegram_id: telegramUser.value.id,
+          username: telegramUser.value.username || null,
+          first_name: telegramUser.value.first_name || '',
+          last_name: telegramUser.value.last_name || '',
+          language_code: telegramUser.value.language_code || 'ru',
+          photo_url: telegramUser.value.photo_url || null,
+          auth_source: 'telegram_webapp',
+          platform: WebApp.platform,
+          version: WebApp.version,
+          created_at: new Date().toISOString(),
+          last_login: new Date().toISOString()
         }
 
-        const result = await response.json()
-        console.log('✅ Ответ сервера:', result)
+        console.log('👤 Данные пользователя подготовлены:', userData)
 
-        if (result.error) {
-          throw new Error(result.error)
-        }
-
-        // Успешная авторизация
-        user.value = result.user
+        // В будущем здесь можно добавить простой запрос к Supabase для сохранения пользователя
+        // Пока сохраняем только локально
+        
+        user.value = userData
         isAuthenticated.value = true
         
         // Сохраняем в localStorage для последующих сессий
-        localStorage.setItem('shiftwork_user', JSON.stringify(result.user))
+        localStorage.setItem('shiftwork_user', JSON.stringify(userData))
         
         console.log('🎉 Авторизация успешна!')
         
         // Уведомляем родительский компонент
-        emit('authenticated', result.user)
+        emit('authenticated', userData)
 
       } catch (error) {
         console.error('❌ Ошибка авторизации:', error)
@@ -203,7 +202,17 @@ export default {
         isLoading.value = true
         console.log('🔍 Проверяем существующую авторизацию')
 
-        // Проверяем localStorage
+        // Сначала проверяем Telegram Web App
+        isTelegramWebApp.value = checkTelegramWebApp()
+        
+        if (isTelegramWebApp.value && telegramUser.value) {
+          // Если пользователь найден в Telegram - автоматически авторизуем
+          console.log('🚀 Автоматическая авторизация через Telegram')
+          await loginWithTelegram()
+          return
+        }
+
+        // Если не в Telegram, проверяем localStorage
         const savedUser = localStorage.getItem('shiftwork_user')
         if (savedUser) {
           try {
@@ -217,9 +226,6 @@ export default {
             localStorage.removeItem('shiftwork_user')
           }
         }
-
-        // Проверяем Telegram Web App
-        isTelegramWebApp.value = checkTelegramWebApp()
         
         if (!isTelegramWebApp.value) {
           console.log('⚠️ Не в Telegram Web App, авторизация недоступна')
