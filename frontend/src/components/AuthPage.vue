@@ -138,19 +138,17 @@ export default {
       }
     }
 
-    // Простая авторизация через Telegram SDK
-    const loginWithTelegram = async () => {
+    // Простая авторизация через Telegram SDK (БЕЗ СЕРВЕРА!)
+    const loginWithTelegram = () => {
       try {
-        isLoading.value = true
-        authError.value = null
-
-        console.log('🚀 Начинаем авторизацию через SDK')
+        console.log('🚀 Начинаем ЛОКАЛЬНУЮ авторизацию через SDK')
         
         if (!telegramUser.value) {
-          throw new Error('Данные пользователя Telegram не найдены')
+          authError.value = 'Данные пользователя Telegram не найдены'
+          return
         }
 
-        // Создаём пользователя из данных Telegram
+        // Создаём пользователя из данных Telegram (только локально)
         const userData = {
           id: telegramUser.value.id,
           telegram_id: telegramUser.value.id,
@@ -159,34 +157,29 @@ export default {
           last_name: telegramUser.value.last_name || '',
           language_code: telegramUser.value.language_code || 'ru',
           photo_url: telegramUser.value.photo_url || null,
-          auth_source: 'telegram_webapp',
+          auth_source: 'telegram_webapp_local',
           platform: WebApp.platform,
           version: WebApp.version,
           created_at: new Date().toISOString(),
           last_login: new Date().toISOString()
         }
 
-        console.log('👤 Данные пользователя подготовлены:', userData)
-
-        // В будущем здесь можно добавить простой запрос к Supabase для сохранения пользователя
-        // Пока сохраняем только локально
+        console.log('👤 Пользователь авторизован ЛОКАЛЬНО:', userData)
         
         user.value = userData
         isAuthenticated.value = true
         
-        // Сохраняем в localStorage для последующих сессий
+        // Сохраняем в localStorage
         localStorage.setItem('shiftwork_user', JSON.stringify(userData))
         
-        console.log('🎉 Авторизация успешна!')
+        console.log('🎉 ЛОКАЛЬНАЯ авторизация завершена!')
         
         // Уведомляем родительский компонент
         emit('authenticated', userData)
 
       } catch (error) {
-        console.error('❌ Ошибка авторизации:', error)
+        console.error('❌ Ошибка локальной авторизации:', error)
         authError.value = error.message
-      } finally {
-        isLoading.value = false
       }
     }
 
@@ -196,19 +189,19 @@ export default {
       checkAuth()
     }
 
-    // Проверка существующей авторизации
-    const checkAuth = async () => {
+    // Проверка существующей авторизации (ТОЛЬКО ЛОКАЛЬНО)
+    const checkAuth = () => {
       try {
         isLoading.value = true
-        console.log('🔍 Проверяем существующую авторизацию')
+        console.log('🔍 Проверяем ЛОКАЛЬНУЮ авторизацию')
 
         // Сначала проверяем Telegram Web App
         isTelegramWebApp.value = checkTelegramWebApp()
         
         if (isTelegramWebApp.value && telegramUser.value) {
           // Если пользователь найден в Telegram - автоматически авторизуем
-          console.log('🚀 Автоматическая авторизация через Telegram')
-          await loginWithTelegram()
+          console.log('🚀 Автоматическая ЛОКАЛЬНАЯ авторизация')
+          loginWithTelegram()
           return
         }
 
