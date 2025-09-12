@@ -36,12 +36,17 @@ export const authService = {
       if (window.Telegram && window.Telegram.WebApp) {
         telegramData.is_web_app = true
         telegramData.init_data = window.Telegram.WebApp.initData
+        console.log('🔧 Telegram Web App detected, init_data:', telegramData.init_data)
       }
       
       // Делаем прямой HTTP запрос к Edge Function
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
       // Используем anon key для обычных запросов
       const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+      
+      console.log('🔧 Calling Edge Function:', `${supabaseUrl}/functions/v1/telegram-login`)
+      console.log('🔧 Request payload:', JSON.stringify(telegramData, null, 2))
+      
       const response = await fetch(`${supabaseUrl}/functions/v1/telegram-login`, {
         method: 'POST',
         headers: {
@@ -52,6 +57,9 @@ export const authService = {
         body: JSON.stringify(telegramData)
       })
 
+      console.log('🔧 Response status:', response.status)
+      console.log('🔧 Response headers:', Object.fromEntries(response.headers.entries()))
+      
       const result = await response.json()
       console.log('🔧 Edge Function response:', { response: result, status: response.status })
 

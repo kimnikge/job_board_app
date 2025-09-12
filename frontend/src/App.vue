@@ -52,6 +52,12 @@ export default {
               if (result.success) {
                 console.log('✅ Автоматическая авторизация успешна!')
                 telegramWebApp.haptic('light')
+                
+                // Перенаправляем на главную страницу, если находимся на странице авторизации
+                const currentPath = window.location.pathname
+                if (currentPath === '/auth' || currentPath === '/telegram-required') {
+                  window.location.href = '/'
+                }
               } else {
                 console.error('❌ Ошибка авторизации:', result.error)
                 telegramWebApp.showAlert('Ошибка авторизации: ' + result.error)
@@ -64,6 +70,10 @@ export default {
         }
       } else {
         console.log('🌐 Обычный браузер (не Telegram Web App)')
+        // Перенаправляем на страницу с инструкцией для Telegram
+        if (window.location.pathname !== '/telegram-required') {
+          window.location.href = '/telegram-required'
+        }
       }
     })
   }

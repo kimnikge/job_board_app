@@ -63,9 +63,19 @@ const SearchResults = () => import('@/views/SearchResults.vue')
 const Settings = () => import('@/views/Settings.vue')
 const NotificationSettings = () => import('@/views/NotificationSettings.vue')
 const PrivacySettings = () => import('@/views/PrivacySettings.vue')
+const TelegramRequiredPage = () => import('@/views/TelegramRequiredPage.vue')
 
 // ✨ ПРОСТЫЕ МАРШРУТЫ - СОГЛАСНО ТЗ: ВСЕ СТРАНИЦЫ ТРЕБУЮТ АВТОРИЗАЦИИ
 const routes = [
+  // Страница для показа в обычном браузере
+  { 
+    path: '/telegram-required', 
+    component: TelegramRequiredPage,
+    meta: { 
+      title: 'Требуется Telegram',
+      guest: true
+    }
+  },
   // Страница авторизации (единственная НЕ защищенная)
   { 
     path: '/auth', 
@@ -397,10 +407,13 @@ const router = createRouter({
   routes
 })
 
-// ✨ ROUTER GUARD СОГЛАСНО ТЗ: ЕДИНСТВЕННЫЙ СПОСОБ ВХОДА - TELEGRAM LOGIN
+// ✨ ROUTER GUARD ДЛЯ TELEGRAM WEB APP: АВТОМАТИЧЕСКАЯ АВТОРИЗАЦИЯ
 router.beforeEach(async (to, from, next) => {
   // Установка заголовка страницы
   document.title = to.meta.title ? `${to.meta.title} | Shiftwork BETA` : 'Shiftwork BETA'
+
+  // Проверяем, открыто ли приложение в Telegram Web App
+  const isTelegramWebApp = window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData
 
   // Проверка авторизации - ключевая логика согласно ТЗ
   if (to.meta.requiresAuth || to.meta.guest || to.meta.userType) {
@@ -414,8 +427,21 @@ router.beforeEach(async (to, from, next) => {
 
       // ГЛАВНАЯ ПРОВЕРКА: Защищенные маршруты требуют авторизации
       if (to.meta.requiresAuth && !isAuthenticated) {
-        console.log('Пользователь не авторизован, перенаправляем на /auth')
-        return next({ path: '/auth', query: { redirect: to.fullPath } })
+        // В Telegram Web App авторизация автоматическая, показываем загрузку
+        if (isTelegramWebApp) {
+          console.log('Ожидаем автоматическую авторизацию в Telegram Web App...')
+          // Даем время App.vue для автоматической авторизации
+          setTimeout(() => {
+            if (!authStore.user) {
+              console.log('Автоматическая авторизация не сработала, показываем ошибку')
+              next({ path: '/error', query: { error: 'auth_failed' } })
+            }
+          }, 3000)
+          return
+        } else {
+          console.log('Пользователь не авторизован, перенаправляем на /auth')
+          return next({ path: '/auth', query: { redirect: to.fullPath } })
+        }
       }
 
       // Гостевые маршруты (страница авторизации) недоступны авторизованным

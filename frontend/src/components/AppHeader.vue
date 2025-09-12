@@ -33,7 +33,13 @@
       
       <!-- Для неавторизованных пользователей -->
       <template v-else>
-        <button class="login-btn" @click="handleTelegramLogin">
+        <!-- В Telegram Web App показываем индикатор загрузки -->
+        <div v-if="isTelegramWebApp" class="auth-loading">
+          <div class="loading-spinner"></div>
+          <span>Авторизация...</span>
+        </div>
+        <!-- В обычном браузере показываем кнопку входа -->
+        <button v-else class="login-btn" @click="handleTelegramLogin">
           Войти через Telegram
         </button>
       </template>
@@ -56,6 +62,7 @@ export default {
     
     const isAuthenticated = computed(() => authStore.isAuthenticated)
     const user = computed(() => authStore.user)
+    const isTelegramWebApp = computed(() => window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData)
     
     const userDisplayName = computed(() => {
       if (!user.value?.user_metadata) return 'Пользователь'
@@ -206,6 +213,7 @@ export default {
     return {
       isAuthenticated,
       user,
+      isTelegramWebApp,
       userDisplayName,
       userInitials,
       hasNotifications,
@@ -352,6 +360,28 @@ export default {
   background: #006699;
   transform: translateY(-1px);
   box-shadow: 0 2px 8px rgba(0, 136, 204, 0.3);
+}
+
+.auth-loading {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+
+.loading-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--border-color);
+  border-top: 2px solid var(--primary-color);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 /* Мобильная адаптация */
