@@ -414,63 +414,89 @@ const router = createRouter({
   routes
 })
 
-// ✨ ROUTER GUARD ДЛЯ TELEGRAM WEB APP: АВТОМАТИЧЕСКАЯ АВТОРИЗАЦИЯ
+// ✨ ROUTER GUARD ДЛЯ UNIFIED AUTH: РАБОТАЕТ С APP.VUE И AUTH STORE
 router.beforeEach(async (to, from, next) => {
   // Установка заголовка страницы
   document.title = to.meta.title ? `${to.meta.title} | Shiftwork BETA` : 'Shiftwork BETA'
 
+  // Проверяем demo режим
+  const isDemoMode = localStorage.getItem('force-demo-mode') === 'true' ||
+                    import.meta.env.VITE_USE_DEMO_MODE === 'true'
+  
   // Проверяем, открыто ли приложение в Telegram Web App
-  const isTelegramWebApp = window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData
+  const isTelegramWebApp = window.Telegram && 
+                          window.Telegram.WebApp && 
+                          (window.Telegram.WebApp.initDataUnsafe?.user || window.Telegram.WebApp.initData)
 
-  // Проверка авторизации - ключевая логика согласно ТЗ
+  console.log('🔍 Router Guard:', {
+    path: to.path,
+    isDemoMode,
+    isTelegramWebApp,
+    requiresAuth: to.meta.requiresAuth,
+    guest: to.meta.guest
+  })
+
+  // Специальная логика для страницы /telegram-required
+  if (to.path === '/telegram-required') {
+    // Если мы в Telegram Web App или demo режиме, перенаправляем на главную
+    if (isTelegramWebApp || isDemoMode) {
+      console.log('🔄 В Telegram Web App или demo mode, перенаправляем на главную')
+      return next('/')
+    }
+    // Иначе показываем страницу /telegram-required
+    return next()
+  }
+
+  // Если не в Telegram Web App и не в demo режиме, перенаправляем на /telegram-required
+  if (!isTelegramWebApp && !isDemoMode && to.path !== '/telegram-required') {
+    console.log('🔄 Не в Telegram Web App, перенаправляем на /telegram-required')
+    return next('/telegram-required')
+  }
+
+  // Проверка авторизации для защищенных маршрутов
   if (to.meta.requiresAuth || to.meta.guest || to.meta.userType) {
     try {
       // Динамически импортируем store только когда нужно
       const { useAuthStore } = await import('../stores/auth')
       const authStore = useAuthStore()
-      await authStore.fetchUser()
+      
+      // Загружаем пользователя если еще не загружен
+      if (!authStore.user) {
+        await authStore.fetchUser()
+      }
+      
       const isAuthenticated = !!authStore.user
       const userType = authStore.user?.user_metadata?.user_type
 
+      console.log('🔍 Auth check:', {
+        isAuthenticated,
+        userType,
+        requiresAuth: to.meta.requiresAuth,
+        guest: to.meta.guest
+      })
+
       // ГЛАВНАЯ ПРОВЕРКА: Защищенные маршруты требуют авторизации
       if (to.meta.requiresAuth && !isAuthenticated) {
-        // В Telegram Web App авторизация автоматическая, показываем загрузку
-        if (isTelegramWebApp) {
-          console.log('Ожидаем автоматическую авторизацию в Telegram Web App...')
-          // Даем время App.vue для автоматической авторизации
-          setTimeout(() => {
-            if (!authStore.user) {
-              console.log('Автоматическая авторизация не сработала, показываем ошибку')
-              next({ path: '/error', query: { error: 'auth_failed' } })
-            }
-          }, 3000)
-          return
-        } else {
-          console.log('Пользователь не авторизован, перенаправляем на /auth')
-          return next({ path: '/auth', query: { redirect: to.fullPath } })
-        }
+        console.log('❌ Требуется авторизация, перенаправляем на /auth')
+        return next({ path: '/auth', query: { redirect: to.fullPath } })
       }
 
       // Гостевые маршруты (страница авторизации) недоступны авторизованным
       if (to.meta.guest && isAuthenticated) {
-        console.log('Пользователь уже авторизован, перенаправляем на главную')
+        console.log('✅ Пользователь уже авторизован, перенаправляем на главную')
         return next({ path: '/' })
       }
 
       // Проверка типа пользователя (роли)
       if (to.meta.userType && to.meta.userType !== userType) {
-        console.log(`Нет прав доступа. Требуется: ${to.meta.userType}, у пользователя: ${userType}`)
+        console.log(`❌ Нет прав доступа. Требуется: ${to.meta.userType}, у пользователя: ${userType}`)
         return next({ path: '/' })
       }
     } catch (error) {
-      console.error('Auth check failed:', error)
+      console.error('❌ Auth check failed:', error)
       // В случае критической ошибки авторизации перенаправляем на страницу ошибки
       if (to.path !== '/error' && to.meta.requiresAuth) {
         return next({ path: '/error', query: { error: 'auth_failed' } })
-      }
-      // Для не защищенных маршрутов просто логируем ошибку
-      if (!to.meta.requiresAuth) {
-        console.warn('Non-critical auth error, continuing navigation')
       }
     }
   }
