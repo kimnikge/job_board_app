@@ -118,8 +118,4 @@ backend/tests/FINAL_REPORT.md
 backend/tests/IMPLEMENTATION_COMPLETE.md
 
 # Security: Files with secrets
-netlify-production.env
-netlify-env-setup.sh
-create-new-bot.sh
-update-supabase-keys.sh
 *.secure

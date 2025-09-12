@@ -17,6 +17,7 @@
 import AppHeader from '@/components/AppHeader.vue'
 import BottomNavigation from '@/components/BottomNavigation.vue'
 import { telegramWebApp } from '@/utils/telegram-web-app.js'
+import { telegramURLAuth } from '@/utils/telegram-url-auth.js'
 import { useAuthStore } from '@/stores/auth.js'
 import { onMounted } from 'vue'
 
@@ -36,10 +37,13 @@ export default {
       if (telegramWebApp.isTelegramWebApp()) {
         console.log('📱 Обнаружен Telegram Web App')
         
-        // Инициализируем Telegram Web App
+        // Инициализируем Telegram Web App с официальным SDK
         const initSuccess = telegramWebApp.init()
         
         if (initSuccess) {
+          // Применяем цветовую схему Job Board
+          telegramWebApp.applyJobBoardTheme()
+          
           // Получаем данные пользователя
           const userData = telegramWebApp.getUserData()
           
@@ -75,6 +79,54 @@ export default {
           window.location.href = '/telegram-required'
         }
       }
+
+      // Инициализируем Telegram URL авторизацию
+      telegramURLAuth.init()
+      
+      // Подписываемся на события URL авторизации
+      window.addEventListener('telegram-url-auth', async (event) => {
+        console.log('🔗 Получено событие URL авторизации:', event.detail)
+        
+        if (!authStore.isAuthenticated) {
+          try {
+            // Попытка автоматической авторизации через URL токен
+            console.log('🔑 Попытка авторизации через URL токен...')
+            
+            const result = await authStore.loginWithURLToken(event.detail.token, {
+              timestamp: event.detail.timestamp,
+              url_auth: true
+            })
+            
+            if (result.success) {
+              console.log('✅ URL авторизация успешна!')
+              
+              if (telegramWebApp.isTelegramWebApp()) {
+                telegramWebApp.haptic('light')
+                telegramWebApp.showAlert('✅ Авторизация через URL выполнена!')
+              } else {
+                alert('✅ Авторизация через URL выполнена!')
+              }
+              
+              // Перенаправляем на главную страницу
+              setTimeout(() => {
+                window.location.href = '/'
+              }, 2000)
+              
+            } else {
+              console.error('❌ Ошибка URL авторизации:', result.error)
+              
+              if (telegramWebApp.isTelegramWebApp()) {
+                telegramWebApp.showAlert('❌ Ошибка авторизации через URL: ' + result.error)
+              } else {
+                alert('❌ Ошибка авторизации через URL: ' + result.error)
+              }
+            }
+            
+          } catch (error) {
+            console.error('❌ Исключение при URL авторизации:', error)
+          }
+        }
+      })
     })
   }
 }

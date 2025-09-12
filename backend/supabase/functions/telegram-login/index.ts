@@ -135,9 +135,9 @@ serve(async (req: Request) => {
     console.log("Looking for user with telegram_id:", telegramId);
 
     // Ищем существующего пользователя
-    console.log("Searching for user in user_profiles table...");
+    console.log("Searching for user in profiles table...");
     const { data: existingUser, error: selectError } = await supabase
-      .from("user_profiles")
+      .from("profiles")
       .select("*")
       .eq("telegram_id", telegramId)
       .single();
@@ -185,8 +185,7 @@ serve(async (req: Request) => {
           .from("user_profiles")
           .update({
             user_id: userId,
-            first_name,
-            last_name,
+            full_name: first_name + (last_name ? ' ' + last_name : ''),
             telegram_username: username,
             updated_at: new Date().toISOString(),
           })
@@ -196,8 +195,7 @@ serve(async (req: Request) => {
         await supabase
           .from("user_profiles")
           .update({
-            first_name,
-            last_name,
+            full_name: first_name + (last_name ? ' ' + last_name : ''),
             telegram_username: username,
             updated_at: new Date().toISOString(),
           })
@@ -237,10 +235,9 @@ serve(async (req: Request) => {
         .insert({
           user_id: userId,
           telegram_id: telegramId,
-          first_name,
-          last_name,
+          full_name: first_name + (last_name ? ' ' + last_name : ''),
           telegram_username: username,
-          role: "candidate", // default role for new users
+          user_type: "worker",
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         });

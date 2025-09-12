@@ -165,6 +165,64 @@ export const authService = {
     }
   },
 
+  // Авторизация через URL токен (Telegram URL Authorization)
+  async loginWithURLToken(token, additionalData = {}) {
+    try {
+      console.log('🔗 Авторизация через URL токен:', token)
+      
+      if (isDemoMode) {
+        // В demo режиме создаем пользователя из токена
+        const demoUser = {
+          id: `url-auth-${Date.now()}`,
+          user_metadata: { 
+            user_type: 'candidate', 
+            full_name: 'URL Authorized User',
+            telegram_id: `url_${token.slice(-8)}`,
+            auth_method: 'telegram_url_auth',
+            autologin_token: token,
+            ...additionalData
+          }
+        }
+        
+        localStorage.setItem('demo-session', JSON.stringify(demoUser))
+        
+        return {
+          data: { user: demoUser },
+          error: null
+        }
+      }
+
+      // В production режиме отправляем токен на backend для валидации
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+      const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+      
+      const response = await fetch(`${supabaseUrl}/functions/v1/telegram-url-auth`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${anonKey}`,
+          'apikey': anonKey
+        },
+        body: JSON.stringify({ 
+          autologin_token: token,
+          ...additionalData
+        })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'URL authentication failed')
+      }
+
+      const result = await response.json()
+      return { data: result, error: null }
+      
+    } catch (error) {
+      console.error('URL token login error:', error)
+      return { data: null, error }
+    }
+  },
+
   // Подписка на изменения авторизации
   onAuthStateChange(callback) {
     if (isDemoMode) {

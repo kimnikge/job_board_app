@@ -29,6 +29,8 @@ const NotificationsDemo = () => import('@/views/NotificationsDemo.vue')
 const IntegrationTest = () => import('@/views/IntegrationTest.vue')
 // Тестирование фильтров
 const FiltersTest = () => import('@/views/FiltersTest.vue')
+// Демо Telegram URL авторизации
+const TelegramURLAuthDemo = () => import('@/views/TelegramURLAuthDemo.vue')
 // Обработка Telegram callback
 const TelegramCallback = () => import('@/views/TelegramCallback.vue')
 
@@ -386,6 +388,11 @@ const routes = [
     path: '/test/filters', 
     component: FiltersTest,
     meta: { title: 'Тест фильтров' }
+  },
+  { 
+    path: '/test/telegram-url-auth', 
+    component: TelegramURLAuthDemo,
+    meta: { title: 'Telegram URL Authorization Demo' }
   },
 
   // Страница ошибок

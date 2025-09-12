@@ -55,6 +55,26 @@ export const useAuthStore = defineStore('auth', () => {
       loading.value = false
     }
   }
+
+  // Авторизация через URL токен
+  const loginWithURLToken = async (token, additionalData = {}) => {
+    try {
+      loading.value = true
+      error.value = null
+      
+      const { data, error: authError } = await authService.loginWithURLToken(token, additionalData)
+      
+      if (authError) throw authError
+      
+      user.value = data?.user || null
+      return { success: true }
+    } catch (err) {
+      error.value = err.message
+      return { success: false, error: err.message }
+    } finally {
+      loading.value = false
+    }
+  }
   
   const logout = async () => {
     try {
@@ -129,6 +149,7 @@ export const useAuthStore = defineStore('auth', () => {
     fetchUser,
     checkAuth,
     loginWithTelegram,
+    loginWithURLToken,
     logout,
     setSession,
     clearError,
