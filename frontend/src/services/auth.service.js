@@ -165,6 +165,66 @@ export const authService = {
     }
   },
 
+  // Авторизация через Telegram Web App (правильный способ)
+  async loginWithWebApp(webAppData) {
+    try {
+      console.log('📱 Авторизация через Telegram Web App:', webAppData)
+      
+      if (isDemoMode) {
+        // В demo режиме создаем пользователя из Web App данных
+        const demoUser = {
+          id: `webapp-user-${webAppData.id}`,
+          user_metadata: { 
+            user_type: 'candidate', 
+            full_name: webAppData.first_name + (webAppData.last_name ? ' ' + webAppData.last_name : ''),
+            telegram_id: webAppData.id,
+            telegram_username: webAppData.username,
+            telegram_photo_url: webAppData.photo_url,
+            auth_method: 'telegram_web_app',
+            platform: webAppData.platform || 'web'
+          }
+        }
+        
+        localStorage.setItem('demo-session', JSON.stringify(demoUser))
+        
+        return {
+          data: { user: demoUser },
+          error: null
+        }
+      }
+
+      // В production режиме используем простую Edge Function  
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+      const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+      
+      console.log('🔧 Простая авторизация Telegram')
+      
+      const response = await fetch(`${supabaseUrl}/functions/v1/telegram-simple-auth`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${anonKey}`,
+          'apikey': anonKey
+        },
+        body: JSON.stringify(webAppData)
+      })
+
+      console.log('🔧 Response status:', response.status)
+      const result = await response.json()
+      console.log('🔧 Edge Function response:', result)
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Telegram Web App authentication failed')
+      }
+
+      return { data: result, error: null }
+      
+    } catch (error) {
+      console.error('Telegram Web App login error:', error)
+      return { data: null, error }
+    }
+  },
+
   // Авторизация через URL токен (Telegram URL Authorization)
   async loginWithURLToken(token, additionalData = {}) {
     try {

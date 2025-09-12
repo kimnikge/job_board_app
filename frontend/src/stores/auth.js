@@ -56,6 +56,26 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  // Авторизация через Telegram Web App (правильный метод)
+  const loginWithWebApp = async (webAppData) => {
+    try {
+      loading.value = true
+      error.value = null
+      
+      const { data, error: authError } = await authService.loginWithWebApp(webAppData)
+      
+      if (authError) throw authError
+      
+      user.value = data?.user || null
+      return { success: true, data }
+    } catch (err) {
+      error.value = err.message
+      return { success: false, error: err.message }
+    } finally {
+      loading.value = false
+    }
+  }
+
   // Авторизация через URL токен
   const loginWithURLToken = async (token, additionalData = {}) => {
     try {
@@ -149,6 +169,7 @@ export const useAuthStore = defineStore('auth', () => {
     fetchUser,
     checkAuth,
     loginWithTelegram,
+    loginWithWebApp,
     loginWithURLToken,
     logout,
     setSession,

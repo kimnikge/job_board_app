@@ -1,149 +1,108 @@
 <template>
   <div id="app">
-    <!-- Header для всех страниц -->
-    <AppHeader />
+    <!-- Страница авторизации -->
+    <AuthPage 
+      v-if="!isAuthenticated" 
+      @authenticated="onAuthenticated"
+    />
     
-    <!-- Основной контент -->
-    <main class="page-content">
-      <router-view />
-    </main>
-    
-    <!-- Нижняя навигация для всех страниц -->
-    <BottomNavigation />
+    <!-- Основное приложение -->
+    <MainApp 
+      v-else 
+      :user="currentUser"
+      @logout="onLogout"
+    />
   </div>
 </template>
 
 <script>
-import AppHeader from '@/components/AppHeader.vue'
-import BottomNavigation from '@/components/BottomNavigation.vue'
-import { telegramWebApp } from '@/utils/telegram-web-app.js'
-import { telegramURLAuth } from '@/utils/telegram-url-auth.js'
-import { useAuthStore } from '@/stores/auth.js'
-import { onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
+import AuthPage from './components/AuthPage.vue'
+import MainApp from './components/MainApp.vue'
 
 export default {
   name: 'App',
   components: {
-    AppHeader,
-    BottomNavigation
+    AuthPage,
+    MainApp
   },
   setup() {
-    const authStore = useAuthStore()
+    const isAuthenticated = ref(false)
+    const currentUser = ref(null)
 
-    onMounted(async () => {
-      console.log('🚀 App.vue mounted')
-      
-      // Проверяем если мы в Telegram Web App
-      if (telegramWebApp.isTelegramWebApp()) {
-        console.log('📱 Обнаружен Telegram Web App')
-        
-        // Инициализируем Telegram Web App с официальным SDK
-        const initSuccess = telegramWebApp.init()
-        
-        if (initSuccess) {
-          // Применяем цветовую схему Job Board
-          telegramWebApp.applyJobBoardTheme()
-          
-          // Получаем данные пользователя
-          const userData = telegramWebApp.getUserData()
-          
-          if (userData && !authStore.isAuthenticated) {
-            console.log('👤 Автоматическая авторизация через Telegram Web App')
-            console.log('📊 User data:', userData)
-            
-            try {
-              const result = await authStore.loginWithTelegram(userData)
-              if (result.success) {
-                console.log('✅ Автоматическая авторизация успешна!')
-                telegramWebApp.haptic('light')
-                
-                // Перенаправляем на главную страницу, если находимся на странице авторизации
-                const currentPath = window.location.pathname
-                if (currentPath === '/auth' || currentPath === '/telegram-required') {
-                  window.location.href = '/'
-                }
-              } else {
-                console.error('❌ Ошибка авторизации:', result.error)
-                telegramWebApp.showAlert('Ошибка авторизации: ' + result.error)
-              }
-            } catch (error) {
-              console.error('❌ Исключение при авторизации:', error)
-              telegramWebApp.showAlert('Произошла ошибка при входе в приложение')
-            }
-          }
-        }
-      } else {
-        console.log('🌐 Обычный браузер (не Telegram Web App)')
-        // Перенаправляем на страницу с инструкцией для Telegram
-        if (window.location.pathname !== '/telegram-required') {
-          window.location.href = '/telegram-required'
-        }
-      }
+    // Обработка успешной авторизации
+    const onAuthenticated = (user) => {
+      console.log('✅ Пользователь авторизован:', user)
+      currentUser.value = user
+      isAuthenticated.value = true
+    }
 
-      // Инициализируем Telegram URL авторизацию
-      telegramURLAuth.init()
-      
-      // Подписываемся на события URL авторизации
-      window.addEventListener('telegram-url-auth', async (event) => {
-        console.log('🔗 Получено событие URL авторизации:', event.detail)
+    // Обработка выхода из системы
+    const onLogout = () => {
+      console.log('👋 Выход из системы')
+      currentUser.value = null
+      isAuthenticated.value = false
+    }
+
+    // Проверка сохранённой авторизации при загрузке
+    onMounted(() => {
+      try {
+        console.log('🚀 App.vue загружается')
         
-        if (!authStore.isAuthenticated) {
+        const savedUser = localStorage.getItem('shiftwork_user')
+        if (savedUser) {
           try {
-            // Попытка автоматической авторизации через URL токен
-            console.log('🔑 Попытка авторизации через URL токен...')
-            
-            const result = await authStore.loginWithURLToken(event.detail.token, {
-              timestamp: event.detail.timestamp,
-              url_auth: true
-            })
-            
-            if (result.success) {
-              console.log('✅ URL авторизация успешна!')
-              
-              if (telegramWebApp.isTelegramWebApp()) {
-                telegramWebApp.haptic('light')
-                telegramWebApp.showAlert('✅ Авторизация через URL выполнена!')
-              } else {
-                alert('✅ Авторизация через URL выполнена!')
-              }
-              
-              // Перенаправляем на главную страницу
-              setTimeout(() => {
-                window.location.href = '/'
-              }, 2000)
-              
-            } else {
-              console.error('❌ Ошибка URL авторизации:', result.error)
-              
-              if (telegramWebApp.isTelegramWebApp()) {
-                telegramWebApp.showAlert('❌ Ошибка авторизации через URL: ' + result.error)
-              } else {
-                alert('❌ Ошибка авторизации через URL: ' + result.error)
-              }
-            }
-            
-          } catch (error) {
-            console.error('❌ Исключение при URL авторизации:', error)
+            const user = JSON.parse(savedUser)
+            onAuthenticated(user)
+            console.log('✅ Найден сохранённый пользователь')
+          } catch (e) {
+            console.log('❌ Ошибка парсинга сохранённого пользователя')
+            localStorage.removeItem('shiftwork_user')
           }
         }
-      })
+      } catch (error) {
+        console.error('❌ Ошибка инициализации App:', error)
+      }
     })
+
+    return {
+      isAuthenticated,
+      currentUser,
+      onAuthenticated,
+      onLogout
+    }
   }
 }
 </script>
 
 <style>
-/* === Глобальные стили приложения === */
+/* Глобальные стили */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.6;
+  color: #333;
+}
+
 #app {
-  position: relative;
-  background-color: var(--bg-page);
   min-height: 100vh;
 }
 
-/* === Отступы под навигацию === */
-.page-content {
-  margin-top: var(--header-height);
-  margin-bottom: var(--nav-height);
-  min-height: calc(100vh - var(--header-height) - var(--nav-height));
+/* Убираем стили скрола для мобильных */
+html, body {
+  overflow-x: hidden;
+}
+
+/* Анимации переходов */
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.5s;
+}
+.fade-enter-from, .fade-leave-to {
+  opacity: 0;
 }
 </style>

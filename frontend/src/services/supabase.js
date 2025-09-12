@@ -13,12 +13,18 @@ const forceDemoEnv = (import.meta.env.VITE_USE_DEMO_MODE || import.meta.env.VITE
   ? String(import.meta.env.VITE_USE_DEMO_MODE || import.meta.env.VITE_USE_DEMO_DATA).toLowerCase() === 'true'
   : false
 
+// Проверяем принудительный demo режим из localStorage (для тестирования в браузере)
+const forceDemoFromStorage = typeof window !== 'undefined' 
+  ? localStorage.getItem('force-demo-mode') === 'true'
+  : false
+
 // Флаг для определения demo режима (определяем ПЕРЕД использованием)
-export const isDemoMode = forceDemoEnv
+export const isDemoMode = forceDemoEnv || forceDemoFromStorage
 
 console.log('🔧 Supabase config:', {
   isDemoMode,
   forceDemoEnv,
+  forceDemoFromStorage,
   hasUrl: !!supabaseUrl,
   hasKey: !!supabaseAnonKey,
   url: isDemoMode ? 'demo-mode' : supabaseUrl.substring(0, 30) + '...',
