@@ -119,7 +119,7 @@ serve(async (req: Request) => {
 
     // Ищем существующего пользователя
     const { data: existingUser, error: selectError } = await supabase
-      .from("profiles")
+      .from("user_profiles")
       .select("*")
       .eq("telegram_id", telegramId)
       .single();
@@ -137,16 +137,52 @@ serve(async (req: Request) => {
       // Пользователь существует, обновляем данные
       userId = existingUser.user_id;
 
-      await supabase
-        .from("profiles")
-        .update({
-          first_name,
-          last_name,
-          username,
-          photo_url,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("telegram_id", telegramId);
+      // Если user_id null, создаем auth пользователя
+      if (!userId) {
+        const email = `telegram_${id}@telegram.local`;
+        const tempPassword = `temp_${hash}_${Date.now()}`;
+
+        const { data: authUser, error: authError } = await supabase.auth.admin
+          .createUser({
+            email,
+            password: tempPassword,
+            email_confirm: true,
+            user_metadata: {
+              telegram_id: id,
+              first_name,
+              last_name,
+              username,
+            },
+          });
+
+        if (authError) {
+          console.error("Auth user creation error:", authError);
+          throw authError;
+        }
+
+        userId = authUser.user.id;
+
+        // Обновляем профиль с новым user_id
+        await supabase
+          .from("user_profiles")
+          .update({
+            user_id: userId,
+            full_name: first_name + (last_name ? ' ' + last_name : ''),
+            telegram_username: username,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("telegram_id", telegramId);
+      } else {
+        // Просто обновляем данные
+        await supabase
+          .from("user_profiles")
+          .update({
+            full_name: first_name + (last_name ? ' ' + last_name : ''),
+            telegram_username: username,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("telegram_id", telegramId);
+      }
 
       console.log("Updated existing user:", userId);
     } else {
@@ -175,17 +211,15 @@ serve(async (req: Request) => {
 
       userId = authUser.user.id;
 
-      // Создаем профиль
+      // Создаем профиль в user_profiles
       const { error: profileError } = await supabase
-        .from("profiles")
+        .from("user_profiles")
         .insert({
           user_id: userId,
           telegram_id: telegramId,
-          first_name,
-          last_name,
-          username,
-          photo_url,
-          user_type: "candidate",
+          full_name: first_name + (last_name ? ' ' + last_name : ''),
+          telegram_username: username,
+          user_type: "worker",
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         });

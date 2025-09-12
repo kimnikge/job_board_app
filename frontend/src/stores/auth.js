@@ -32,6 +32,9 @@ export const useAuthStore = defineStore('auth', () => {
       user.value = null
     }
   }
+
+  // Алиас для fetchUser (для совместимости)
+  const checkAuth = fetchUser
   
   // ГЛАВНАЯ ФУНКЦИЯ: Авторизация через Telegram
   const loginWithTelegram = async (telegramData) => {
@@ -124,6 +127,7 @@ export const useAuthStore = defineStore('auth', () => {
     
     // Действия
     fetchUser,
+    checkAuth,
     loginWithTelegram,
     logout,
     setSession,

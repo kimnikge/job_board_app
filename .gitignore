@@ -52,6 +52,54 @@ lerna-debug.log*
 # Temporary files
 .temp/
 .cache/
+*.tmp
+*.bak
+
+# Test files and reports
+test_*.html
+test_*.sh
+*_REPORT.md
+*_COMPLETE.md
+*REPORT.md
+*COMPLETE.md
+FINAL_REPORT.md
+IMPLEMENTATION_COMPLETE.md
+
+# Development builds
+dev-dist/
+
+# Deployment and build artifacts
+dist/
+build/
+dist-ssr/
+.vuepress/dist
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# System files
+.DS_Store
+*.tsbuildinfo
+
+# Editor directories and files
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Temporary files
+.temp/
+.cache/
 
 # Deployment
 .netlify/
@@ -59,3 +107,12 @@ lerna-debug.log*
 # Supabase specific
 .branches
 .env.keys
+
+# Specific junk files found in project
+CLEANUP_COMPLETE.md
+PRODUCTION_DEPLOY.md
+TELEGRAM_LOGIN_REPORT.md
+TELEGRAM_LOGIN_SETUP.md
+ЛОКАЛЬНОЕ_ТЕСТИРОВАНИЕ.md
+backend/tests/FINAL_REPORT.md
+backend/tests/IMPLEMENTATION_COMPLETE.md

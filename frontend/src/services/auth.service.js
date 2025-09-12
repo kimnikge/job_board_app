@@ -31,12 +31,29 @@ export const authService = {
 
       // Вызываем Edge Function для обработки Telegram Login
       console.log('🔧 Calling Edge Function telegram-login with data:', telegramData)
-      const { data, error } = await supabase.functions.invoke('telegram-login', {
-        body: telegramData // Передаем данные напрямую
+      
+      // Делаем прямой HTTP запрос к Edge Function
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+      // Используем service role key для Edge Functions (только для авторизации!)
+      const serviceKey = import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY
+      const response = await fetch(`${supabaseUrl}/functions/v1/telegram-login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${serviceKey}`,
+          'apikey': serviceKey
+        },
+        body: JSON.stringify(telegramData)
       })
 
-      console.log('🔧 Edge Function response:', { data, error })
-      if (error) throw error
+      const result = await response.json()
+      console.log('🔧 Edge Function response:', { response: result, status: response.status })
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Edge Function failed')
+      }
+
+      const data = result
 
       return { data, error: null }
     } catch (error) {

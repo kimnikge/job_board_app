@@ -29,6 +29,8 @@ const NotificationsDemo = () => import('@/views/NotificationsDemo.vue')
 const IntegrationTest = () => import('@/views/IntegrationTest.vue')
 // Тестирование фильтров
 const FiltersTest = () => import('@/views/FiltersTest.vue')
+// Обработка Telegram callback
+const TelegramCallback = () => import('@/views/TelegramCallback.vue')
 
 // Страницы компаний
 const Companies = () => import('@/views/Companies.vue')
@@ -81,6 +83,16 @@ const routes = [
     meta: { 
       title: 'Завершение авторизации',
       guest: true // Доступна без авторизации для завершения входа
+    }
+  },
+
+  // Специальный Telegram callback
+  { 
+    path: '/auth/telegram/callback', 
+    component: TelegramCallback,
+    meta: { 
+      title: 'Telegram авторизация',
+      guest: true
     }
   },
   
@@ -238,6 +250,8 @@ const routes = [
       requiresAuth: true
     }
   },
+
+  
 
   // ✨ КРИТИЧЕСКИЕ СТРАНИЦЫ - РАЗДЕЛЫ 7/8/9
 

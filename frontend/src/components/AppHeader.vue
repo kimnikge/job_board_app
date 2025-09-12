@@ -95,30 +95,61 @@ export default {
     const handleTelegramLogin = async () => {
       console.log('🚀 Инициализация Telegram Login Widget')
       
-      // Проверяем, доступен ли Telegram Login Widget
+      // Проверяем, загружен ли скрипт Telegram Widget
       if (!window.TelegramLoginWidget) {
-        console.log('⏳ Ожидание загрузки Telegram Login Widget...')
+        console.log('⏳ Загружаем Telegram Login Widget скрипт...')
+        await loadTelegramScript()
         
-        // Небольшая задержка для загрузки виджета
-        setTimeout(() => {
-          if (window.TelegramLoginWidget) {
-            initTelegramWidget()
-          } else {
-            console.error('❌ Telegram Login Widget не загружен')
-            // Fallback - перенаправляем на страницу авторизации
-            router.push('/auth')
-          }
-        }, 1000)
-        return
+        // Проверяем еще раз после загрузки
+        if (!window.TelegramLoginWidget) {
+          console.error('❌ Telegram Login Widget не загружен после попытки загрузки')
+          // Fallback - используем альтернативный метод или перенаправляем
+          router.push('/telegram-widget')
+          return
+        }
       }
       
       initTelegramWidget()
     }
     
+    const loadTelegramScript = () => {
+      return new Promise((resolve, reject) => {
+        // Проверяем, не загружен ли уже скрипт
+        if (document.querySelector('script[src*="telegram-widget.js"]')) {
+          resolve(true)
+          return
+        }
+        
+        const script = document.createElement('script')
+        script.src = 'https://telegram.org/js/telegram-widget.js?22'
+        script.async = true
+        
+        script.onload = () => {
+          console.log('✅ Telegram Widget скрипт загружен')
+          // Небольшая задержка для инициализации
+          setTimeout(resolve, 500)
+        }
+        
+        script.onerror = () => {
+          console.error('❌ Ошибка загрузки Telegram Widget скрипта')
+          reject(new Error('Failed to load Telegram script'))
+        }
+        
+        document.head.appendChild(script)
+      })
+    }
+    
     const initTelegramWidget = () => {
       console.log('🔧 Создание Telegram Login Widget')
       
-      // Создаем временный контейнер для виджета
+      // Для localhost перенаправляем на тестовую страницу
+      if (window.location.hostname === 'localhost') {
+        console.log('🔧 Localhost обнаружен, перенаправляем на тестовую страницу')
+        router.push('/telegram-widget')
+        return
+      }
+      
+      // Создаем временный контейнер для виджета (только для продакшна)
       const container = document.createElement('div')
       container.style.position = 'fixed'
       container.style.top = '-9999px'
@@ -128,10 +159,10 @@ export default {
       try {
         window.TelegramLoginWidget.create(container, {
           bot_id: '7555643826', // ID нашего бота
-          origin: window.location.origin,
+          origin: 'https://horecapp.netlify.app', // Продакшн домен
           embed: 1,
           request_access: 'write',
-          return_to: `${window.location.origin}/auth/callback`
+          return_to: 'https://horecapp.netlify.app/auth/callback'
         }, (user) => {
           console.log('✅ Получены данные от Telegram Login Widget:', user)
           
@@ -152,7 +183,7 @@ export default {
       } catch (error) {
         console.error('❌ Ошибка создания Telegram Widget:', error)
         document.body.removeChild(container)
-        router.push('/auth')
+        router.push('/telegram-widget')
       }
     }
     
