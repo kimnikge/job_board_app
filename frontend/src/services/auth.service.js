@@ -1,6 +1,7 @@
 // ✨ API АВТОРИЗАЦИИ СОГЛАСНО ТЗ: ЕДИНСТВЕННЫЙ СПОСОБ ВХОДА - TELEGRAM LOGIN
 import { supabase, isDemoMode } from './supabase.js'
 import { notificationsService } from './notifications.service.js'
+import { profileService } from './profile.service.js'
 
 // 🔐 Авторизация через Telegram
 export const authService = {
@@ -68,6 +69,25 @@ export const authService = {
       }
 
       const data = result
+
+      // После успешной авторизации создаем/обновляем профиль в БД
+      if (data?.user) {
+        console.log('✅ Авторизация успешна, создаем профиль в БД...')
+        try {
+          const { data: profile, error: profileError } = await profileService.createOrUpdateProfile(data.user)
+          if (profileError) {
+            console.warn('⚠️ Ошибка создания профиля (не критично):', profileError)
+          } else {
+            console.log('✅ Профиль успешно создан/обновлен:', profile)
+            // Дополняем данные пользователя информацией из профиля
+            if (profile) {
+              data.user.profile = profile
+            }
+          }
+        } catch (profileError) {
+          console.warn('⚠️ Ошибка при работе с профилем:', profileError)
+        }
+      }
 
       return { data, error: null }
     } catch (error) {
@@ -215,6 +235,25 @@ export const authService = {
 
       if (!response.ok) {
         throw new Error(result.error || 'Telegram Web App authentication failed')
+      }
+
+      // После успешной авторизации создаем/обновляем профиль в БД
+      if (result?.user) {
+        console.log('✅ Web App авторизация успешна, создаем профиль в БД...')
+        try {
+          const { data: profile, error: profileError } = await profileService.createOrUpdateProfile(result.user)
+          if (profileError) {
+            console.warn('⚠️ Ошибка создания профиля (не критично):', profileError)
+          } else {
+            console.log('✅ Профиль успешно создан/обновлен:', profile)
+            // Дополняем данные пользователя информацией из профиля
+            if (profile) {
+              result.user.profile = profile
+            }
+          }
+        } catch (profileError) {
+          console.warn('⚠️ Ошибка при работе с профилем:', profileError)
+        }
       }
 
       return { data: result, error: null }

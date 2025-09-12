@@ -1,0 +1,274 @@
+-- Расширение схемы job_postings и urgent_jobs до полной функциональности HoReCa платформы
+-- Основано на анализе существующей схемы и требований проекта
+
+-- Добавляем новые поля в job_postings для HoReCa специфики
+ALTER TABLE job_postings 
+ADD COLUMN IF NOT EXISTS location_address TEXT,
+ADD COLUMN IF NOT EXISTS schedule_type VARCHAR(20) DEFAULT 'shift',
+ADD COLUMN IF NOT EXISTS shift_start TIME,
+ADD COLUMN IF NOT EXISTS shift_end TIME,
+ADD COLUMN IF NOT EXISTS work_format VARCHAR(20) DEFAULT 'office',
+ADD COLUMN IF NOT EXISTS benefits TEXT[],
+ADD COLUMN IF NOT EXISTS requirements TEXT[],
+ADD COLUMN IF NOT EXISTS dress_code VARCHAR(50),
+ADD COLUMN IF NOT EXISTS language_requirements VARCHAR(100),
+ADD COLUMN IF NOT EXISTS contact_person VARCHAR(100),
+ADD COLUMN IF NOT EXISTS contact_phone VARCHAR(20),
+ADD COLUMN IF NOT EXISTS contact_email VARCHAR(100),
+ADD COLUMN IF NOT EXISTS application_deadline DATE,
+ADD COLUMN IF NOT EXISTS positions_available INTEGER DEFAULT 1,
+ADD COLUMN IF NOT EXISTS positions_filled INTEGER DEFAULT 0,
+ADD COLUMN IF NOT EXISTS auto_close_when_filled BOOLEAN DEFAULT FALSE,
+ADD COLUMN IF NOT EXISTS priority_level INTEGER DEFAULT 1,
+ADD COLUMN IF NOT EXISTS tags TEXT[],
+ADD COLUMN IF NOT EXISTS meta_keywords TEXT[],
+ADD COLUMN IF NOT EXISTS views_count INTEGER DEFAULT 0,
+ADD COLUMN IF NOT EXISTS applications_count INTEGER DEFAULT 0;
+
+-- Обновляем ограничения для job_postings
+DO $$ 
+BEGIN 
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'check_salary_range') THEN
+        ALTER TABLE job_postings ADD CONSTRAINT check_salary_range CHECK (salary_min IS NULL OR salary_max IS NULL OR salary_min <= salary_max);
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'check_schedule_type') THEN
+        ALTER TABLE job_postings ADD CONSTRAINT check_schedule_type CHECK (schedule_type IN ('full_time', 'part_time', 'shift', 'flexible', 'remote'));
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'check_work_format') THEN
+        ALTER TABLE job_postings ADD CONSTRAINT check_work_format CHECK (work_format IN ('office', 'remote', 'hybrid'));
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'check_priority_level') THEN
+        ALTER TABLE job_postings ADD CONSTRAINT check_priority_level CHECK (priority_level >= 1 AND priority_level <= 5);
+    END IF;
+END $$;
+
+-- Расширяем urgent_jobs до полной функциональности
+ALTER TABLE urgent_jobs 
+DROP COLUMN IF EXISTS job_posting_id CASCADE,
+ADD COLUMN IF NOT EXISTS title VARCHAR(200) NOT NULL DEFAULT 'Срочная вакансия',
+ADD COLUMN IF NOT EXISTS description TEXT,
+ADD COLUMN IF NOT EXISTS company_id INTEGER,
+ADD COLUMN IF NOT EXISTS specialization_id INTEGER,
+ADD COLUMN IF NOT EXISTS city_id INTEGER,
+ADD COLUMN IF NOT EXISTS location_address TEXT,
+ADD COLUMN IF NOT EXISTS needed_date DATE NOT NULL DEFAULT CURRENT_DATE,
+ADD COLUMN IF NOT EXISTS needed_time_start TIME,
+ADD COLUMN IF NOT EXISTS needed_time_end TIME,
+ADD COLUMN IF NOT EXISTS workers_needed INTEGER DEFAULT 1,
+ADD COLUMN IF NOT EXISTS workers_confirmed INTEGER DEFAULT 0,
+ADD COLUMN IF NOT EXISTS payment_per_shift DECIMAL(10,2),
+ADD COLUMN IF NOT EXISTS payment_currency VARCHAR(10) DEFAULT 'KZT',
+ADD COLUMN IF NOT EXISTS instant_payment BOOLEAN DEFAULT FALSE,
+ADD COLUMN IF NOT EXISTS requirements TEXT[],
+ADD COLUMN IF NOT EXISTS dress_code VARCHAR(50),
+ADD COLUMN IF NOT EXISTS equipment_provided BOOLEAN DEFAULT FALSE,
+ADD COLUMN IF NOT EXISTS meal_provided BOOLEAN DEFAULT FALSE,
+ADD COLUMN IF NOT EXISTS transport_compensation BOOLEAN DEFAULT FALSE,
+ADD COLUMN IF NOT EXISTS experience_required INTEGER DEFAULT 0,
+ADD COLUMN IF NOT EXISTS language_requirements VARCHAR(100),
+ADD COLUMN IF NOT EXISTS auto_close_at TIMESTAMP WITH TIME ZONE,
+ADD COLUMN IF NOT EXISTS status VARCHAR(20) DEFAULT 'active',
+ADD COLUMN IF NOT EXISTS priority_score INTEGER DEFAULT 100,
+ADD COLUMN IF NOT EXISTS tags TEXT[],
+ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT TRUE,
+ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW();
+
+-- Добавляем ограничения для urgent_jobs
+DO $$ 
+BEGIN 
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'check_urgent_status') THEN
+        ALTER TABLE urgent_jobs ADD CONSTRAINT check_urgent_status CHECK (status IN ('active', 'filled', 'cancelled', 'expired'));
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'check_workers_count') THEN
+        ALTER TABLE urgent_jobs ADD CONSTRAINT check_workers_count CHECK (workers_needed > 0 AND workers_confirmed >= 0 AND workers_confirmed <= workers_needed);
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'check_urgency_level_urgent') THEN
+        ALTER TABLE urgent_jobs ADD CONSTRAINT check_urgency_level_urgent CHECK (urgency_level >= 1 AND urgency_level <= 5);
+    END IF;
+END $$;
+
+-- Создаем таблицу employers если её нет
+CREATE TABLE IF NOT EXISTS employers (
+    id INTEGER GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+    company_id INTEGER REFERENCES companies(id) ON DELETE SET NULL,
+    position VARCHAR(100),
+    is_verified BOOLEAN DEFAULT FALSE,
+    can_post_urgent BOOLEAN DEFAULT TRUE,
+    urgent_jobs_limit INTEGER DEFAULT 5,
+    urgent_jobs_used INTEGER DEFAULT 0,
+    rating DECIMAL(3,2),
+    reviews_count INTEGER DEFAULT 0,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Включаем RLS для employers
+ALTER TABLE employers ENABLE ROW LEVEL SECURITY;
+
+-- Создаем политики RLS для job_postings
+DROP POLICY IF EXISTS "job_postings_select_policy" ON job_postings;
+CREATE POLICY "job_postings_select_policy" ON job_postings
+    FOR SELECT USING (is_active = true OR auth.uid() IN (
+        SELECT e.user_id FROM employers e 
+        JOIN companies c ON e.company_id = c.id 
+        WHERE c.id = job_postings.company_id
+    ));
+
+DROP POLICY IF EXISTS "job_postings_insert_policy" ON job_postings;
+CREATE POLICY "job_postings_insert_policy" ON job_postings
+    FOR INSERT WITH CHECK (auth.uid() IN (
+        SELECT e.user_id FROM employers e 
+        JOIN companies c ON e.company_id = c.id 
+        WHERE c.id = job_postings.company_id
+    ));
+
+DROP POLICY IF EXISTS "job_postings_update_policy" ON job_postings;
+CREATE POLICY "job_postings_update_policy" ON job_postings
+    FOR UPDATE USING (auth.uid() IN (
+        SELECT e.user_id FROM employers e 
+        JOIN companies c ON e.company_id = c.id 
+        WHERE c.id = job_postings.company_id
+    ));
+
+-- Создаем политики RLS для urgent_jobs
+DROP POLICY IF EXISTS "urgent_jobs_select_policy" ON urgent_jobs;
+CREATE POLICY "urgent_jobs_select_policy" ON urgent_jobs
+    FOR SELECT USING (is_active = true OR auth.uid() IN (
+        SELECT e.user_id FROM employers e 
+        JOIN companies c ON e.company_id = c.id 
+        WHERE c.id = urgent_jobs.company_id
+    ));
+
+DROP POLICY IF EXISTS "urgent_jobs_insert_policy" ON urgent_jobs;
+CREATE POLICY "urgent_jobs_insert_policy" ON urgent_jobs
+    FOR INSERT WITH CHECK (auth.uid() IN (
+        SELECT user_id FROM employers WHERE can_post_urgent = true AND urgent_jobs_used < urgent_jobs_limit
+    ));
+
+DROP POLICY IF EXISTS "urgent_jobs_update_policy" ON urgent_jobs;
+CREATE POLICY "urgent_jobs_update_policy" ON urgent_jobs
+    FOR UPDATE USING (auth.uid() IN (
+        SELECT e.user_id FROM employers e 
+        JOIN companies c ON e.company_id = c.id 
+        WHERE c.id = urgent_jobs.company_id
+    ));
+
+-- Создаем политики RLS для employers
+DROP POLICY IF EXISTS "employers_select_policy" ON employers;
+CREATE POLICY "employers_select_policy" ON employers
+    FOR SELECT USING (user_id = auth.uid() OR is_verified = true);
+
+DROP POLICY IF EXISTS "employers_insert_policy" ON employers;
+CREATE POLICY "employers_insert_policy" ON employers
+    FOR INSERT WITH CHECK (user_id = auth.uid());
+
+DROP POLICY IF EXISTS "employers_update_policy" ON employers;
+CREATE POLICY "employers_update_policy" ON employers
+    FOR UPDATE USING (user_id = auth.uid());
+
+-- Создаем индексы для производительности
+CREATE INDEX IF NOT EXISTS idx_job_postings_specialization ON job_postings(specialization_id);
+CREATE INDEX IF NOT EXISTS idx_job_postings_location ON job_postings(city_id, location_address);
+CREATE INDEX IF NOT EXISTS idx_job_postings_schedule ON job_postings(schedule_type, shift_start, shift_end);
+CREATE INDEX IF NOT EXISTS idx_job_postings_priority ON job_postings(priority_level, is_urgent);
+CREATE INDEX IF NOT EXISTS idx_job_postings_tags ON job_postings USING GIN(tags);
+
+CREATE INDEX IF NOT EXISTS idx_urgent_jobs_date ON urgent_jobs(needed_date, needed_time_start);
+CREATE INDEX IF NOT EXISTS idx_urgent_jobs_location ON urgent_jobs(city_id, location_address);
+CREATE INDEX IF NOT EXISTS idx_urgent_jobs_status ON urgent_jobs(status, is_active);
+CREATE INDEX IF NOT EXISTS idx_urgent_jobs_priority ON urgent_jobs(priority_score, urgency_level);
+CREATE INDEX IF NOT EXISTS idx_urgent_jobs_company ON urgent_jobs(company_id);
+CREATE INDEX IF NOT EXISTS idx_urgent_jobs_tags ON urgent_jobs USING GIN(tags);
+
+CREATE INDEX IF NOT EXISTS idx_employers_user ON employers(user_id);
+CREATE INDEX IF NOT EXISTS idx_employers_company ON employers(company_id);
+CREATE INDEX IF NOT EXISTS idx_employers_verification ON employers(is_verified, can_post_urgent);
+
+-- Создаем функции для автоматического обновления счетчиков
+CREATE OR REPLACE FUNCTION update_job_applications_count()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP = 'INSERT' THEN
+        UPDATE job_postings SET applications_count = applications_count + 1 WHERE id = NEW.job_posting_id;
+        RETURN NEW;
+    ELSIF TG_OP = 'DELETE' THEN
+        UPDATE job_postings SET applications_count = applications_count - 1 WHERE id = OLD.job_posting_id;
+        RETURN OLD;
+    END IF;
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION update_urgent_jobs_limit()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP = 'INSERT' THEN
+        UPDATE employers SET urgent_jobs_used = urgent_jobs_used + 1 
+        WHERE user_id = (
+            SELECT e.user_id FROM employers e 
+            JOIN companies c ON e.company_id = c.id 
+            WHERE c.id = NEW.company_id
+        );
+        RETURN NEW;
+    ELSIF TG_OP = 'DELETE' THEN
+        UPDATE employers SET urgent_jobs_used = urgent_jobs_used - 1 
+        WHERE user_id = (
+            SELECT e.user_id FROM employers e 
+            JOIN companies c ON e.company_id = c.id 
+            WHERE c.id = OLD.company_id
+        );
+        RETURN OLD;
+    END IF;
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Создаем триггеры
+DROP TRIGGER IF EXISTS trigger_job_applications_count ON job_applications;
+CREATE TRIGGER trigger_job_applications_count
+    AFTER INSERT OR DELETE ON job_applications
+    FOR EACH ROW EXECUTE FUNCTION update_job_applications_count();
+
+DROP TRIGGER IF EXISTS trigger_urgent_jobs_limit ON urgent_jobs;
+CREATE TRIGGER trigger_urgent_jobs_limit
+    AFTER INSERT OR DELETE ON urgent_jobs
+    FOR EACH ROW EXECUTE FUNCTION update_urgent_jobs_limit();
+
+DROP TRIGGER IF EXISTS trigger_update_job_postings_timestamp ON job_postings;
+CREATE TRIGGER trigger_update_job_postings_timestamp
+    BEFORE UPDATE ON job_postings
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+DROP TRIGGER IF EXISTS trigger_update_urgent_jobs_timestamp ON urgent_jobs;
+CREATE TRIGGER trigger_update_urgent_jobs_timestamp
+    BEFORE UPDATE ON urgent_jobs
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+DROP TRIGGER IF EXISTS trigger_update_employers_timestamp ON employers;
+CREATE TRIGGER trigger_update_employers_timestamp
+    BEFORE UPDATE ON employers
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- Создаем функцию update_updated_at_column если её нет
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Вставляем тестовые данные в specializations если таблица пустая
+INSERT INTO specializations (name, category, is_active) VALUES
+('Бармен', 'Бар', true),
+('Официант', 'Ресторан', true),
+('Повар', 'Кухня', true),
+('Помощник повара', 'Кухня', true),
+('Администратор', 'Администрация', true),
+('Хостес', 'Администрация', true),
+('Уборщик', 'Сервис', true),
+('Мойщик посуды', 'Кухня', true),
+('Курьер', 'Доставка', true),
+('Кассир', 'Касса', true)
+ON CONFLICT (name) DO NOTHING;

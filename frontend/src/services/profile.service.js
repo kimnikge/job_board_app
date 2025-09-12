@@ -97,6 +97,65 @@ export const profileService = {
     }
   },
 
+  // Создание или обновление профиля из данных Telegram авторизации
+  async createOrUpdateProfile(userData) {
+    try {
+      if (isDemoMode) {
+        // В demo режиме просто возвращаем данные из localStorage
+        const profileData = {
+          id: userData.id,
+          telegram_id: userData.user_metadata?.telegram_id || userData.telegram_id,
+          telegram_username: userData.user_metadata?.telegram_username || userData.username,
+          full_name: userData.user_metadata?.full_name || `${userData.first_name || ''} ${userData.last_name || ''}`.trim(),
+          role: userData.user_metadata?.user_type || 'candidate',
+          phone: userData.user_metadata?.phone || null,
+          photo_url: userData.user_metadata?.telegram_photo_url || userData.photo_url,
+          is_ready_for_urgent: false,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }
+        
+        console.log('📝 Demo режим: профиль создан локально', profileData)
+        return { data: profileData, error: null }
+      }
+
+      // Данные для создания/обновления профиля в user_profiles таблице
+      const profileData = {
+        telegram_id: parseInt(userData.telegram_id || userData.user_metadata?.telegram_id),
+        telegram_username: userData.telegram_username || userData.user_metadata?.telegram_username || userData.username,
+        full_name: userData.full_name || userData.user_metadata?.full_name || `${userData.first_name || ''} ${userData.last_name || ''}`.trim(),
+        role: userData.role || userData.user_metadata?.user_type || 'candidate',
+        phone: userData.phone || userData.user_metadata?.phone || null,
+        photo_url: userData.photo_url || userData.user_metadata?.telegram_photo_url || null,
+        is_ready_for_urgent: false // По умолчанию не готов к срочным вакансиям
+      }
+
+      console.log('📝 Создание профиля в Supabase user_profiles:', profileData)
+
+      // Используем upsert для создания или обновления по telegram_id
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .upsert(profileData, {
+          onConflict: 'telegram_id', // Если пользователь с таким telegram_id уже есть - обновляем
+          returning: 'representation'
+        })
+        .select()
+        .single()
+
+      if (error) {
+        console.error('❌ Ошибка создания профиля в user_profiles:', error)
+        return { data: null, error }
+      }
+
+      console.log('✅ Профиль успешно создан/обновлен в user_profiles:', data)
+      return { data, error: null }
+
+    } catch (error) {
+      console.error('❌ Ошибка в profileService.createOrUpdateProfile:', error)
+      return { data: null, error }
+    }
+  },
+
   // Загрузить аватар
   async uploadAvatar(file, userId) {
     try {
