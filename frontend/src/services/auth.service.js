@@ -32,16 +32,22 @@ export const authService = {
       // Вызываем Edge Function для обработки Telegram Login
       console.log('🔧 Calling Edge Function telegram-login with data:', telegramData)
       
+      // Добавляем флаг что это Telegram Web App
+      if (window.Telegram && window.Telegram.WebApp) {
+        telegramData.is_web_app = true
+        telegramData.init_data = window.Telegram.WebApp.initData
+      }
+      
       // Делаем прямой HTTP запрос к Edge Function
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-      // Используем service role key для Edge Functions (только для авторизации!)
-      const serviceKey = import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY
+      // Используем anon key для обычных запросов
+      const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
       const response = await fetch(`${supabaseUrl}/functions/v1/telegram-login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${serviceKey}`,
-          'apikey': serviceKey
+          'Authorization': `Bearer ${anonKey}`,
+          'apikey': anonKey
         },
         body: JSON.stringify(telegramData)
       })
