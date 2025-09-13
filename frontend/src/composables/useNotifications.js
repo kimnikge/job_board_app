@@ -1,6 +1,7 @@
 // 📱 useNotifications.js — Композейбл для работы с push-уведомлениями
 import { ref } from 'vue'
 import { notificationsService } from '@/services/notifications.service.js'
+import { HORECA_CONSTANTS } from '@/constants/horeca.constants.js'
 
 /**
  * Композейбл для работы с push-уведомлениями в компонентах
@@ -13,11 +14,52 @@ export function useNotifications() {
 
   // Локальные уведомления (UI)
   function showSuccess(message) {
-    notifications.value.push({ type: 'success', message })
+    notifications.value.push({ 
+      id: Date.now(), 
+      type: 'success', 
+      message, 
+      timestamp: new Date() 
+    })
   }
 
   function showError(message) {
-    notifications.value.push({ type: 'error', message })
+    notifications.value.push({ 
+      id: Date.now(), 
+      type: 'error', 
+      message, 
+      timestamp: new Date() 
+    })
+  }
+
+  function showInfo(message) {
+    notifications.value.push({ 
+      id: Date.now(), 
+      type: 'info', 
+      message, 
+      timestamp: new Date() 
+    })
+  }
+
+  function showWarning(message) {
+    notifications.value.push({ 
+      id: Date.now(), 
+      type: 'warning', 
+      message, 
+      timestamp: new Date() 
+    })
+  }
+
+  // Убрать уведомление из списка
+  function removeNotification(notificationId) {
+    const index = notifications.value.findIndex(n => n.id === notificationId)
+    if (index > -1) {
+      notifications.value.splice(index, 1)
+    }
+  }
+
+  // Очистить все уведомления
+  function clearNotifications() {
+    notifications.value = []
   }
 
   /**
@@ -152,6 +194,166 @@ export function useNotifications() {
   }
 
   /**
+   * 🔥 СРОЧНАЯ ВАКАНСИЯ - Уведомить готовых сотрудников
+   */
+  const notifyUrgentJob = async (urgentJobData) => {
+    isLoading.value = true
+    error.value = null
+    
+    try {
+      // Формируем привлекательное сообщение для срочной вакансии
+      const position = HORECA_CONSTANTS.POSITION_TYPES[urgentJobData.position_type]
+      const urgencyIcon = HORECA_CONSTANTS.PRIORITIES[urgentJobData.priority]?.icon || '🔥'
+      
+      const message = `${urgencyIcon} СРОЧНО нужен ${position?.name || urgentJobData.position_type}!
+📍 ${urgentJobData.location}
+⏰ ${urgentJobData.needed_time_start} - ${urgentJobData.needed_time_end}
+💰 ${urgentJobData.payment_per_shift.toLocaleString()} тенге за смену
+${urgentJobData.instant_payment ? '⚡ Моментальная оплата!' : ''}
+
+Откликнуться: /urgent_${urgentJobData.id}`
+
+      const success = await notificationsService.notifyUrgentJob({
+        ...urgentJobData,
+        message
+      })
+      
+      if (success) {
+        lastNotificationSent.value = {
+          type: 'urgent_job',
+          jobTitle: urgentJobData.title,
+          priority: urgentJobData.priority,
+          timestamp: new Date()
+        }
+        showSuccess(`🔥 Срочное уведомление "${urgentJobData.title}" отправлено готовым сотрудникам!`)
+      } else {
+        error.value = 'Не удалось отправить срочное уведомление'
+        showError('Ошибка отправки срочного уведомления')
+      }
+      
+      return success
+    } catch (err) {
+      error.value = err.message
+      showError(`Ошибка срочного уведомления: ${err.message}`)
+      return false
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  /**
+   * Уведомить кандидата о принятии на работу
+   */
+  const notifyJobAccepted = async (candidateId, jobData, employerData) => {
+    isLoading.value = true
+    error.value = null
+    
+    try {
+      const position = HORECA_CONSTANTS.POSITION_TYPES[jobData.position_type]
+      const company = HORECA_CONSTANTS.COMPANY_TYPES[employerData.company_type]
+      
+      const message = `🎉 Поздравляем! Вы приняты на работу!
+
+🏢 Компания: ${employerData.company_name}
+👔 Позиция: ${position?.name || jobData.position_type}
+📍 Адрес: ${jobData.location}
+💰 Зарплата: ${jobData.salary_min ? `от ${jobData.salary_min.toLocaleString()}` : 'по договоренности'}
+
+Контакты работодателя:
+👤 ${employerData.contact_person}
+📞 ${employerData.contact_phone}
+
+Удачи в новой работе! 🍀`
+
+      const success = await notificationsService.notifyUser(candidateId, message, 'success')
+      
+      if (success) {
+        showSuccess('Кандидат уведомлен о принятии на работу!')
+      }
+      
+      return success
+    } catch (err) {
+      error.value = err.message
+      showError(`Ошибка уведомления о принятии: ${err.message}`)
+      return false
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  /**
+   * Уведомить работодателя о новом отклике
+   */
+  const notifyNewApplication = async (employerId, candidateData, jobData) => {
+    isLoading.value = true
+    error.value = null
+    
+    try {
+      const position = HORECA_CONSTANTS.POSITION_TYPES[jobData.position_type]
+      
+      const message = `📝 Новый отклик на вакансию!
+
+👔 Вакансия: ${position?.name || jobData.position_type}
+👤 Кандидат: ${candidateData.full_name}
+⭐ Опыт: ${candidateData.experience || 'не указан'}
+
+${candidateData.skills?.length ? `🛠 Навыки: ${candidateData.skills.slice(0, 3).join(', ')}${candidateData.skills.length > 3 ? '...' : ''}` : ''}
+
+Посмотреть профиль: /candidate_${candidateData.id}`
+
+      const success = await notificationsService.notifyUser(employerId, message, 'info')
+      
+      if (success) {
+        showSuccess('Работодатель уведомлен о новом отклике!')
+      }
+      
+      return success
+    } catch (err) {
+      error.value = err.message
+      showError(`Ошибка уведомления работодателя: ${err.message}`)
+      return false
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  /**
+   * Уведомить о получении бейджа с HoReCa контекстом
+   */
+  const notifyHoRecaBadgeAwarded = async (userId, badgeData, skillsImproved = []) => {
+    isLoading.value = true
+    error.value = null
+    
+    try {
+      let message = `🏆 Поздравляем! Вы получили новый бейдж!
+
+🎖️ ${badgeData.name}
+⭐ Уровень: ${badgeData.level}
+📋 Описание: ${badgeData.description}`
+
+      if (skillsImproved.length > 0) {
+        message += `\n\n💪 Улучшены навыки:\n${skillsImproved.map(skill => `• ${skill.name} +${skill.improvement}`).join('\n')}`
+      }
+
+      message += '\n\nПродолжайте развиваться в HoReCa сфере! 🚀'
+
+      const success = await notificationsService.notifyUser(userId, message, 'success')
+      
+      if (success) {
+        showSuccess(`🏆 Уведомление о бейдже "${badgeData.name}" отправлено!`)
+      }
+      
+      return success
+    } catch (err) {
+      error.value = err.message
+      showError(`Ошибка уведомления о бейдже: ${err.message}`)
+      return false
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  /**
    * Очистить ошибку
    */
   const clearError = () => {
@@ -163,8 +365,12 @@ export function useNotifications() {
     notifications,
     showSuccess,
     showError,
+    showInfo,
+    showWarning,
+    removeNotification,
+    clearNotifications,
     
-    // Push-уведомления
+    // Push-уведомления (базовые)
     isLoading,
     error,
     lastNotificationSent,
@@ -172,6 +378,13 @@ export function useNotifications() {
     notifyNewJob,
     notifyBadgeAwarded,
     notifyWelcome,
+    
+    // HoReCa-специфические уведомления
+    notifyUrgentJob,
+    notifyJobAccepted,
+    notifyNewApplication,
+    notifyHoRecaBadgeAwarded,
+    
     clearError
   }
 }
