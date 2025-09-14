@@ -5,7 +5,7 @@
         <h1>🏨 ShiftWork KZ</h1>
         <div class="user-info">
           <span>Привет, {{ user?.username || user?.first_name || 'Пользователь' }}!</span>
-          <button @click="logout" class="logout-btn">Выйти</button>
+          <button @click="openProfile" class="profile-btn">Профиль</button>
         </div>
       </div>
     </header>
@@ -67,36 +67,20 @@ export default {
       required: true
     }
   },
-  emits: ['logout'],
+
   setup(props, { emit }) {
     const showDebug = ref(false)
     const authStore = useAuthStore()
 
-    const logout = async () => {
-      try {
-        console.log('🔄 Начинаем процесс выхода...')
-        
-        // Выходим через auth store (это очистит Supabase сессию)
-        await authStore.logout()
-        console.log('✅ Auth store logout завершен')
-        
-        // Очищаем localStorage
-        localStorage.removeItem('shiftwork_user')
-        console.log('✅ LocalStorage очищен')
-        
-        // Уведомляем родительский компонент
-        emit('logout')
-        console.log('✅ Событие logout отправлено в App.vue')
-        
-        console.log('👋 Пользователь вышел из системы')
-      } catch (error) {
-        console.error('❌ Ошибка при выходе:', error)
-      }
+    const openProfile = () => {
+      console.log('� Открываем профиль пользователя')
+      // TODO: Навигация к странице профиля
+      // Пока просто логируем
     }
 
     return {
       showDebug,
-      logout
+      openProfile
     }
   }
 }
@@ -140,8 +124,8 @@ export default {
   font-weight: 500;
 }
 
-.logout-btn {
-  background: #ff4757;
+.profile-btn {
+  background: #5352ed;
   color: white;
   border: none;
   padding: 10px 20px;
@@ -151,8 +135,8 @@ export default {
   transition: all 0.3s;
 }
 
-.logout-btn:hover {
-  background: #ff3742;
+.profile-btn:hover {
+  background: #4c4ae8;
   transform: translateY(-2px);
 }
 

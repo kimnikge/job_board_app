@@ -10,7 +10,6 @@
     <MainApp 
       v-else 
       :user="currentUser"
-      @logout="onLogout"
     />
   </div>
 </template>
@@ -37,14 +36,7 @@ export default {
       isAuthenticated.value = true
     }
 
-    // Обработка выхода из системы
-    const onLogout = () => {
-      console.log('👋 App.vue получил событие logout')
-      console.log('🔄 Сбрасываем состояние пользователя...')
-      currentUser.value = null
-      isAuthenticated.value = false
-      console.log('✅ Пользователь разлогинен, показываем AuthPage')
-    }
+
 
     // Проверка сохранённой авторизации при загрузке
     onMounted(() => {
@@ -70,8 +62,7 @@ export default {
     return {
       isAuthenticated,
       currentUser,
-      onAuthenticated,
-      onLogout
+      onAuthenticated
     }
   }
 }
