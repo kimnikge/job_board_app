@@ -21,21 +21,37 @@ serve(async (req: Request) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const requestData = await req.json();
-    const { id, first_name, last_name, username, photo_url, auth_date, hash, is_web_app, init_data } = requestData;
+    const {
+      id,
+      first_name,
+      last_name,
+      username,
+      photo_url,
+      auth_date,
+      hash,
+      is_web_app,
+      init_data,
+    } = requestData;
 
-    console.log("Telegram login attempt:", { 
-      id, 
-      first_name, 
-      username, 
+    console.log("Telegram login attempt:", {
+      id,
+      first_name,
+      username,
       is_web_app: !!is_web_app,
-      has_init_data: !!init_data 
+      has_init_data: !!init_data,
     });
 
     // Базовая проверка данных
     if (!id || !auth_date) {
-      console.error("Missing required data:", { id: !!id, auth_date: !!auth_date, hash: !!hash });
+      console.error("Missing required data:", {
+        id: !!id,
+        auth_date: !!auth_date,
+        hash: !!hash,
+      });
       return new Response(
-        JSON.stringify({ error: "Missing required Telegram data (id, auth_date)" }),
+        JSON.stringify({
+          error: "Missing required Telegram data (id, auth_date)",
+        }),
         {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -47,13 +63,13 @@ serve(async (req: Request) => {
     const botToken = Deno.env.get("TELEGRAM_BOT_TOKEN");
     console.log("Bot token exists:", !!botToken);
     console.log("Is Telegram Web App:", !!is_web_app);
-    
+
     // Для Telegram Web App используем другую валидацию или пропускаем её в режиме разработки
-    const shouldSkipValidation = !botToken || 
-                                hash === 'telegram_web_app_hash' || 
-                                hash === 'telegram_web_app_no_hash' ||
-                                hash?.startsWith('demo_hash_') ||
-                                is_web_app; // Пропускаем валидацию для Web App пока настроим
+    const shouldSkipValidation = !botToken ||
+      hash === "telegram_web_app_hash" ||
+      hash === "telegram_web_app_no_hash" ||
+      hash?.startsWith("demo_hash_") ||
+      is_web_app; // Пропускаем валидацию для Web App пока настроим
 
     if (botToken && !shouldSkipValidation) {
       // Создаем строку для проверки (все поля кроме hash, отсортированные по алфавиту)
@@ -126,8 +142,11 @@ serve(async (req: Request) => {
       }
     } else {
       console.log("Skipping hash verification:", {
-        reason: !botToken ? "no_bot_token" : 
-                shouldSkipValidation ? "web_app_or_demo" : "unknown"
+        reason: !botToken
+          ? "no_bot_token"
+          : shouldSkipValidation
+          ? "web_app_or_demo"
+          : "unknown",
       });
     }
 
@@ -142,7 +161,7 @@ serve(async (req: Request) => {
       .eq("telegram_id", telegramId)
       .single();
 
-    if (selectError && selectError.code !== 'PGRST116') {
+    if (selectError && selectError.code !== "PGRST116") {
       console.error("Error searching for user:", selectError);
       throw selectError;
     }
@@ -153,9 +172,9 @@ serve(async (req: Request) => {
 
     if (existingUser) {
       // Пользователь существует, обновляем данные
-      userId = existingUser.user_id;
+      userId = existingUser.id;
 
-      // Если user_id null, создаем auth пользователя
+      // Если id null, создаем auth пользователя
       if (!userId) {
         const email = `telegram_${id}@telegram.local`;
         const tempPassword = `temp_${hash}_${Date.now()}`;
@@ -182,21 +201,21 @@ serve(async (req: Request) => {
 
         // Обновляем профиль с новым user_id
         await supabase
-          .from("user_profiles")
+          .from("profiles")
           .update({
-            user_id: userId,
-            full_name: first_name + (last_name ? ' ' + last_name : ''),
-            telegram_username: username,
+            id: userId,
+            full_name: first_name + (last_name ? " " + last_name : ""),
+            username: username,
             updated_at: new Date().toISOString(),
           })
           .eq("telegram_id", telegramId);
       } else {
         // Просто обновляем данные
         await supabase
-          .from("user_profiles")
+          .from("profiles")
           .update({
-            full_name: first_name + (last_name ? ' ' + last_name : ''),
-            telegram_username: username,
+            full_name: first_name + (last_name ? " " + last_name : ""),
+            username: username,
             updated_at: new Date().toISOString(),
           })
           .eq("telegram_id", telegramId);
@@ -229,15 +248,15 @@ serve(async (req: Request) => {
 
       userId = authUser.user.id;
 
-      // Создаем профиль в user_profiles
+      // Создаем профиль в profiles
       const { error: profileError } = await supabase
-        .from("user_profiles")
+        .from("profiles")
         .insert({
-          user_id: userId,
+          id: userId,
           telegram_id: telegramId,
-          full_name: first_name + (last_name ? ' ' + last_name : ''),
-          telegram_username: username,
-          user_type: "worker",
+          full_name: first_name + (last_name ? " " + last_name : ""),
+          username: username,
+          role: "candidate",
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         });
@@ -286,16 +305,18 @@ serve(async (req: Request) => {
     console.error("Error details:", {
       message: error.message,
       stack: error.stack,
-      name: error.name
+      name: error.name,
     });
-    
+
     return new Response(
       JSON.stringify({
-        error: error instanceof Error ? error.message : "Unknown error occurred",
+        error: error instanceof Error
+          ? error.message
+          : "Unknown error occurred",
         debug_info: {
           timestamp: new Date().toISOString(),
-          error_type: error.name || "UnknownError"
-        }
+          error_type: error.name || "UnknownError",
+        },
       }),
       {
         status: 500,

@@ -61,15 +61,17 @@
 <script>
 import { ref, onMounted, computed } from 'vue'
 import WebApp from '@twa-dev/sdk'
+import { useAuthStore } from '../stores/auth.js'
 
 export default {
   name: 'AuthPage',
   emits: ['authenticated'],
   setup(props, { emit }) {
+    const authStore = useAuthStore()
     const isLoading = ref(true)
-    const isAuthenticated = ref(false)
+    const isAuthenticated = computed(() => authStore.isAuthenticated)
     const authError = ref(null)
-    const user = ref(null)
+    const user = computed(() => authStore.user)
     const isTelegramWebApp = ref(false)
     const telegramUser = ref(null)
     const showDebug = ref(false)
@@ -138,48 +140,50 @@ export default {
       }
     }
 
-    // Простая авторизация через Telegram SDK (БЕЗ СЕРВЕРА!)
-    const loginWithTelegram = () => {
+    // Авторизация через Telegram Web App с реальным Supabase
+    const loginWithTelegram = async () => {
       try {
-        console.log('🚀 Начинаем ЛОКАЛЬНУЮ авторизацию через SDK')
+        console.log('🚀 Начинаем авторизацию через Telegram Web App')
         
         if (!telegramUser.value) {
           authError.value = 'Данные пользователя Telegram не найдены'
           return
         }
 
-        // Создаём пользователя из данных Telegram (только локально)
-        const userData = {
+        isLoading.value = true
+        authError.value = null
+
+        // Готовим данные для Edge Function
+        const telegramData = {
           id: telegramUser.value.id,
-          telegram_id: telegramUser.value.id,
-          username: telegramUser.value.username || null,
           first_name: telegramUser.value.first_name || '',
           last_name: telegramUser.value.last_name || '',
-          language_code: telegramUser.value.language_code || 'ru',
+          username: telegramUser.value.username || '',
           photo_url: telegramUser.value.photo_url || null,
-          auth_source: 'telegram_webapp_local',
-          platform: WebApp.platform,
-          version: WebApp.version,
-          created_at: new Date().toISOString(),
-          last_login: new Date().toISOString()
+          auth_date: Math.floor(Date.now() / 1000),
+          hash: 'telegram_web_app_hash',
+          is_web_app: true,
+          init_data: WebApp.initData
         }
 
-        console.log('👤 Пользователь авторизован ЛОКАЛЬНО:', userData)
+        console.log('� Отправляем данные в Edge Function:', telegramData)
         
-        user.value = userData
-        isAuthenticated.value = true
+        // Используем auth store для авторизации
+        const result = await authStore.loginWithWebApp(telegramData)
         
-        // Сохраняем в localStorage
-        localStorage.setItem('shiftwork_user', JSON.stringify(userData))
-        
-        console.log('🎉 ЛОКАЛЬНАЯ авторизация завершена!')
-        
-        // Уведомляем родительский компонент
-        emit('authenticated', userData)
+        if (result.success) {
+          console.log('🎉 Авторизация успешна!')
+          // Уведомляем родительский компонент
+          emit('authenticated', authStore.user)
+        } else {
+          throw new Error(result.error || 'Неизвестная ошибка авторизации')
+        }
 
       } catch (error) {
-        console.error('❌ Ошибка локальной авторизации:', error)
+        console.error('❌ Ошибка авторизации через Telegram:', error)
         authError.value = error.message
+      } finally {
+        isLoading.value = false
       }
     }
 

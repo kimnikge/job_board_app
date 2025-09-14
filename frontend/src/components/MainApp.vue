@@ -57,6 +57,7 @@
 
 <script>
 import { ref } from 'vue'
+import { useAuthStore } from '../stores/auth.js'
 
 export default {
   name: 'MainApp',
@@ -69,15 +70,28 @@ export default {
   emits: ['logout'],
   setup(props, { emit }) {
     const showDebug = ref(false)
+    const authStore = useAuthStore()
 
-    const logout = () => {
-      // Очищаем localStorage
-      localStorage.removeItem('shiftwork_user')
-      
-      // Уведомляем родительский компонент
-      emit('logout')
-      
-      console.log('👋 Пользователь вышел из системы')
+    const logout = async () => {
+      try {
+        console.log('🔄 Начинаем процесс выхода...')
+        
+        // Выходим через auth store (это очистит Supabase сессию)
+        await authStore.logout()
+        console.log('✅ Auth store logout завершен')
+        
+        // Очищаем localStorage
+        localStorage.removeItem('shiftwork_user')
+        console.log('✅ LocalStorage очищен')
+        
+        // Уведомляем родительский компонент
+        emit('logout')
+        console.log('✅ Событие logout отправлено в App.vue')
+        
+        console.log('👋 Пользователь вышел из системы')
+      } catch (error) {
+        console.error('❌ Ошибка при выходе:', error)
+      }
     }
 
     return {
