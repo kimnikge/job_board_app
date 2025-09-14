@@ -1,4 +1,4 @@
-// ✨ ЧИСТАЯ АВТОРИЗАЦИЯ ЧЕРЕЗ TELEGRAM 
+// ✨ API АВТОРИЗАЦИИ: ЕДИНСТВЕННЫЙ СПОСОБ ВХОДА - TELEGRAM LOGIN
 import { supabase } from './supabase.js'
 import { notificationsService } from './notifications.service.js'
 import { profileService } from './profile.service.js'
@@ -110,17 +110,6 @@ export const authService = {
   // Установка сессии (для callback от Telegram)
   async setSession(sessionData) {
     try {
-      if (isDemoMode) {
-        return {
-          data: {
-            user: {
-              id: 'demo-user',
-              user_metadata: { 
-                user_type: 'candidate', 
-                full_name: 'Demo User',
-                telegram_id: 123456789,
-                telegram_username: 'demouser'
-              }
             }
           },
           error: null
@@ -144,10 +133,6 @@ export const authService = {
     try {
       console.log('📱 Авторизация через Telegram Web App:', webAppData)
       
-      if (isDemoMode) {
-        // В demo режиме создаем пользователя из Web App данных
-        const demoUser = {
-          id: `webapp-user-${webAppData.id}`,
           user_metadata: { 
             user_type: 'candidate', 
             full_name: webAppData.first_name + (webAppData.last_name ? ' ' + webAppData.last_name : ''),
@@ -223,10 +208,6 @@ export const authService = {
     try {
       console.log('🔗 Авторизация через URL токен:', token)
       
-      if (isDemoMode) {
-        // В demo режиме создаем пользователя из токена
-        const demoUser = {
-          id: `url-auth-${Date.now()}`,
           user_metadata: { 
             user_type: 'candidate', 
             full_name: 'URL Authorized User',
@@ -278,12 +259,6 @@ export const authService = {
 
   // Подписка на изменения авторизации
   onAuthStateChange(callback) {
-    if (isDemoMode) {
-      // В demo режиме не автоматически авторизуем, пользователь должен нажать кнопку
-      // Проверяем сохраненную сессию
-      const savedSession = localStorage.getItem('demo-session')
-      if (savedSession) {
-        callback('SIGNED_IN', { user: JSON.parse(savedSession) })
       }
       return { data: { subscription: { unsubscribe: () => {} } } }
     }
