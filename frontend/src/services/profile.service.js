@@ -1,5 +1,5 @@
 // ✨ API ПРОФИЛЯ - ЭТАП 4.1.4
-import { supabase, isDemoMode } from './supabase.js'
+import { supabase } from './supabase.js'
 
 // 👤 Все операции с профилем и резюме
 export const profileService = {
@@ -23,27 +23,6 @@ export const profileService = {
             created_at: new Date().toISOString(),
             specializations: { name: 'Тестер', icon: '🧪' },
             city_districts: { name: 'Тестовый район' }
-          },
-          error: null
-        }
-      }
-
-      if (isDemoMode) {
-        return {
-          data: {
-            id: 1,
-            user_id: userId,
-            full_name: 'Demo User',
-            phone: '+7 777 123 45 67',
-            avatar_url: null,
-            telegram_chat_id: '763612632', // Добавляем telegram_chat_id для тестирования
-            specialization_id: 1,
-            district_id: 1,
-            experience_years: 3,
-            about: 'Опытный специалист общепита',
-            created_at: new Date().toISOString(),
-            specializations: { name: 'Повар', icon: '👨‍🍳' },
-            city_districts: { name: 'Есильский район' }
           },
           error: null
         }

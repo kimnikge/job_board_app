@@ -1,7 +1,6 @@
 // 📱 notifications.service.js — Центральная служба уведомлений
 import { sendTelegramNotification } from './telegramNotify.js'
 import { profileService } from './profile.service.js'
-import { isDemoMode } from './supabase.js'
 
 /**
  * Центральная служба уведомлений для Shiftwork BETA App

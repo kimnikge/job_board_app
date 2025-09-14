@@ -1,5 +1,5 @@
 // 📘 experience.service.js — R1 skeleton
-import { supabase, isDemoMode } from './supabase.js'
+import { supabase } from './supabase.js'
 
 export const experienceService = {
   async list(userId) {

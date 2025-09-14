@@ -110,23 +110,6 @@ export const authService = {
   // Установка сессии (для callback от Telegram)
   async setSession(sessionData) {
     try {
-      if (isDemoMode) {
-        return {
-          data: {
-            user: {
-              id: 'demo-user',
-              user_metadata: { 
-                user_type: 'candidate', 
-                full_name: 'Demo User',
-                telegram_id: 123456789,
-                telegram_username: 'demouser'
-              }
-            }
-          },
-          error: null
-        }
-      }
-
       const { data, error } = await supabase.auth.setSession({
         access_token: sessionData.access_token,
         refresh_token: sessionData.refresh_token
@@ -144,30 +127,7 @@ export const authService = {
     try {
       console.log('📱 Авторизация через Telegram Web App:', webAppData)
       
-      if (isDemoMode) {
-        // В demo режиме создаем пользователя из Web App данных
-        const demoUser = {
-          id: `webapp-user-${webAppData.id}`,
-          user_metadata: { 
-            user_type: 'candidate', 
-            full_name: webAppData.first_name + (webAppData.last_name ? ' ' + webAppData.last_name : ''),
-            telegram_id: webAppData.id,
-            telegram_username: webAppData.username,
-            telegram_photo_url: webAppData.photo_url,
-            auth_method: 'telegram_web_app',
-            platform: webAppData.platform || 'web'
-          }
-        }
-        
-        localStorage.setItem('demo-session', JSON.stringify(demoUser))
-        
-        return {
-          data: { user: demoUser },
-          error: null
-        }
-      }
-
-      // В production режиме используем простую Edge Function  
+      // Используем простую Edge Function  
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
       const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
       
@@ -223,29 +183,7 @@ export const authService = {
     try {
       console.log('🔗 Авторизация через URL токен:', token)
       
-      if (isDemoMode) {
-        // В demo режиме создаем пользователя из токена
-        const demoUser = {
-          id: `url-auth-${Date.now()}`,
-          user_metadata: { 
-            user_type: 'candidate', 
-            full_name: 'URL Authorized User',
-            telegram_id: `url_${token.slice(-8)}`,
-            auth_method: 'telegram_url_auth',
-            autologin_token: token,
-            ...additionalData
-          }
-        }
-        
-        localStorage.setItem('demo-session', JSON.stringify(demoUser))
-        
-        return {
-          data: { user: demoUser },
-          error: null
-        }
-      }
-
-      // В production режиме отправляем токен на backend для валидации
+      // Отправляем токен на backend для валидации
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
       const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
       
@@ -278,16 +216,6 @@ export const authService = {
 
   // Подписка на изменения авторизации
   onAuthStateChange(callback) {
-    if (isDemoMode) {
-      // В demo режиме не автоматически авторизуем, пользователь должен нажать кнопку
-      // Проверяем сохраненную сессию
-      const savedSession = localStorage.getItem('demo-session')
-      if (savedSession) {
-        callback('SIGNED_IN', { user: JSON.parse(savedSession) })
-      }
-      return { data: { subscription: { unsubscribe: () => {} } } }
-    }
-
     return supabase.auth.onAuthStateChange(callback)
   }
 }

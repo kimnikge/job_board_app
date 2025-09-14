@@ -1,5 +1,5 @@
 // ✨ API ВАКАНСИЙ - ЭТАП 4.1.3
-import { supabase, isDemoMode, DEFAULT_SELECT, isAuthenticated, handleAuthError } from './supabase.js'
+import { supabase, DEFAULT_SELECT, isAuthenticated, handleAuthError } from './supabase.js'
 import { notificationsService } from './notifications.service.js'
 import { monetizationService } from './monetization.service.js'
 

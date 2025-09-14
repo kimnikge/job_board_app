@@ -1,5 +1,5 @@
 // ✨ API МОНЕТИЗАЦИИ - Управление платежной системой
-import { supabase, isDemoMode } from './supabase.js'
+import { supabase } from './supabase.js'
 
 // 💰 Все операции с монетизацией и подписками
 export const monetizationService = {

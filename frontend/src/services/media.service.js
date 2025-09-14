@@ -1,5 +1,5 @@
 // 🎥 media.service.js — R1 skeleton (только видео профиля)
-import { supabase, isDemoMode } from './supabase.js'
+import { supabase } from './supabase.js'
 
 const BUCKET = 'profile_videos'
 
